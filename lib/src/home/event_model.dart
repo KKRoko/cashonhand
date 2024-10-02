@@ -1,28 +1,55 @@
 import 'dart:collection';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:uuid/uuid.dart';
 
 enum RepeatOption { none, daily, weekly, monthly, yearly, custom }
 
 class Event {
+  final String id;
   final String title;
   final double? amount;
   final bool isPositiveCashflow;
   final bool isNegativeCashflow;
   final RepeatOption repeatOption;
   final CustomRecurrence? customRecurrence;
+  final DateTime createdAt;
 
   Event({
+    String? id,
     required this.title,
     this.amount,
     required this.isPositiveCashflow,
     required this.isNegativeCashflow,
     required this.repeatOption,
     this.customRecurrence,
-  });
+    DateTime? createdAt,
+  }) : id = id ?? const Uuid().v4(),
+       createdAt = createdAt ?? DateTime.now();
+
+  Event copyWith({
+    String? title,
+    double? amount,
+    bool? isPositiveCashflow,
+    bool? isNegativeCashflow,
+    RepeatOption? repeatOption,
+    CustomRecurrence? customRecurrence,
+  }) {
+    return Event(
+      id: id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      isPositiveCashflow: isPositiveCashflow ?? this.isPositiveCashflow,
+      isNegativeCashflow: isNegativeCashflow ?? this.isNegativeCashflow,
+      repeatOption: repeatOption ?? this.repeatOption,
+      customRecurrence: customRecurrence ?? this.customRecurrence,
+      createdAt: createdAt,
+    );
+  }
 
   @override
   String toString() => title;
 }
+
 
 class CustomRecurrence {
   final RepeatOption interval;

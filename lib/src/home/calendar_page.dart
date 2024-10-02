@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:async';
@@ -7,6 +6,7 @@ import 'event_model.dart';
 import 'event_dialog.dart';
 import 'event_list.dart';
 import 'calendar_widget.dart';
+import 'delete_event_dialog.dart';
 
 
 
@@ -72,17 +72,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
 
 
-  void _deleteEvent(DateTime day, Event event) {
-    setState(() {
-      if (kEvents[day] != null) {
-        kEvents[day]!.remove(event);
-        if (kEvents[day]!.isEmpty) {
-          kEvents.remove(day);
-        }
-      }
-      _selectedEvents.value = _getEventsForDay(day);
-    });
-  }
+
 
   void _editEvent(DateTime day, Event oldEvent, Event newEvent) {
     setState(() {
@@ -137,6 +127,64 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+Future<void> _handleEventDeletion(DateTime day, Event event) async {
+    final deleteOption = await showDeleteEventDialog(context, event);
+    if (deleteOption == null) return;
+
+    setState(() {
+      switch (deleteOption) {
+        case DeleteOption.thisDay:
+          _deleteSingleEvent(day, event);
+          break;
+        case DeleteOption.allTime:
+          _deleteAllEvents(event);
+          break;
+        case DeleteOption.futureOnly:
+          _deleteFutureEvents(day, event);
+          break;
+        case DeleteOption.pastOnly:
+          _deletePastEvents(day, event);
+          break;
+      }
+      _selectedEvents.value = _getEventsForDay(day);
+    });
+  }
+
+  void _deleteSingleEvent(DateTime day, Event event) {
+    if (kEvents[day] != null) {
+      kEvents[day]!.removeWhere((e) => e.id == event.id);
+      if (kEvents[day]!.isEmpty) {
+        kEvents.remove(day);
+      }
+    }
+  }
+
+  void _deleteAllEvents(Event event) {
+    kEvents.forEach((date, events) {
+      events.removeWhere((e) => e.id == event.id);
+    });
+    kEvents.removeWhere((date, events) => events.isEmpty);
+  }
+
+  void _deleteFutureEvents(DateTime day, Event event) {
+    kEvents.forEach((date, events) {
+      if (date.isAtSameMomentAs(day) || date.isAfter(day)) {
+        events.removeWhere((e) => e.id == event.id);
+      }
+    });
+    kEvents.removeWhere((date, events) => events.isEmpty);
+  }
+
+  void _deletePastEvents(DateTime day, Event event) {
+    kEvents.forEach((date, events) {
+      if (date.isAtSameMomentAs(day) || date.isBefore(day)) {
+        events.removeWhere((e) => e.id == event.id);
+      }
+    });
+    kEvents.removeWhere((date, events) => events.isEmpty);
+  }
+
+
 @override
 Widget build(BuildContext context) {
   return Scaffold(
@@ -160,7 +208,7 @@ Widget build(BuildContext context) {
             builder: (context, value, _) {
               return buildEventList(
                 value,
-                (event) => _deleteEvent(_selectedDay!, event),
+                _handleEventDeletion as Function(Event p1),
                 (event) => _showEditEventDialog(_selectedDay!, event),
               );
             },

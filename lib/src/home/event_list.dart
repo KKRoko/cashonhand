@@ -1,6 +1,4 @@
-// event_list.dart
 import 'package:flutter/material.dart';
-
 import 'package:cash_on_hand/src/home/event_model.dart'; 
 
 Widget buildEventList(List<Event> events, Function(Event) onDeleteEvent, Function(Event) onEditEvent) {
@@ -9,9 +7,9 @@ Widget buildEventList(List<Event> events, Function(Event) onDeleteEvent, Functio
     itemBuilder: (context, index) {
       final event = events[index];
       return Dismissible(
-        key: Key(event.title),
+        key: Key(event.id),
         background: Container(
-          color: Colors.red,
+          color: const Color.fromARGB(255, 16, 6, 5),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: const Icon(Icons.delete, color: Colors.white),
