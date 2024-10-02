@@ -208,7 +208,7 @@ Widget build(BuildContext context) {
             builder: (context, value, _) {
               return buildEventList(
                 value,
-                _handleEventDeletion as Function(Event p1),
+                (event) => _handleEventDeletion(_selectedDay!, event),
                 (event) => _showEditEventDialog(_selectedDay!, event),
               );
             },
