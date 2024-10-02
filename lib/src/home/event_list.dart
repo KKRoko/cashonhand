@@ -1,6 +1,7 @@
 // event_list.dart
 import 'package:flutter/material.dart';
-import '../utils.dart';
+
+import 'package:cash_on_hand/src/home/event_model.dart'; 
 
 Widget buildEventList(List<Event> events, Function(Event) onDeleteEvent, Function(Event) onEditEvent) {
   return ListView.builder(

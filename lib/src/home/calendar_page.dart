@@ -1,22 +1,30 @@
-// calendar_page.dart
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../utils.dart';
+import 'dart:async';
+import 'event_model.dart';
 import 'event_dialog.dart';
 import 'event_list.dart';
 import 'calendar_widget.dart';
 
+
+
+
 class CalendarPage extends StatefulWidget {
   static const routeName = '/cashOnHand';
 
+  const CalendarPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _CalendarPageState createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {
   late final ValueNotifier<List<Event>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
+  final RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
@@ -37,15 +45,15 @@ class _CalendarPageState extends State<CalendarPage> {
     return kEvents[day] ?? [];
   }
 
-  void _addEvent(DateTime day, Event event) {
+  Future<void> _addEvent(DateTime day, Event event) async {
     setState(() {
       _addEventToDay(day, event);
 
       if (event.repeatOption != RepeatOption.none) {
         DateTime nextDay = day;
         while (true) {
-          nextDay = _getNextRepeatDate(nextDay, event.repeatOption);
-          if (nextDay.isAfter(DateTime.now().add(Duration(days: 365)))) break; // Limit to one year for performance
+          nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
+          if (nextDay.isAfter(DateTime.now().add(const Duration(days: 365)))) break; // Limit to one year for performance
           _addEventToDay(nextDay, event);
         }
       }
@@ -62,20 +70,7 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
-  DateTime _getNextRepeatDate(DateTime date, RepeatOption repeatOption) {
-    switch (repeatOption) {
-      case RepeatOption.daily:
-        return date.add(Duration(days: 1));
-      case RepeatOption.weekly:
-        return date.add(Duration(days: 7));
-      case RepeatOption.monthly:
-        return DateTime(date.year, date.month + 1, date.day);
-      case RepeatOption.yearly:
-        return DateTime(date.year + 1, date.month, date.day);
-      default:
-        return date;
-    }
-  }
+
 
   void _deleteEvent(DateTime day, Event event) {
     setState(() {
@@ -101,13 +96,16 @@ class _CalendarPageState extends State<CalendarPage> {
           kEvents[day]![index] = newEvent;
         }
       }
+    _addEvent(day, newEvent);
 
+    _selectedEvents.value = _getEventsForDay(day);
+    
       // Add new repeating events
       if (newEvent.repeatOption != RepeatOption.none) {
         DateTime nextDay = day;
         while (true) {
-          nextDay = _getNextRepeatDate(nextDay, newEvent.repeatOption);
-          if (nextDay.isAfter(DateTime.now().add(Duration(days: 365)))) break; // Limit to one year for performance
+          nextDay = _getNextRepeatDate(nextDay, newEvent.repeatOption, newEvent.customRecurrence);
+          if (nextDay.isAfter(DateTime.now().add(const Duration(days: 365)))) break; // Limit to one year for performance
           _addEventToDay(nextDay, newEvent);
         }
       }
@@ -117,17 +115,10 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _removeRepeatingEvents(DateTime day, Event event) {
-    DateTime nextDay = day;
-    while (true) {
-      nextDay = _getNextRepeatDate(nextDay, event.repeatOption);
-      if (kEvents[nextDay] != null) {
-        kEvents[nextDay]!.remove(event);
-        if (kEvents[nextDay]!.isEmpty) {
-          kEvents.remove(nextDay);
-        }
-      }
-      if (nextDay.isAfter(DateTime.now().add(Duration(days: 365)))) break; // Limit to one year for performance
-    }
+    kEvents.forEach((date, events) {
+      events.removeWhere((e) => e.title == event.title && e.amount == event.amount);
+    });
+    kEvents.removeWhere((date, events) => events.isEmpty);
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -150,7 +141,7 @@ class _CalendarPageState extends State<CalendarPage> {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: Text('Cash on Hand - Events'),
+      title: const Text('Cash on Hand - Events'),
     ),
     body: Column(
       children: [
@@ -204,7 +195,7 @@ Widget build(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Cash Flow'),
+        title: const Text('Edit Cash Flow'),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Column(
@@ -212,15 +203,15 @@ Widget build(BuildContext context) {
               children: [
                 TextField(
                   controller: titleController,
-                  decoration: InputDecoration(labelText: 'Cash Flow Name'),
+                  decoration: const InputDecoration(labelText: 'Cash Flow Name'),
                 ),
                 TextField(
                   controller: amountController,
-                  decoration: InputDecoration(labelText: 'Amount in USD'),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Amount in USD'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
                 CheckboxListTile(
-                  title: Text('Positive Cashflow'),
+                  title: const Text('Positive Cashflow'),
                   value: isPositiveCashflow,
                   onChanged: (value) {
                     setState(() {
@@ -230,7 +221,7 @@ Widget build(BuildContext context) {
                   },
                 ),
                 CheckboxListTile(
-                  title: Text('Negative Cashflow'),
+                  title: const Text('Negative Cashflow'),
                   value: isNegativeCashflow,
                   onChanged: (value) {
                     setState(() {
@@ -260,7 +251,7 @@ Widget build(BuildContext context) {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -274,10 +265,55 @@ Widget build(BuildContext context) {
               _editEvent(day, event, newEvent);
               Navigator.pop(context); // Close the dialog after editing
             },
-            child: Text('Save'),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
+  }
+}
+
+DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
+  if (repeatOption == RepeatOption.custom && customRecurrence != null) {
+    switch (customRecurrence.interval) {
+      case RepeatOption.daily:
+        return currentDay.add(Duration(days: customRecurrence.frequency));
+      case RepeatOption.weekly:
+        if (customRecurrence.selectedDays.isNotEmpty) {
+          int currentWeekday = currentDay.weekday % 7;
+          for (int i = 1; i <= 7; i++) {
+            int nextWeekday = (currentWeekday + i) % 7;
+            if (customRecurrence.selectedDays[nextWeekday]) {
+              return currentDay.add(Duration(days: i));
+            }
+          }
+        }
+        return currentDay.add(Duration(days: 7 * customRecurrence.frequency));
+      case RepeatOption.monthly:
+        int targetDay = customRecurrence.dayOfMonth ?? currentDay.day;
+        DateTime nextMonth = DateTime(currentDay.year, currentDay.month + customRecurrence.frequency, 1);
+        return DateTime(nextMonth.year, nextMonth.month, min(targetDay, DateUtils.getDaysInMonth(nextMonth.year, nextMonth.month)));
+      case RepeatOption.yearly:
+        return DateTime(
+          currentDay.year + customRecurrence.frequency,
+          customRecurrence.month ?? currentDay.month,
+          min(customRecurrence.dayOfMonth ?? currentDay.day, DateUtils.getDaysInMonth(currentDay.year + customRecurrence.frequency, customRecurrence.month ?? currentDay.month))
+        );
+      default:
+        return currentDay;
+    }
+  }
+
+  switch (repeatOption) {
+    case RepeatOption.daily:
+      return currentDay.add(const Duration(days: 1));
+    case RepeatOption.weekly:
+      return currentDay.add(const Duration(days: 7));
+    case RepeatOption.monthly:
+      return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
+    case RepeatOption.yearly:
+      return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
+    default:
+      return currentDay;
   }
 }

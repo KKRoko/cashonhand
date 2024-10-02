@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'calendar_page.dart';
 
 class CashOnHandPage extends StatelessWidget {
-  static const routeName = '/cashOnHand'; // Route name for navigation
+  static const routeName = '/cashOnHand';
+
+  const CashOnHandPage({super.key}); // Route name for navigation
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,7 @@ class CashOnHandPage extends StatelessWidget {
                   // Navigate to the add entry page (replace with your actual page)
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AddEntryPage()),
+                    MaterialPageRoute(builder: (context) => const AddEntryPage()),
                   );
                 },
               ),
@@ -47,7 +49,7 @@ class CashOnHandPage extends StatelessWidget {
                   // Navigate to the calendar page (replace with your actual page)
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CalendarPage()),
+                    MaterialPageRoute(builder: (context) => const CalendarPage()),
                   );
                 },
               ),
@@ -61,7 +63,7 @@ class CashOnHandPage extends StatelessWidget {
           // Navigate to the add entry page
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddEntryPage()),
+            MaterialPageRoute(builder: (context) => const AddEntryPage()),
           );
         },
         child: const Icon(Icons.add),
@@ -84,13 +86,15 @@ class CashOnHandPage extends StatelessWidget {
 
 // Dummy Add Entry Page (Replace with your actual page)
 class AddEntryPage extends StatelessWidget {
+  const AddEntryPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Entry'),
       ),
-      body: Center(
+      body: const Center(
         child: Text('Add Entry Page'),
       ),
     );

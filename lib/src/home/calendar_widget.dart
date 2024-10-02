@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../utils.dart'; // Import Event and other utilities from here
+import 'event_model.dart';
 
 Widget buildTableCalendar({
   required DateTime focusedDay,

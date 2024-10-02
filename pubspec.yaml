@@ -10,6 +10,7 @@ environment:
   sdk: ^3.5.2
 
 dependencies:
+  collection: ^1.18.0
   flutter:
     sdk: flutter
   flutter_localizations:

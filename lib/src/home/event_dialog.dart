@@ -1,6 +1,6 @@
+import 'package:cash_on_hand/src/home/event_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../utils.dart';
 
 void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Event) onEventAdded) {
   TextEditingController titleController = TextEditingController();
@@ -8,13 +8,7 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
   bool isPositiveCashflow = true;
   bool isNegativeCashflow = false;
   RepeatOption repeatOption = RepeatOption.none;
-
-  // Custom recurrence options
-  RepeatOption? customRepeatOption;
-  int? customFrequency = 1;
-  List<bool> selectedDays = List.generate(7, (_) => false);
-  int? customDay = 1;
-  int? customMonth = 1;
+  CustomRecurrence? customRecurrence;
 
   showDialog(
     context: context,
@@ -29,15 +23,15 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                 children: [
                   TextField(
                     controller: titleController,
-                    decoration: InputDecoration(labelText: 'Cash Flow Name'),
+                    decoration: const InputDecoration(labelText: 'Cash Flow Name'),
                   ),
                   TextField(
                     controller: amountController,
-                    decoration: InputDecoration(labelText: 'Amount in USD'),
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Amount in USD'),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   CheckboxListTile(
-                    title: Text('Positive Cashflow'),
+                    title: const Text('Positive Cashflow'),
                     value: isPositiveCashflow,
                     onChanged: (value) {
                       setState(() {
@@ -47,7 +41,7 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                     },
                   ),
                   CheckboxListTile(
-                    title: Text('Negative Cashflow'),
+                    title: const Text('Negative Cashflow'),
                     value: isNegativeCashflow,
                     onChanged: (value) {
                       setState(() {
@@ -62,15 +56,13 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                       setState(() {
                         repeatOption = newValue!;
                         if (repeatOption == RepeatOption.custom) {
-                          _showCustomRecurrenceDialog(context, (selectedOption, frequency, days, day, month) {
+                          _showCustomRecurrenceDialog(context, (newCustomRecurrence) {
                             setState(() {
-                              customRepeatOption = selectedOption;
-                              customFrequency = frequency;
-                              selectedDays = days;
-                              customDay = day;
-                              customMonth = month;
+                              customRecurrence = newCustomRecurrence;
                             });
                           });
+                        } else {
+                          customRecurrence = null;
                         }
                       });
                     },
@@ -81,24 +73,23 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                       );
                     }).toList(),
                   ),
-                  if (repeatOption == RepeatOption.custom)
-                    Text('Custom: ${_getCustomRecurrenceDescription(customRepeatOption, customFrequency, selectedDays, customDay, customMonth)}'),
+                  if (customRecurrence != null)
+                    Text('Custom: ${_getCustomRecurrenceDescription(customRecurrence!)}'),
                 ],
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
                   final eventAmount = double.tryParse(amountController.text);
 
                   if (titleController.text.isEmpty || eventAmount == null) {
-                    // Add validation feedback
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please provide a valid title and amount.')),
+                      const SnackBar(content: Text('Please provide a valid title and amount.')),
                     );
                     return;
                   }
@@ -109,19 +100,13 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                     isPositiveCashflow: isPositiveCashflow,
                     isNegativeCashflow: isNegativeCashflow,
                     repeatOption: repeatOption,
-                    customRepeatOption: customRepeatOption,
-                    customFrequency: customFrequency,
-                    selectedDays: selectedDays,
-                    customDay: customDay,
-                    customMonth: customMonth,
+                    customRecurrence: customRecurrence,
                   );
 
-                  // Debug log for tracing event details
-                  print('Event created: $event');
                   onEventAdded(event);
-                  Navigator.pop(context); // Close the dialog after saving
+                  Navigator.pop(context);
                 },
-                child: Text('Save'),
+                child: const Text('Save'),
               ),
             ],
           );
@@ -131,12 +116,12 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
   );
 }
 
-void _showCustomRecurrenceDialog(BuildContext context, Function(RepeatOption, int?, List<bool>, int?, int?) onCustomRecurrenceSelected) {
-  RepeatOption? customRepeatOption;
-  int? customFrequency = 1;
+void _showCustomRecurrenceDialog(BuildContext context, Function(CustomRecurrence) onCustomRecurrenceSelected) {
+  RepeatOption interval = RepeatOption.daily;
+  int frequency = 1;
   List<bool> selectedDays = List.generate(7, (_) => false);
-  int? customDay = 1;
-  int? customMonth = 1;
+  int? dayOfMonth = 1;
+  int? month = 1;
 
   showDialog(
     context: context,
@@ -144,19 +129,20 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(RepeatOption, in
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Custom Recurrence Options'),
+            title: const Text('Custom Recurrence Options'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButton<RepeatOption>(
-                    value: customRepeatOption,
+                    value: interval,
                     onChanged: (RepeatOption? newValue) {
                       setState(() {
-                        customRepeatOption = newValue!;
+                        interval = newValue!;
                       });
                     },
-                    items: RepeatOption.values.map((RepeatOption option) {
+                    items: [RepeatOption.daily, RepeatOption.weekly, RepeatOption.monthly, RepeatOption.yearly]
+                        .map((RepeatOption option) {
                       return DropdownMenuItem<RepeatOption>(
                         value: option,
                         child: Text(option.toString().split('.').last),
@@ -164,39 +150,42 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(RepeatOption, in
                     }).toList(),
                   ),
                   TextField(
-                    decoration: InputDecoration(labelText: 'Frequency'),
+                    decoration: const InputDecoration(labelText: 'Frequency'),
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
-                      customFrequency = int.tryParse(value);
+                      frequency = int.tryParse(value) ?? 1;
                     },
                   ),
-                  Wrap(
-                    children: List.generate(7, (index) {
-                      return ChoiceChip(
-                        label: Text(['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]),
-                        selected: selectedDays[index],
-                        onSelected: (selected) {
-                          setState(() {
-                            selectedDays[index] = selected;
-                          });
-                        },
-                      );
-                    }),
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Custom Day'),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      customDay = int.tryParse(value);
-                    },
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Custom Month'),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) {
-                      customMonth = int.tryParse(value);
-                    },
-                  ),
+                  if (interval == RepeatOption.weekly)
+                    Wrap(
+                      children: List.generate(7, (index) {
+                        return ChoiceChip(
+                          label: Text(['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]),
+                          selected: selectedDays[index],
+                          onSelected: (selected) {
+                            setState(() {
+                              selectedDays[index] = selected;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                  if (interval == RepeatOption.monthly || interval == RepeatOption.yearly)
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Day of Month'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        dayOfMonth = int.tryParse(value);
+                      },
+                    ),
+                  if (interval == RepeatOption.yearly)
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Month'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        month = int.tryParse(value);
+                      },
+                    ),
                 ],
               ),
             ),
@@ -205,14 +194,20 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(RepeatOption, in
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Cancel'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
-                  onCustomRecurrenceSelected(customRepeatOption!, customFrequency, selectedDays, customDay, customMonth);
+                  onCustomRecurrenceSelected(CustomRecurrence(
+                    interval: interval,
+                    frequency: frequency,
+                    selectedDays: selectedDays,
+                    dayOfMonth: dayOfMonth,
+                    month: month,
+                  ));
                   Navigator.of(context).pop();
                 },
-                child: Text('Save'),
+                child: const Text('Save'),
               ),
             ],
           );
@@ -222,45 +217,21 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(RepeatOption, in
   );
 }
 
-String _getCustomRecurrenceDescription(
-  RepeatOption? customRepeatOption,
-  int? customFrequency,
-  List<bool> selectedDays,
-  int? customDay,
-  int? customMonth,
-) {
-  if (customRepeatOption == null) return '';
+String _getCustomRecurrenceDescription(CustomRecurrence recurrence) {
+  String description = 'Every ${recurrence.frequency} ${recurrence.interval.toString().split('.').last}(s)';
 
-  String description = 'Every $customFrequency ${customRepeatOption.toString().split('.').last}(s)';
-
-  if (customRepeatOption == RepeatOption.weekly) {
+  if (recurrence.interval == RepeatOption.weekly) {
     List<String> days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     List<String> selectedDayNames = [];
-    for (int i = 0; i < selectedDays.length; i++) {
-      if (selectedDays[i]) selectedDayNames.add(days[i]);
+    for (int i = 0; i < recurrence.selectedDays.length; i++) {
+      if (recurrence.selectedDays[i]) selectedDayNames.add(days[i]);
     }
     description += ' on ${selectedDayNames.join(', ')}';
-  } else if (customRepeatOption == RepeatOption.monthly) {
-    description += ' on day $customDay';
-  } else if (customRepeatOption == RepeatOption.yearly) {
-    description += ' on ${DateFormat('MMMM').format(DateTime(2022, customMonth!))} $customDay';
+  } else if (recurrence.interval == RepeatOption.monthly) {
+    description += ' on day ${recurrence.dayOfMonth}';
+  } else if (recurrence.interval == RepeatOption.yearly) {
+    description += ' on ${DateFormat('MMMM').format(DateTime(2022, recurrence.month!))} ${recurrence.dayOfMonth}';
   }
 
   return description;
-}
-
-class CustomRecurrenceOptions {
-  final RepeatOption customRepeatOption;
-  final int customFrequency;
-  final List<bool> selectedDays;
-  final int customDay;
-  final int customMonth;
-
-  CustomRecurrenceOptions({
-    required this.customRepeatOption,
-    required this.customFrequency,
-    required this.selectedDays,
-    required this.customDay,
-    required this.customMonth,
-  });
 }

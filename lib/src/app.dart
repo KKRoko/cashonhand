@@ -70,10 +70,9 @@ class MyApp extends StatelessWidget {
                   case SettingsView.routeName:
                     return SettingsView(controller: settingsController);
                   case CalendarPage.routeName:
-                    return CalendarPage();
-                  case CashOnHandPage.routeName:
+                    return const CalendarPage();
                   default:
-                    return  CashOnHandPage();
+                    return  const CashOnHandPage();
                 }
               },
             );
