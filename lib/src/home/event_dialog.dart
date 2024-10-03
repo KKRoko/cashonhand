@@ -141,7 +141,7 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(CustomRecurrence
                         interval = newValue!;
                       });
                     },
-                    items: [RepeatOption.daily, RepeatOption.weekly, RepeatOption.monthly, RepeatOption.yearly]
+                    items: [RepeatOption.daily, RepeatOption.weekly, RepeatOption.monthly] // removed RepeatOption.yearly
                         .map((RepeatOption option) {
                       return DropdownMenuItem<RepeatOption>(
                         value: option,
@@ -160,7 +160,7 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(CustomRecurrence
                     Wrap(
                       children: List.generate(7, (index) {
                         return ChoiceChip(
-                          label: Text(['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]),
+                          label: Text(['S', 'M', 'T', 'W', 'T', 'F', 'S'][index]),
                           selected: selectedDays[index],
                           onSelected: (selected) {
                             setState(() {
@@ -170,7 +170,7 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(CustomRecurrence
                         );
                       }),
                     ),
-                  if (interval == RepeatOption.monthly || interval == RepeatOption.yearly)
+                  if (interval == RepeatOption.monthly ) // removed "|| interval == RepeatOption.yearly"
                     TextField(
                       decoration: const InputDecoration(labelText: 'Day of Month'),
                       keyboardType: TextInputType.number,
@@ -178,14 +178,14 @@ void _showCustomRecurrenceDialog(BuildContext context, Function(CustomRecurrence
                         dayOfMonth = int.tryParse(value);
                       },
                     ),
-                  if (interval == RepeatOption.yearly)
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Month'),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        month = int.tryParse(value);
-                      },
-                    ),
+                  // if (interval == RepeatOption.yearly)
+                  //   TextField(
+                  //     decoration: const InputDecoration(labelText: 'Month'),
+                  //     keyboardType: TextInputType.number,
+                  //     onChanged: (value) {
+                  //       month = int.tryParse(value);
+                  //     },
+                  //   ),
                 ],
               ),
             ),
@@ -229,9 +229,9 @@ String _getCustomRecurrenceDescription(CustomRecurrence recurrence) {
     description += ' on ${selectedDayNames.join(', ')}';
   } else if (recurrence.interval == RepeatOption.monthly) {
     description += ' on day ${recurrence.dayOfMonth}';
-  } else if (recurrence.interval == RepeatOption.yearly) {
-    description += ' on ${DateFormat('MMMM').format(DateTime(2022, recurrence.month!))} ${recurrence.dayOfMonth}';
-  }
+  } // else if (recurrence.interval == RepeatOption.yearly) {
+  //   description += ' on ${DateFormat('MMMM').format(DateTime(2022, recurrence.month!))} ${recurrence.dayOfMonth}';
+  // }
 
   return description;
 }

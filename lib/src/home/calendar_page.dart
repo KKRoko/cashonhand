@@ -326,17 +326,28 @@ DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, Cust
     switch (customRecurrence.interval) {
       case RepeatOption.daily:
         return currentDay.add(Duration(days: customRecurrence.frequency));
-      case RepeatOption.weekly:
-        if (customRecurrence.selectedDays.isNotEmpty) {
-          int currentWeekday = currentDay.weekday % 7;
-          for (int i = 1; i <= 7; i++) {
-            int nextWeekday = (currentWeekday + i) % 7;
-            if (customRecurrence.selectedDays[nextWeekday]) {
-              return currentDay.add(Duration(days: i));
-            }
-          }
-        }
-        return currentDay.add(Duration(days: 7 * customRecurrence.frequency));
+case RepeatOption.weekly:
+  if (customRecurrence.selectedDays.isNotEmpty) {
+    int currentWeekday = currentDay.weekday % 7;
+    int daysUntilNextOccurrence = 0;
+    
+    // Find the next occurrence
+    for (int i = 1; i <= 7 * customRecurrence.frequency; i++) {
+      int nextWeekday = (currentWeekday + i) % 7;
+      if (customRecurrence.selectedDays[nextWeekday] && i % (7 * customRecurrence.frequency) == 0) {
+        daysUntilNextOccurrence = i;
+        break;
+      }
+    }
+    
+    // If found, return the next occurrence date
+    if (daysUntilNextOccurrence > 0) {
+      return currentDay.add(Duration(days: daysUntilNextOccurrence));
+    }
+  }
+  
+  // If no specific days are selected or no valid occurrence found, jump by the frequency
+  return currentDay.add(Duration(days: 7 * customRecurrence.frequency));
       case RepeatOption.monthly:
         int targetDay = customRecurrence.dayOfMonth ?? currentDay.day;
         DateTime nextMonth = DateTime(currentDay.year, currentDay.month + customRecurrence.frequency, 1);
