@@ -332,7 +332,7 @@ case RepeatOption.weekly:
     int daysUntilNextOccurrence = 0;
     
     // Find the next occurrence
-          for (int i = 1; i <= 7; i++) {
+          for (int i = 0; i < 7; i++) {
             int nextWeekday = (currentWeekday + i) % 7;
             if (customRecurrence.selectedDays[nextWeekday]) {
               daysUntilNextOccurrence = i;
@@ -344,7 +344,12 @@ case RepeatOption.weekly:
     if (daysUntilNextOccurrence > 0) {
             DateTime nextOccurrence = currentDay.add(Duration(days: daysUntilNextOccurrence));
             
-            // Adjust for frequency
+            // If it's the first occurrence and it's within the same week, return it
+            if (nextOccurrence.difference(currentDay).inDays < 7) {
+              return nextOccurrence;
+            }
+            
+            // Otherwise, adjust for frequency
             while (nextOccurrence.difference(currentDay).inDays < 7 * customRecurrence.frequency) {
               nextOccurrence = nextOccurrence.add(const Duration(days: 7));
             }
