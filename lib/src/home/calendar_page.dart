@@ -45,22 +45,38 @@ class _CalendarPageState extends State<CalendarPage> {
     return kEvents[day] ?? [];
   }
 
-  Future<void> _addEvent(DateTime day, Event event) async {
-    setState(() {
+
+Future<void> _addEvent(DateTime day, Event event) async {
+  setState(() {
+    if (event.repeatOption == RepeatOption.custom && 
+        event.customRecurrence?.interval == RepeatOption.weekly) {
+      // For custom weekly events, find the first occurrence
+      DateTime firstOccurrence = _getNextRepeatDate(day, event.repeatOption, event.customRecurrence);
+      _addEventToDay(firstOccurrence, event);
+      
+      // Add subsequent occurrences
+      DateTime nextDay = _getNextRepeatDate(firstOccurrence, event.repeatOption, event.customRecurrence);
+      while (nextDay.isBefore(DateTime.now().add(const Duration(days: 365)))) {
+        _addEventToDay(nextDay, event);
+        nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
+      }
+    } else {
+      // For other repeat options, add to the current day and future occurrences
       _addEventToDay(day, event);
 
-      if (event.repeatOption != RepeatOption.none) {
-        DateTime nextDay = day;
-        while (true) {
-          nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
-          if (nextDay.isAfter(DateTime.now().add(const Duration(days: 365)))) break; // Limit to one year for performance
-          _addEventToDay(nextDay, event);
-        }
+    if (event.repeatOption != RepeatOption.none) {
+      DateTime nextDay = _getNextRepeatDate(day, event.repeatOption, event.customRecurrence);
+      while (nextDay.isBefore(DateTime.now().add(const Duration(days: 365)))) {
+        _addEventToDay(nextDay, event);
+        nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
       }
+    } 
+    
+}
 
-      _selectedEvents.value = _getEventsForDay(day);
-    });
-  }
+    _selectedEvents.value = _getEventsForDay(day);
+  });
+}
 
   void _addEventToDay(DateTime day, Event event) {
     if (kEvents[day] != null) {
