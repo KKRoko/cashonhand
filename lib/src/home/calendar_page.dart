@@ -332,18 +332,25 @@ case RepeatOption.weekly:
     int daysUntilNextOccurrence = 0;
     
     // Find the next occurrence
-    for (int i = 1; i <= 7 * customRecurrence.frequency; i++) {
-      int nextWeekday = (currentWeekday + i) % 7;
-      if (customRecurrence.selectedDays[nextWeekday] && i % (7 * customRecurrence.frequency) == 0) {
-        daysUntilNextOccurrence = i;
-        break;
-      }
-    }
+          for (int i = 1; i <= 7; i++) {
+            int nextWeekday = (currentWeekday + i) % 7;
+            if (customRecurrence.selectedDays[nextWeekday]) {
+              daysUntilNextOccurrence = i;
+              break;
+            }
+          }
     
     // If found, return the next occurrence date
     if (daysUntilNextOccurrence > 0) {
-      return currentDay.add(Duration(days: daysUntilNextOccurrence));
-    }
+            DateTime nextOccurrence = currentDay.add(Duration(days: daysUntilNextOccurrence));
+            
+            // Adjust for frequency
+            while (nextOccurrence.difference(currentDay).inDays < 7 * customRecurrence.frequency) {
+              nextOccurrence = nextOccurrence.add(const Duration(days: 7));
+            }
+            
+            return nextOccurrence;
+          }
   }
   
   // If no specific days are selected or no valid occurrence found, jump by the frequency
