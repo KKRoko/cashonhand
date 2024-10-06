@@ -2,7 +2,7 @@ import 'package:cash_on_hand/src/home/event_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Event) onEventAdded) {
+Future<void> showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Event) onEventAdded) async {
   TextEditingController titleController = TextEditingController();
   TextEditingController amountController = TextEditingController();
   bool isPositiveCashflow = true;
@@ -10,7 +10,7 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
   RepeatOption repeatOption = RepeatOption.none;
   CustomRecurrence? customRecurrence;
 
-  showDialog(
+  return showDialog<void>(
     context: context,
     builder: (context) {
       return StatefulBuilder(
@@ -84,7 +84,7 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   final eventAmount = double.tryParse(amountController.text);
 
                   if (titleController.text.isEmpty || eventAmount == null) {
@@ -102,7 +102,15 @@ void showAddEventDialog(BuildContext context, DateTime selectedDay, Function(Eve
                     repeatOption: repeatOption,
                     customRecurrence: customRecurrence,
                   );
-
+                  try {
+                    await onEventAdded(event);
+                    Navigator.pop(context);
+                  } catch (e) {
+                    print('Error adding event: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error adding event: $e')),
+                    );
+                  }
                   onEventAdded(event);
                   Navigator.pop(context);
                 },
