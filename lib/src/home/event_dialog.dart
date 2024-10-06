@@ -248,7 +248,7 @@ String _getCustomRecurrenceDescription(CustomRecurrence recurrence) {
 String _capitalizeRepeatOption(RepeatOption option) {
   switch (option) {
     case RepeatOption.today:
-      return 'Today';
+      return 'Today only';
     case RepeatOption.daily:
       return 'Daily';
     case RepeatOption.weekly:
