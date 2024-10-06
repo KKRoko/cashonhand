@@ -8,20 +8,12 @@ import 'event_list.dart';
 import 'calendar_widget.dart';
 import 'delete_event_dialog.dart';
 
-<<<<<<< HEAD
-
-=======
->>>>>>> dev
 class CalendarPage extends StatefulWidget {
   static const routeName = '/calendar';
 
   const CalendarPage({super.key});
 
   @override
-<<<<<<< HEAD
-    // ignore: library_private_types_in_public_api
-=======
->>>>>>> dev
   _CalendarPageState createState() => _CalendarPageState();
 }
 
@@ -50,38 +42,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Future<void> _addEvent(DateTime day, Event event) async {
-<<<<<<< HEAD
-    print('Adding event: ${event.title}, Amount: ${event.amount}, RepeatOption: ${event.repeatOption}');
-
-    setState(() {
-      if (event.repeatOption == RepeatOption.custom && 
-          event.customRecurrence?.interval == RepeatOption.weekly) {
-                  // For custom weekly events, find the first occurrence
-        DateTime firstOccurrence = _getNextRepeatDate(day, event.repeatOption, event.customRecurrence);
-        _addEventToDay(firstOccurrence, event);
-              // Add subsequent occurrences
-        DateTime nextDay = _getNextRepeatDate(firstOccurrence, event.repeatOption, event.customRecurrence);
-        while (nextDay.isBefore(DateTime.now().add(const Duration(days: 365)))) {
-          _addEventToDay(nextDay, event);
-          nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
-        }
-      } else {
-        _addEventToDay(day, event);
-
-        if (event.repeatOption != RepeatOption.none) {
-          DateTime nextDay = _getNextRepeatDate(day, event.repeatOption, event.customRecurrence);
-          while (nextDay.isBefore(DateTime.now().add(const Duration(days: 365)))) {
-            _addEventToDay(nextDay, event);
-            nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
-          }
-        } 
-      }
-      
-      print('Total events after adding: ${kEvents.values.expand((events) => events).length}');
-
-      _selectedEvents.value = _getEventsForDay(day);
-    });
-=======
     print("Starting _addEvent method");
     await Future(() {
       DateTime endOfYear = DateTime(DateTime.now().year, 12, 31);
@@ -124,7 +84,6 @@ class _CalendarPageState extends State<CalendarPage> {
     });
     
     print("Finished _addEvent method");
->>>>>>> dev
   }
 
   void _addEventToDay(DateTime day, Event event) {
@@ -138,32 +97,8 @@ class _CalendarPageState extends State<CalendarPage> {
 
   void _editEvent(DateTime day, Event oldEvent, Event newEvent) {
     setState(() {
-<<<<<<< HEAD
-      _removeRepeatingEvents(day, oldEvent);
-
-      if (kEvents[day] != null) {
-        final index = kEvents[day]!.indexOf(oldEvent);
-        if (index != -1) {
-          kEvents[day]![index] = newEvent;
-        }
-      }
-      _addEvent(day, newEvent);
-
-      _selectedEvents.value = _getEventsForDay(day);
-    
-      if (newEvent.repeatOption != RepeatOption.none) {
-        DateTime nextDay = day;
-        while (true) {
-          nextDay = _getNextRepeatDate(nextDay, newEvent.repeatOption, newEvent.customRecurrence);
-          if (nextDay.isAfter(DateTime.now().add(const Duration(days: 365)))) break;
-          _addEventToDay(nextDay, newEvent);
-        }
-      }
-
-=======
       _removeRepeatingEvents(oldEvent);
       _addEvent(day, newEvent);
->>>>>>> dev
       _selectedEvents.value = _getEventsForDay(day);
     });
   }
@@ -277,16 +212,6 @@ class _CalendarPageState extends State<CalendarPage> {
               },
             ),
           ),
-<<<<<<< HEAD
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddEventDialog(),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-=======
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
@@ -315,7 +240,6 @@ class _CalendarPageState extends State<CalendarPage> {
     bool isPositiveCashflow = event.isPositiveCashflow;
     bool isNegativeCashflow = event.isNegativeCashflow;
     RepeatOption repeatOption = event.repeatOption;
->>>>>>> dev
 
   void _showAddEventDialog() {
     showAddEventDialog(context, _selectedDay!, (event) async {
@@ -399,9 +323,6 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           TextButton(
             onPressed: () {
-<<<<<<< HEAD
-              _editEvent(day, event, event);
-=======
               final newEvent = Event(
                 title: titleController.text,
                 amount: double.tryParse(amountController.text),
@@ -410,7 +331,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 repeatOption: repeatOption,
               );
               _editEvent(day, event, newEvent);
->>>>>>> dev
               Navigator.pop(context);
             },
             child: const Text('Save'),
@@ -421,68 +341,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
-<<<<<<< HEAD
-    if (repeatOption == RepeatOption.custom && customRecurrence != null) {
-      switch (customRecurrence.interval) {
-        case RepeatOption.daily:
-          return currentDay.add(Duration(days: customRecurrence.frequency));
-        case RepeatOption.weekly:
-          if (customRecurrence.selectedDays.isNotEmpty) {
-            int currentWeekday = currentDay.weekday % 7;
-            int daysUntilNextOccurrence = 0;
-            
-            for (int i = 0; i < 7; i++) {
-              int nextWeekday = (currentWeekday + i) % 7;
-              if (customRecurrence.selectedDays[nextWeekday]) {
-                daysUntilNextOccurrence = i;
-                break;
-              }
-            }
-            
-            if (daysUntilNextOccurrence > 0) {
-              DateTime nextOccurrence = currentDay.add(Duration(days: daysUntilNextOccurrence));
-              
-              if (nextOccurrence.difference(currentDay).inDays < 7) {
-                return nextOccurrence;
-              }
-              
-              while (nextOccurrence.difference(currentDay).inDays < 7 * customRecurrence.frequency) {
-                nextOccurrence = nextOccurrence.add(const Duration(days: 7));
-              }
-              
-              return nextOccurrence;
-            }
-          }
-          
-          return currentDay.add(Duration(days: 7 * customRecurrence.frequency));
-        case RepeatOption.monthly:
-          int targetDay = customRecurrence.dayOfMonth ?? currentDay.day;
-          DateTime nextMonth = DateTime(currentDay.year, currentDay.month + customRecurrence.frequency, 1);
-          return DateTime(nextMonth.year, nextMonth.month, min(targetDay, DateTime(nextMonth.year, nextMonth.month + 1, 0).day));
-        case RepeatOption.yearly:
-          return DateTime(
-            currentDay.year + customRecurrence.frequency,
-            customRecurrence.month ?? currentDay.month,
-            min(customRecurrence.dayOfMonth ?? currentDay.day, DateTime(currentDay.year + customRecurrence.frequency, (customRecurrence.month ?? currentDay.month) + 1, 0).day)
-          );
-        default:
-          return currentDay;
-      }
-    }
-
-    switch (repeatOption) {
-      case RepeatOption.daily:
-        return currentDay.add(const Duration(days: 1));
-      case RepeatOption.weekly:
-        return currentDay.add(const Duration(days: 7));
-      case RepeatOption.monthly:
-        return DateTime(currentDay.year, currentDay.month + 1, min(currentDay.day, DateTime(currentDay.year, currentDay.month + 2, 0).day));
-      case RepeatOption.yearly:
-        return DateTime(currentDay.year + 1, currentDay.month, min(currentDay.day, DateTime(currentDay.year + 1, currentDay.month + 1, 0).day));
-      default:
-        return currentDay;
-    }
-=======
     DateTime endOfYear = DateTime(DateTime.now().year, 12, 31);
     
     if (currentDay.isAfter(endOfYear)) {
@@ -554,6 +412,5 @@ class _CalendarPageState extends State<CalendarPage> {
 
     print("_getNextRepeatDate: currentDay=$currentDay, repeatOption=$repeatOption, nextDate=$nextDate");
     return nextDate;
->>>>>>> dev
   }
 }
