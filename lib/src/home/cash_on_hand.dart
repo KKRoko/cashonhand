@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'calendar_page.dart';
 import 'event_model.dart';
 import 'package:intl/intl.dart'; // Add this import
@@ -16,23 +15,31 @@ class CashOnHandPage extends StatefulWidget {
 
 class _CashOnHandPageState extends State<CashOnHandPage> {
   late DateTime _now;
+  late DateTime _endOfWeek;
+  late DateTime _endOfMonth;
   late Map<String, double> _totals;
-    final currencyFormatter = NumberFormat("#,##0.00", "en_US"); // Add this line
-
+  final currencyFormatter = NumberFormat("#,##0.00", "en_US");
 
   @override
   void initState() {
     super.initState();
     _now = DateTime.now();
+        _endOfWeek = _getEndOfWeek(_now);
+            _endOfMonth = _getEndOfMonth(_now);
     _calculateTotals();
   }
 
+    DateTime _getEndOfWeek(DateTime date) {
+    return date.add(Duration(days: DateTime.saturday - date.weekday + (date.weekday == DateTime.sunday ? 7 : 0)));
+  }
+  DateTime _getEndOfMonth(DateTime date) {
+    return DateTime(date.year, date.month + 1, 0);
+  }
   void _calculateTotals() {
     _totals = {
       'day': 0,
       'week': 0,
       'month': 0,
-      'halfYear': 0,
       'year': 0,
     };
 
@@ -45,38 +52,33 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
         for (var event in events) {
           final amount = (event.amount ?? 0) * (event.isPositiveCashflow ? 1 : -1);
 
-          // Day total
-          if (isSameDay(date, _now)) {
+          // Day total (cumulative from start of year to current day)
+          if (!date.isAfter(_now)) {
             _totals['day'] = (_totals['day'] ?? 0) + amount;
           }
 
-          // Week total
-          if (isInSameWeek(date, _now)) {
+          // Week total (cumulative from start of year to end of current week)
+          if (!date.isAfter(_endOfWeek)) {
             _totals['week'] = (_totals['week'] ?? 0) + amount;
           }
 
-          // Month total
-          if (date.year == _now.year && date.month == _now.month) {
+          // Month total (cumulative from start of year to end of current month)
+          if (!date.isAfter(_endOfMonth)) {
             _totals['month'] = (_totals['month'] ?? 0) + amount;
           }
 
-          // Half-year total
-          if (date.year == _now.year &&
-              ((date.month <= 6 && _now.month <= 6) ||
-                  (date.month > 6 && _now.month > 6))) {
-            _totals['halfYear'] = (_totals['halfYear'] ?? 0) + amount;
-          }
+          // // Half-year total
+          // if (date.year == _now.year &&
+          //     ((date.month <= 6 && _now.month <= 6) ||
+          //         (date.month > 6 && _now.month > 6))) {
+          //   _totals['halfYear'] = (_totals['halfYear'] ?? 0) + amount;
+          // }
 
           // Year total
           _totals['year'] = (_totals['year'] ?? 0) + amount;
         }
       }
     });
-  }
-
-  bool isInSameWeek(DateTime date1, DateTime date2) {
-    final difference = date1.difference(date2).inDays;
-    return difference >= 0 && difference < 7 && date1.weekday >= date2.weekday;
   }
 
   @override
@@ -93,7 +95,7 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
             _buildTile('End of Day', _totals['day'] ?? 0),
             _buildTile('End of Week', _totals['week'] ?? 0),
             _buildTile('End of Month', _totals['month'] ?? 0),
-            _buildTile('End of Half Year', _totals['halfYear'] ?? 0),
+            // _buildTile('End of Half Year', _totals['halfYear'] ?? 0),
             _buildTile('End of Year', _totals['year'] ?? 0),
           ],
         ),
@@ -135,22 +137,7 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
   }
 }
 
-// Dummy Add Entry Page (Replace with your actual page)
-class AddEntryPage extends StatelessWidget {
-  const AddEntryPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Entry'),
-      ),
-      body: const Center(
-        child: Text('Add Entry Page'),
-      ),
-    );
-  }
-}
 
 // TODO: Implement filtering options for totals in the future
 // This could include filtering by event category or type
