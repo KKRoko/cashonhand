@@ -23,10 +23,8 @@ class Event {
     required this.repeatOption,
     this.customRecurrence,
     DateTime? createdAt,
-  }) : 
-    id = id ?? const Uuid().v4(),
-    createdAt = createdAt ?? DateTime.now();
-
+  }) : id = id ?? const Uuid().v4(),
+       createdAt = createdAt ?? DateTime.now();
 
   Event copyWith({
     String? title,
@@ -74,12 +72,11 @@ final kEvents = LinkedHashMap<DateTime, List<Event>>(
   hashCode: getHashCode,
 )..addAll(_kEventSource);
 
-final _kEventSource = { for (var item in List.generate(50, (index) => DateTime.now().add(Duration(days: index)))) item as DateTime : <Event>[] };
+final _kEventSource = <DateTime, List<Event>>{};
 
 int getHashCode(DateTime key) {
   return key.day * 1000000 + key.month * 10000 + key.year;
 }
-
 
 List<DateTime> daysInRange(DateTime first, DateTime last) {
   final dayCount = last.difference(first).inDays + 1;

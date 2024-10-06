@@ -9,7 +9,7 @@ import 'calendar_widget.dart';
 import 'delete_event_dialog.dart';
 
 class CalendarPage extends StatefulWidget {
-  static const routeName = '/calendar';
+  static const routeName = '/cashOnHand';
 
   const CalendarPage({super.key});
 
@@ -92,7 +92,6 @@ class _CalendarPageState extends State<CalendarPage> {
     } else {
       kEvents[day] = [event];
     }
-    print('Added event to ${day.toString()}: ${event.title}');
   }
 
   void _editEvent(DateTime day, Event oldEvent, Event newEvent) {
@@ -241,78 +240,59 @@ class _CalendarPageState extends State<CalendarPage> {
     bool isNegativeCashflow = event.isNegativeCashflow;
     RepeatOption repeatOption = event.repeatOption;
 
-  void _showAddEventDialog() {
-    showAddEventDialog(context, _selectedDay!, (event) async {
-      try {
-        await _addEvent(_selectedDay!, event);
-        setState(() {
-          _selectedEvents.value = _getEventsForDay(_selectedDay!);
-        });
-      } catch (e) {
-        print('Error adding event: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding event: $e')),
-        );
-      }
-    });
-  }
-
-  void _showEditEventDialog(DateTime day, Event event) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Cash Flow'),
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            return SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: TextEditingController(text: event.title),
-                    decoration: const InputDecoration(labelText: 'Cash Flow Name'),
-                    onChanged: (value) => event = event.copyWith(title: value),
-                  ),
-                  TextField(
-                    controller: TextEditingController(text: event.amount?.toString() ?? ''),
-                    decoration: const InputDecoration(labelText: 'Amount in USD'),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (value) => event = event.copyWith(amount: double.tryParse(value)),
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Positive Cashflow'),
-                    value: event.isPositiveCashflow,
-                    onChanged: (value) {
-                      setState(() {
-                        event = event.copyWith(isPositiveCashflow: value, isNegativeCashflow: value! ? false : event.isNegativeCashflow);
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Negative Cashflow'),
-                    value: event.isNegativeCashflow,
-                    onChanged: (value) {
-                      setState(() {
-                        event = event.copyWith(isNegativeCashflow: value, isPositiveCashflow: value! ? false : event.isPositiveCashflow);
-                      });
-                    },
-                  ),
-                  DropdownButton<RepeatOption>(
-                    value: event.repeatOption,
-                    onChanged: (RepeatOption? newValue) {
-                      setState(() {
-                        event = event.copyWith(repeatOption: newValue);
-                      });
-                    },
-                    items: RepeatOption.values.map((RepeatOption option) {
-                      return DropdownMenuItem<RepeatOption>(
-                        value: option,
-                        child: Text(option.toString().split('.').last),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Cash Flow Name'),
+                ),
+                TextField(
+                  controller: amountController,
+                  decoration: const InputDecoration(labelText: 'Amount in USD'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                ),
+                CheckboxListTile(
+                  title: const Text('Positive Cashflow'),
+                  value: isPositiveCashflow,
+                  onChanged: (value) {
+                    setState(() {
+                      isPositiveCashflow = value!;
+                      if (isPositiveCashflow) isNegativeCashflow = false;
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: const Text('Negative Cashflow'),
+                  value: isNegativeCashflow,
+                  onChanged: (value) {
+                    setState(() {
+                      isNegativeCashflow = value!;
+                      if (isNegativeCashflow) isPositiveCashflow = false;
+                    });
+                  },
+                ),
+                DropdownButton<RepeatOption>(
+                  value: repeatOption,
+                  onChanged: (RepeatOption? newValue) {
+                    setState(() {
+                      repeatOption = newValue!;
+                    });
+                  },
+                  items: RepeatOption.values.map((RepeatOption option) {
+                    return DropdownMenuItem<RepeatOption>(
+                      value: option,
+                      child: Text(option.toString().split('.').last),
+                    );
+                  }).toList(),
+                ),
+              ],
             );
           },
         ),

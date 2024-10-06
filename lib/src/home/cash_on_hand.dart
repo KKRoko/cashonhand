@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'calendar_page.dart';
-=======
 import 'package:intl/intl.dart';
 import 'calendar_page.dart';
 import 'event_model.dart';
->>>>>>> dev
 
-class CashOnHandPage extends StatelessWidget {
+
+class CashOnHandPage extends StatefulWidget {
   static const routeName = '/cashOnHand';
 
-<<<<<<< HEAD
-  const CashOnHandPage({super.key}); // Route name for navigation
-=======
   const CashOnHandPage({super.key});
 
   @override
@@ -92,7 +86,6 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
       _totals[period]!['negative'] = (_totals[period]!['negative'] ?? 0) + amount;
     }
   }
->>>>>>> dev
 
   @override
   Widget build(BuildContext context) {
@@ -101,81 +94,30 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
         title: const Text('Cash On Hand'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0), // Optional padding around the content
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Makes tiles stretch to full width
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-<<<<<<< HEAD
-            _buildTile('End of Day'),
-            _buildTile('End of Week'),
-            _buildTile('End of Month'),
-            _buildTile('End of Half Year'),
-            _buildTile('End of Year'),
-=======
             _buildTile('End of Day', _totals['day']!, _now),
             _buildTile('End of Week', _totals['week']!, _endOfWeek),
             _buildTile('End of Month', _totals['month']!, _endOfMonth),
             _buildTile('End of Year', _totals['year']!, _endOfYear),
->>>>>>> dev
           ],
         ),
       ),
-      // Bottom navigation with two icons
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(), // Adds a notch for the FAB
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0), // Padding for the icons
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Icons on both sides
-            children: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton(
                 onPressed: () {
-                  // Navigate to the add entry page (replace with your actual page)
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AddEntryPage()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.calendar_today),
-                onPressed: () {
-                  // Navigate to the calendar page (replace with your actual page)
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CalendarPage()),
-                  );
+                  ).then((_) => setState(() => _calculateTotals()));
                 },
-              ),
-            ],
-          ),
-        ),
+        child: const Icon(Icons.calendar_today),
       ),
-      // Optional FloatingActionButton for add entry
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to the add entry page
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddEntryPage()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, // Places FAB in the center
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
-<<<<<<< HEAD
-  // Helper function to build each tile
-  Widget _buildTile(String title) {
-    return Card(
-      elevation: 4, // Adds shadow effect to each tile
-      margin: const EdgeInsets.symmetric(vertical: 8.0), // Spacing between tiles
-      child: ListTile(
-        title: Text(title),
-=======
 
 
   Widget _buildTile(String title, Map<String, double> amounts, DateTime date) {
@@ -205,7 +147,6 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
             _buildAmountRow('Total Cashflow', totalAmount, totalAmount >= 0 ? Colors.green : Colors.red),
           ],
         ),
->>>>>>> dev
       ),
     );
   }
@@ -224,9 +165,6 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
   }
 }
 
-<<<<<<< HEAD
-=======
 
 // TODO: Implement filtering options for totals in the future
 // This could include filtering by event category or type
->>>>>>> dev
