@@ -74,11 +74,7 @@ final kEvents = LinkedHashMap<DateTime, List<Event>>(
   hashCode: getHashCode,
 )..addAll(_kEventSource);
 
-final _kEventSource = Map<DateTime, List<Event>>.fromIterable(
-  List.generate(50, (index) => DateTime.now().add(Duration(days: index))),
-  key: (item) => item as DateTime,
-  value: (item) => <Event>[],  // Explicitly create an empty list of Event objects
-);
+final _kEventSource = { for (var item in List.generate(50, (index) => DateTime.now().add(Duration(days: index)))) item as DateTime : <Event>[] };
 
 int getHashCode(DateTime key) {
   return key.day * 1000000 + key.month * 10000 + key.year;

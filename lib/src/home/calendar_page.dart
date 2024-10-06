@@ -12,7 +12,7 @@ import 'delete_event_dialog.dart';
 class CalendarPage extends StatefulWidget {
   static const routeName = '/calendar';
 
-  const CalendarPage({Key? key}) : super(key: key);
+  const CalendarPage({super.key});
 
   @override
     // ignore: library_private_types_in_public_api
