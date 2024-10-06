@@ -7,7 +7,7 @@ Future<void> showAddEventDialog(BuildContext context, DateTime selectedDay, Func
   TextEditingController amountController = TextEditingController();
   bool isPositiveCashflow = true;
   bool isNegativeCashflow = false;
-  RepeatOption repeatOption = RepeatOption.none;
+  RepeatOption repeatOption = RepeatOption.today;
   CustomRecurrence? customRecurrence;
 
   return showDialog<void>(
@@ -50,28 +50,37 @@ Future<void> showAddEventDialog(BuildContext context, DateTime selectedDay, Func
                       });
                     },
                   ),
-                  DropdownButton<RepeatOption>(
-                    value: repeatOption,
-                    onChanged: (RepeatOption? newValue) {
-                      setState(() {
-                        repeatOption = newValue!;
-                        if (repeatOption == RepeatOption.custom) {
-                          _showCustomRecurrenceDialog(context, (newCustomRecurrence) {
+                  Row(
+                    children: [
+                      const Text('Repeat: '),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: DropdownButton<RepeatOption>(
+                          value: repeatOption,
+                          isExpanded: true,
+                          onChanged: (RepeatOption? newValue) {
                             setState(() {
-                              customRecurrence = newCustomRecurrence;
+                              repeatOption = newValue!;
+                              if (repeatOption == RepeatOption.custom) {
+                                _showCustomRecurrenceDialog(context, (newCustomRecurrence) {
+                                  setState(() {
+                                    customRecurrence = newCustomRecurrence;
+                                  });
+                                });
+                              } else {
+                                customRecurrence = null;
+                              }
                             });
-                          });
-                        } else {
-                          customRecurrence = null;
-                        }
-                      });
-                    },
-                    items: RepeatOption.values.map((RepeatOption option) {
-                      return DropdownMenuItem<RepeatOption>(
-                        value: option,
-                        child: Text(option.toString().split('.').last),
-                      );
-                    }).toList(),
+                          },
+                          items: RepeatOption.values.map((RepeatOption option) {
+                            return DropdownMenuItem<RepeatOption>(
+                              value: option,
+                              child: Text(_capitalizeRepeatOption(option)),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
                   ),
                   if (customRecurrence != null)
                     Text('Custom: ${_getCustomRecurrenceDescription(customRecurrence!)}'),
@@ -242,4 +251,23 @@ String _getCustomRecurrenceDescription(CustomRecurrence recurrence) {
   // }
 
   return description;
+}
+
+String _capitalizeRepeatOption(RepeatOption option) {
+  switch (option) {
+    case RepeatOption.today:
+      return 'Today only';
+    case RepeatOption.daily:
+      return 'Daily';
+    case RepeatOption.weekly:
+      return 'Weekly';
+    case RepeatOption.monthly:
+      return 'Monthly';
+    case RepeatOption.yearly:
+      return 'Yearly';
+    case RepeatOption.custom:
+      return 'Custom';
+    default:
+      return option.toString().split('.').last;
+  }
 }

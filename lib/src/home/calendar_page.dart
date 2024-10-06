@@ -49,7 +49,7 @@ class _CalendarPageState extends State<CalendarPage> {
       print("Adding initial event for day: $day");
       _addEventToDay(day, event);
 
-      if (event.repeatOption != RepeatOption.none) {
+      if (event.repeatOption != RepeatOption.today) {
         DateTime nextDay = _getNextRepeatDate(day, event.repeatOption, event.customRecurrence);
         
         print("Starting repeat loop. First nextDay: $nextDay");

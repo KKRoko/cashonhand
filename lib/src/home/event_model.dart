@@ -2,7 +2,7 @@ import 'dart:collection';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:uuid/uuid.dart';
 
-enum RepeatOption { none, daily, weekly, monthly, yearly, custom }
+enum RepeatOption { today, daily, weekly, monthly, yearly, custom }
 
 class Event {
   final String id;
