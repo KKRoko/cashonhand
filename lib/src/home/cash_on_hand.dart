@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'calendar_page.dart';
 import 'event_model.dart';
+import 'package:intl/intl.dart'; // Add this import
+
 
 class CashOnHandPage extends StatefulWidget {
   static const routeName = '/cashOnHand';
@@ -15,6 +17,8 @@ class CashOnHandPage extends StatefulWidget {
 class _CashOnHandPageState extends State<CashOnHandPage> {
   late DateTime _now;
   late Map<String, double> _totals;
+    final currencyFormatter = NumberFormat("#,##0.00", "en_US"); // Add this line
+
 
   @override
   void initState() {
@@ -94,51 +98,24 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AddEntryPage()),
-                  ).then((_) => setState(() => _calculateTotals()));
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.calendar_today),
+      floatingActionButton: FloatingActionButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CalendarPage()),
                   ).then((_) => setState(() => _calculateTotals()));
                 },
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddEntryPage()),
-          ).then((_) => setState(() => _calculateTotals()));
-        },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.calendar_today),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
   Widget _buildTile(String title, double amount) {
-    final formattedAmount = '\$${amount.abs().toStringAsFixed(2)}';
-    final color = amount >= 0 ? Colors.green : Colors.red;
+       final formattedAmount = amount < 0
+        ? '-\$${currencyFormatter.format(amount.abs())}'
+        : '\$${currencyFormatter.format(amount)}';    
+        final color = amount >= 0 ? Colors.green : Colors.red;
 
     return Card(
       elevation: 4,
