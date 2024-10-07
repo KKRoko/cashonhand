@@ -50,6 +50,8 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
 
     final startOfYear = DateTime(_now.year, 1, 1);
     final endOfYear = DateTime(_now.year, 12, 31);
+    final endOfToday = DateTime(_now.year, _now.month, _now.day, 23, 59, 59);
+
 
     kEvents.forEach((date, events) {
       if (date.isAfter(startOfYear.subtract(const Duration(days: 1))) &&
@@ -58,7 +60,7 @@ class _CashOnHandPageState extends State<CashOnHandPage> {
           final amount = event.amount ?? 0;
 
           // Day totals
-          if (!date.isAfter(_now)) {
+        if (!date.isAfter(endOfToday)) {
             _updateTotals('day', amount, event.isPositiveCashflow);
           }
 
