@@ -41,50 +41,61 @@ class _CalendarPageState extends State<CalendarPage> {
     return kEvents[day] ?? [];
   }
 
-  Future<void> _addEvent(DateTime day, Event event) async {
-    print("Starting _addEvent method");
-    await Future(() {
-      DateTime endOfYear = DateTime(DateTime.now().year, 12, 31);
+Future<void> _addEvent(DateTime selectedDay, Event event) async {
+  print("Starting _addEvent method");
+  await Future(() {
+    DateTime endOfYear = DateTime(selectedDay.year, 12, 31);
+    DateTime initialEventDay = selectedDay;
+
+    if (event.repeatOption == RepeatOption.custom && event.customRecurrence != null) {
+      if (event.customRecurrence!.interval == RepeatOption.weekly ||
+          event.customRecurrence!.interval == RepeatOption.monthly) {
+        // Find the next occurrence based on selectedDays
+        initialEventDay = _findNextOccurrence(selectedDay, event.customRecurrence!);
+      }
+    }
+
+    print("Adding initial event for day: $initialEventDay");
+    _addEventToDay(initialEventDay, event);
+
+    if (event.repeatOption != RepeatOption.today) {
+      DateTime nextDay = _getNextRepeatDate(initialEventDay, event.repeatOption, event.customRecurrence);
       
-      print("Adding initial event for day: $day");
-      _addEventToDay(day, event);
-
-      if (event.repeatOption != RepeatOption.today) {
-        DateTime nextDay = _getNextRepeatDate(day, event.repeatOption, event.customRecurrence);
+      print("Starting repeat loop. First nextDay: $nextDay");
+      int loopCount = 0;
+      while (!nextDay.isAfter(endOfYear)) {
+        print("Loop iteration $loopCount: Adding event for $nextDay");
+        _addEventToDay(nextDay, event);
+        DateTime previousDay = nextDay;
+        nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
         
-        print("Starting repeat loop. First nextDay: $nextDay");
-        int loopCount = 0;
-        while (!nextDay.isAfter(endOfYear)) {
-          print("Loop iteration $loopCount: Adding event for $nextDay");
-          _addEventToDay(nextDay, event);
-          DateTime previousDay = nextDay;
-          nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
-          
-          loopCount++;
-          if (loopCount > 1000) {
-            print("Loop count exceeded 1000. Breaking.");
-            break;
-          }
-          
-          if (nextDay.isAtSameMomentAs(previousDay) || nextDay.isBefore(previousDay)) {
-            print("Next day is not advancing. Breaking loop.");
-            break;
-          }
-
-          if (nextDay.isAfter(endOfYear)) {
-            print("Next day is beyond end of year. Stopping loop.");
-            break;
-          }
+        loopCount++;
+        if (loopCount > 1000 || nextDay.isAtSameMomentAs(previousDay) || nextDay.isBefore(previousDay)) {
+          print("Loop ended due to count limit or date not advancing.");
+          break;
         }
       }
-    });
-    
-    setState(() {
-      _selectedEvents.value = _getEventsForDay(_selectedDay!);
-    });
-    
-    print("Finished _addEvent method");
+    }
+  });
+  
+  setState(() {
+    _selectedEvents.value = _getEventsForDay(_selectedDay!);
+  });
+  
+  print("Finished _addEvent method");
+}
+
+DateTime _findNextOccurrence(DateTime fromDate, CustomRecurrence recurrence) {
+  int daysToAdd = 0;
+  while (daysToAdd < 7) {
+    DateTime checkDate = fromDate.add(Duration(days: daysToAdd));
+    if (recurrence.selectedDays[checkDate.weekday % 7]) {
+      return checkDate;
+    }
+    daysToAdd++;
   }
+  return fromDate; // Fallback to original date if no day is selected
+}
 
   void _addEventToDay(DateTime day, Event event) {
     if (kEvents[day] != null) {
@@ -319,78 +330,40 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
     );
   }
-
-  DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
-    DateTime endOfYear = DateTime(DateTime.now().year, 12, 31);
-    
-    if (currentDay.isAfter(endOfYear)) {
-      return currentDay.add(const Duration(days: 1)); // Return next day to stop the loop
+DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
+  if (repeatOption == RepeatOption.custom && customRecurrence != null) {
+    switch (customRecurrence.interval) {
+      case RepeatOption.weekly:
+        // For weekly custom events, add the frequency * 7 days to get to the next occurrence week
+        DateTime nextWeek = currentDay.add(Duration(days: 7 * customRecurrence.frequency));
+        // Then find the next selected day within that week
+        return _findNextOccurrence(nextWeek, customRecurrence);
+      
+      case RepeatOption.monthly:
+        // For monthly custom events, move to the next month based on frequency
+        DateTime nextMonth = DateTime(currentDay.year, currentDay.month + customRecurrence.frequency, 1);
+        // Then find the next selected day within that month
+        return _findNextOccurrence(nextMonth, customRecurrence);
+      
+      default:
+        // For any other custom interval (which shouldn't happen in this context)
+        return currentDay;
     }
-
-    DateTime nextDate = currentDay;
-    
-    if (repeatOption == RepeatOption.custom && customRecurrence != null) {
-      switch (customRecurrence.interval) {
-        case RepeatOption.daily:
-          nextDate = currentDay.add(Duration(days: customRecurrence.frequency));
-          break;
-        case RepeatOption.weekly:
-          if (customRecurrence.selectedDays.isNotEmpty) {
-            int currentWeekday = currentDay.weekday % 7;
-            int daysUntilNextOccurrence = 0;
-            
-            for (int i = 1; i <= 7; i++) {
-              int nextWeekday = (currentWeekday + i) % 7;
-              if (customRecurrence.selectedDays[nextWeekday]) {
-                daysUntilNextOccurrence = i;
-                break;
-              }
-            }
-            
-            if (daysUntilNextOccurrence > 0) {
-              nextDate = currentDay.add(Duration(days: daysUntilNextOccurrence));
-              
-              while (nextDate.difference(currentDay).inDays < 7 * customRecurrence.frequency) {
-                nextDate = nextDate.add(const Duration(days: 7));
-              }
-            }
-          }
-          break;
-        case RepeatOption.monthly:
-          int targetDay = customRecurrence.dayOfMonth ?? currentDay.day;
-          DateTime nextMonth = DateTime(currentDay.year, currentDay.month + customRecurrence.frequency, 1);
-          nextDate = DateTime(nextMonth.year, nextMonth.month, min(targetDay, DateUtils.getDaysInMonth(nextMonth.year, nextMonth.month)));
-          break;
-        case RepeatOption.yearly:
-          nextDate = DateTime(
-            currentDay.year + customRecurrence.frequency,
-            customRecurrence.month ?? currentDay.month,
-            min(customRecurrence.dayOfMonth ?? currentDay.day, DateUtils.getDaysInMonth(currentDay.year + customRecurrence.frequency, customRecurrence.month ?? currentDay.month))
-          );
-          break;
-        default:
-          nextDate = currentDay;
-      }
-    } else {
-      switch (repeatOption) {
-        case RepeatOption.daily:
-          nextDate = currentDay.add(const Duration(days: 1));
-          break;
-        case RepeatOption.weekly:
-          nextDate = currentDay.add(const Duration(days: 7));
-          break;
-        case RepeatOption.monthly:
-          nextDate = DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
-          break;
-        case RepeatOption.yearly:
-          nextDate = DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
-          break;
-        default:
-          nextDate = currentDay;
-      }
+  } else {
+    // This part remains unchanged for non-custom repeat options
+    switch (repeatOption) {
+      case RepeatOption.daily:
+        return currentDay.add(const Duration(days: 1));
+      case RepeatOption.weekly:
+        return currentDay.add(const Duration(days: 7));
+      case RepeatOption.monthly:
+        return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
+      case RepeatOption.yearly:
+        return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
+      default:
+        return currentDay;
     }
-
-    print("_getNextRepeatDate: currentDay=$currentDay, repeatOption=$repeatOption, nextDate=$nextDate");
-    return nextDate;
   }
+}
+
 }
