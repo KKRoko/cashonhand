@@ -56,6 +56,7 @@ class CustomRecurrence {
   final int frequency;
   final List<bool> selectedDays;
   final int? dayOfMonth;
+  final int? weekOfMonth;
   final int? month;
 
   CustomRecurrence({
@@ -63,6 +64,7 @@ class CustomRecurrence {
     required this.frequency,
     this.selectedDays = const [],
     this.dayOfMonth,
+    this.weekOfMonth,
     this.month,
   });
 }

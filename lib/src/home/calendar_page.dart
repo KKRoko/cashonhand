@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:async';
@@ -330,40 +329,56 @@ DateTime _findNextOccurrence(DateTime fromDate, CustomRecurrence recurrence) {
       ),
     );
   }
-DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
-  if (repeatOption == RepeatOption.custom && customRecurrence != null) {
-    switch (customRecurrence.interval) {
-      case RepeatOption.weekly:
-        // For weekly custom events, add the frequency * 7 days to get to the next occurrence week
-        DateTime nextWeek = currentDay.add(Duration(days: 7 * customRecurrence.frequency));
-        // Then find the next selected day within that week
-        return _findNextOccurrence(nextWeek, customRecurrence);
-      
-      case RepeatOption.monthly:
-        // For monthly custom events, move to the next month based on frequency
-        DateTime nextMonth = DateTime(currentDay.year, currentDay.month + customRecurrence.frequency, 1);
-        // Then find the next selected day within that month
-        return _findNextOccurrence(nextMonth, customRecurrence);
-      
-      default:
-        // For any other custom interval (which shouldn't happen in this context)
-        return currentDay;
-    }
-  } else {
-    // This part remains unchanged for non-custom repeat options
-    switch (repeatOption) {
-      case RepeatOption.daily:
-        return currentDay.add(const Duration(days: 1));
-      case RepeatOption.weekly:
-        return currentDay.add(const Duration(days: 7));
-      case RepeatOption.monthly:
-        return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
-      case RepeatOption.yearly:
-        return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
-      default:
-        return currentDay;
+  DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
+    if (repeatOption == RepeatOption.custom && customRecurrence != null) {
+      switch (customRecurrence.interval) {
+        case RepeatOption.weekly:
+          DateTime nextWeek = currentDay.add(Duration(days: 7 * customRecurrence.frequency));
+          return _findNextOccurrence(nextWeek, customRecurrence);
+        
+        case RepeatOption.monthly:
+          int targetMonth = currentDay.month + customRecurrence.frequency;
+          int targetYear = currentDay.year + (targetMonth - 1) ~/ 12;
+          targetMonth = ((targetMonth - 1) % 12) + 1;
+          
+          if (customRecurrence.dayOfMonth != null) {
+            int lastDayOfMonth = DateTime(targetYear, targetMonth + 1, 0).day;
+            int targetDay = customRecurrence.dayOfMonth!.clamp(1, lastDayOfMonth);
+            return DateTime(targetYear, targetMonth, targetDay);
+          } else if (customRecurrence.selectedDays.contains(true)) {
+            DateTime firstOfMonth = DateTime(targetYear, targetMonth, 1);
+            int weekCount = 0;
+            for (int i = 0; i < 31; i++) {
+              DateTime checkDate = firstOfMonth.add(Duration(days: i));
+              if (checkDate.month != targetMonth) break;
+              if (customRecurrence.selectedDays[checkDate.weekday % 7]) {
+                weekCount++;
+                if (weekCount == (customRecurrence.weekOfMonth ?? 1)) {
+                  return checkDate;
+                }
+              }
+            }
+            return firstOfMonth.subtract(Duration(days: 1));
+          } else {
+            return DateTime(targetYear, targetMonth, currentDay.day);
+          }
+        
+        default:
+          return currentDay;
+      }
+    } else {
+      switch (repeatOption) {
+        case RepeatOption.daily:
+          return currentDay.add(const Duration(days: 1));
+        case RepeatOption.weekly:
+          return currentDay.add(const Duration(days: 7));
+        case RepeatOption.monthly:
+          return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
+        case RepeatOption.yearly:
+          return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
+        default:
+          return currentDay;
+      }
     }
   }
-}
-
 }
