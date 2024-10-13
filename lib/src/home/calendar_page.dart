@@ -40,61 +40,68 @@ class _CalendarPageState extends State<CalendarPage> {
     return kEvents[day] ?? [];
   }
 
-Future<void> _addEvent(DateTime selectedDay, Event event) async {
-  print("Starting _addEvent method");
-  await Future(() {
-    DateTime endOfYear = DateTime(selectedDay.year, 12, 31);
-    DateTime initialEventDay = selectedDay;
+  Future<void> _addEvent(DateTime selectedDay, Event event) async {
+    print("Starting _addEvent method");
+    await Future(() {
+      if (event.repeatOption == RepeatOption.today) {
+        // For one-time events (Today Only)
+        _addEventToDay(selectedDay, event);
+      } else {
+        // For recurring events
+        DateTime endOfYear = DateTime(selectedDay.year, 12, 31);
+        DateTime eventDay = _findFirstOccurrence(selectedDay, event);
 
-    if (event.repeatOption == RepeatOption.custom && event.customRecurrence != null) {
-      if (event.customRecurrence!.interval == RepeatOption.weekly ||
-          event.customRecurrence!.interval == RepeatOption.monthly) {
-        // Find the next occurrence based on selectedDays
-        initialEventDay = _findNextOccurrence(selectedDay, event.customRecurrence!);
-      }
-    }
-
-    print("Adding initial event for day: $initialEventDay");
-    _addEventToDay(initialEventDay, event);
-
-    if (event.repeatOption != RepeatOption.today) {
-      DateTime nextDay = _getNextRepeatDate(initialEventDay, event.repeatOption, event.customRecurrence);
-      
-      print("Starting repeat loop. First nextDay: $nextDay");
-      int loopCount = 0;
-      while (!nextDay.isAfter(endOfYear)) {
-        print("Loop iteration $loopCount: Adding event for $nextDay");
-        _addEventToDay(nextDay, event);
-        DateTime previousDay = nextDay;
-        nextDay = _getNextRepeatDate(nextDay, event.repeatOption, event.customRecurrence);
-        
-        loopCount++;
-        if (loopCount > 1000 || nextDay.isAtSameMomentAs(previousDay) || nextDay.isBefore(previousDay)) {
-          print("Loop ended due to count limit or date not advancing.");
-          break;
+        while (!eventDay.isAfter(endOfYear)) {
+          print("Adding event for day: $eventDay");
+          _addEventToDay(eventDay, event);
+          eventDay = _getNextRepeatDate(eventDay, event.repeatOption, event.customRecurrence);
         }
       }
-    }
-  });
-  
-  setState(() {
-    _selectedEvents.value = _getEventsForDay(_selectedDay!);
-  });
-  
-  print("Finished _addEvent method");
-}
-
-DateTime _findNextOccurrence(DateTime fromDate, CustomRecurrence recurrence) {
-  int daysToAdd = 0;
-  while (daysToAdd < 7) {
-    DateTime checkDate = fromDate.add(Duration(days: daysToAdd));
-    if (recurrence.selectedDays[checkDate.weekday % 7]) {
-      return checkDate;
-    }
-    daysToAdd++;
+    });
+    
+    setState(() {
+      _selectedEvents.value = _getEventsForDay(_selectedDay!);
+    });
+    
+    print("Finished _addEvent method");
   }
-  return fromDate; // Fallback to original date if no day is selected
-}
+
+  DateTime _findFirstOccurrence(DateTime selectedDay, Event event) {
+    if (event.repeatOption == RepeatOption.custom && event.customRecurrence != null) {
+      DateTime weekStart = selectedDay.subtract(Duration(days: selectedDay.weekday % 7));
+
+      if (event.customRecurrence!.interval == RepeatOption.weekly) {
+        for (int i = 0; i < 7; i++) {
+          DateTime checkDate = weekStart.add(Duration(days: i));
+          if (event.customRecurrence!.selectedDays[checkDate.weekday % 7]) {
+            return checkDate;
+          }
+        }
+      } else if (event.customRecurrence!.interval == RepeatOption.monthly && event.customRecurrence!.dayOfMonth != null) {
+        int targetDay = event.customRecurrence!.dayOfMonth!;
+        return DateTime(selectedDay.year, selectedDay.month, targetDay);
+      }
+    } else {
+      // Handle non-custom recurring events
+      switch (event.repeatOption) {
+        case RepeatOption.daily:
+          return selectedDay;
+        case RepeatOption.weekly:
+          return selectedDay.add(Duration(days: (7 - selectedDay.weekday) % 7));
+        case RepeatOption.monthly:
+          return DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+        case RepeatOption.yearly:
+          return DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+        case RepeatOption.today:
+          return selectedDay;
+        default:
+          return selectedDay;
+      }
+    }
+    
+    // For any unhandled cases, return the selected day
+    return selectedDay;
+  }
 
   void _addEventToDay(DateTime day, Event event) {
     if (kEvents[day] != null) {
@@ -190,6 +197,61 @@ DateTime _findNextOccurrence(DateTime fromDate, CustomRecurrence recurrence) {
       }
     });
     kEvents.removeWhere((date, events) => events.isEmpty);
+  }
+
+  DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
+    if (repeatOption == RepeatOption.custom && customRecurrence != null) {
+      switch (customRecurrence.interval) {
+        case RepeatOption.daily:
+          return currentDay.add(Duration(days: customRecurrence.frequency));
+        case RepeatOption.weekly:
+          return currentDay.add(Duration(days: 7 * customRecurrence.frequency));
+        case RepeatOption.monthly:
+          int targetMonth = currentDay.month + customRecurrence.frequency;
+          int targetYear = currentDay.year + (targetMonth - 1) ~/ 12;
+          targetMonth = ((targetMonth - 1) % 12) + 1;
+          
+          if (customRecurrence.dayOfMonth != null) {
+            int lastDayOfMonth = DateTime(targetYear, targetMonth + 1, 0).day;
+            int targetDay = customRecurrence.dayOfMonth!.clamp(1, lastDayOfMonth);
+            return DateTime(targetYear, targetMonth, targetDay);
+          } else if (customRecurrence.selectedDays.contains(true)) {
+            DateTime firstOfMonth = DateTime(targetYear, targetMonth, 1);
+            int weekCount = 0;
+            for (int i = 0; i < 31; i++) {
+              DateTime checkDate = firstOfMonth.add(Duration(days: i));
+              if (checkDate.month != targetMonth) break;
+              if (customRecurrence.selectedDays[checkDate.weekday % 7]) {
+                weekCount++;
+                if (weekCount == (customRecurrence.weekOfMonth ?? 1)) {
+                  return checkDate;
+                }
+              }
+            }
+            return firstOfMonth.subtract(Duration(days: 1));
+          } else {
+            return DateTime(targetYear, targetMonth, currentDay.day);
+          }
+        default:
+          return currentDay.add(Duration(days: 1));
+      }
+    } else {
+      switch (repeatOption) {
+        case RepeatOption.daily:
+          return currentDay.add(const Duration(days: 1));
+        case RepeatOption.weekly:
+          return currentDay.add(const Duration(days: 7));
+        case RepeatOption.monthly:
+          return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
+        case RepeatOption.yearly:
+          return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
+        case RepeatOption.today:
+          // This should never be called for 'today' events, but return the next day just in case
+          return currentDay.add(const Duration(days: 1));
+        default:
+          return currentDay.add(Duration(days: 1));
+      }
+    }
   }
 
   @override
@@ -328,57 +390,5 @@ DateTime _findNextOccurrence(DateTime fromDate, CustomRecurrence recurrence) {
         ],
       ),
     );
-  }
-  DateTime _getNextRepeatDate(DateTime currentDay, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
-    if (repeatOption == RepeatOption.custom && customRecurrence != null) {
-      switch (customRecurrence.interval) {
-        case RepeatOption.weekly:
-          DateTime nextWeek = currentDay.add(Duration(days: 7 * customRecurrence.frequency));
-          return _findNextOccurrence(nextWeek, customRecurrence);
-        
-        case RepeatOption.monthly:
-          int targetMonth = currentDay.month + customRecurrence.frequency;
-          int targetYear = currentDay.year + (targetMonth - 1) ~/ 12;
-          targetMonth = ((targetMonth - 1) % 12) + 1;
-          
-          if (customRecurrence.dayOfMonth != null) {
-            int lastDayOfMonth = DateTime(targetYear, targetMonth + 1, 0).day;
-            int targetDay = customRecurrence.dayOfMonth!.clamp(1, lastDayOfMonth);
-            return DateTime(targetYear, targetMonth, targetDay);
-          } else if (customRecurrence.selectedDays.contains(true)) {
-            DateTime firstOfMonth = DateTime(targetYear, targetMonth, 1);
-            int weekCount = 0;
-            for (int i = 0; i < 31; i++) {
-              DateTime checkDate = firstOfMonth.add(Duration(days: i));
-              if (checkDate.month != targetMonth) break;
-              if (customRecurrence.selectedDays[checkDate.weekday % 7]) {
-                weekCount++;
-                if (weekCount == (customRecurrence.weekOfMonth ?? 1)) {
-                  return checkDate;
-                }
-              }
-            }
-            return firstOfMonth.subtract(Duration(days: 1));
-          } else {
-            return DateTime(targetYear, targetMonth, currentDay.day);
-          }
-        
-        default:
-          return currentDay;
-      }
-    } else {
-      switch (repeatOption) {
-        case RepeatOption.daily:
-          return currentDay.add(const Duration(days: 1));
-        case RepeatOption.weekly:
-          return currentDay.add(const Duration(days: 7));
-        case RepeatOption.monthly:
-          return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
-        case RepeatOption.yearly:
-          return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
-        default:
-          return currentDay;
-      }
-    }
   }
 }
