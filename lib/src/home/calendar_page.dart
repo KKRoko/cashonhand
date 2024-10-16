@@ -6,6 +6,7 @@ import 'event_dialog.dart';
 import 'event_list.dart';
 import 'calendar_widget.dart';
 import 'delete_event_dialog.dart';
+import 'cash_on_hand.dart';
 
 class CalendarPage extends StatefulWidget {
   static const routeName = '/cashOnHand';
@@ -22,6 +23,8 @@ class _CalendarPageState extends State<CalendarPage> {
   final RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOff;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+
+  
 
   @override
   void initState() {
@@ -41,7 +44,6 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Future<void> _addEvent(DateTime selectedDay, Event event) async {
-    print("Starting _addEvent method");
     await Future(() {
       if (event.repeatOption == RepeatOption.today) {
         // For one-time events (Today Only)
@@ -58,12 +60,12 @@ class _CalendarPageState extends State<CalendarPage> {
         }
       }
     });
-    
+     
+   _recalculateTotals();
     setState(() {
       _selectedEvents.value = _getEventsForDay(_selectedDay!);
     });
     
-    print("Finished _addEvent method");
   }
 
   DateTime _findFirstOccurrence(DateTime selectedDay, Event event) {
@@ -115,6 +117,7 @@ class _CalendarPageState extends State<CalendarPage> {
     setState(() {
       _removeRepeatingEvents(oldEvent);
       _addEvent(day, newEvent);
+      _recalculateTotals();
       _selectedEvents.value = _getEventsForDay(day);
     });
   }
@@ -146,6 +149,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final deleteOption = await showDeleteEventDialog(context, event);
     if (deleteOption == null) return;
 
+    _recalculateTotals();
     setState(() {
       switch (deleteOption) {
         case DeleteOption.thisDay:
@@ -254,8 +258,17 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+  void _recalculateTotals() {
+    final cashOnHandPage = context.findAncestorWidgetOfExactType<CashOnHandPage>();
+    if (cashOnHandPage != null) {
+      (cashOnHandPage.key as GlobalKey<CashOnHandPageState>).currentState?.calculateTotals();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+        _recalculateTotals();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cash on Hand - Events'),

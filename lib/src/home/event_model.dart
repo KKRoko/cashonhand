@@ -13,6 +13,7 @@ class Event {
   final RepeatOption repeatOption;
   final CustomRecurrence? customRecurrence;
   final DateTime createdAt;
+  final bool isYearEndSummary;
 
   Event({
     String? id,
@@ -23,6 +24,7 @@ class Event {
     required this.repeatOption,
     this.customRecurrence,
     DateTime? createdAt,
+    this.isYearEndSummary = true,
   }) : id = id ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now();
 
@@ -33,6 +35,7 @@ class Event {
     bool? isNegativeCashflow,
     RepeatOption? repeatOption,
     CustomRecurrence? customRecurrence,
+    bool? isYearEndSummary,
   }) {
     return Event(
       id: id,
@@ -43,6 +46,7 @@ class Event {
       repeatOption: repeatOption ?? this.repeatOption,
       customRecurrence: customRecurrence ?? this.customRecurrence,
       createdAt: createdAt,
+       isYearEndSummary: isYearEndSummary ?? this.isYearEndSummary,
     );
   }
 
@@ -89,7 +93,7 @@ List<DateTime> daysInRange(DateTime first, DateTime last) {
 }
 
 final kToday = DateTime.now();
-final kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
-final kLastDay = DateTime(kToday.year, kToday.month + 3, kToday.day);
+final kFirstDay = DateTime(kToday.year, 1, 1);
+final kLastDay = DateTime(kToday.year, 12, 31);
 
 // Add any other necessary constants or utilities

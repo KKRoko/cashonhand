@@ -1,5 +1,3 @@
-// calendar_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'event_model.dart';
@@ -11,7 +9,7 @@ Widget buildTableCalendar({
   required List<Event> Function(DateTime) eventLoader,
   required CalendarFormat calendarFormat,
   required RangeSelectionMode rangeSelectionMode,
-  required void Function(CalendarFormat) onFormatChanged, // Add this line
+  required void Function(CalendarFormat) onFormatChanged,
 }) {
   return TableCalendar<Event>(
     firstDay: kFirstDay,
@@ -22,6 +20,26 @@ Widget buildTableCalendar({
     rangeSelectionMode: rangeSelectionMode,
     eventLoader: eventLoader,
     onDaySelected: onDaySelected,
-    onFormatChanged: onFormatChanged, // Add this line
+    onFormatChanged: onFormatChanged,
+    calendarBuilders: CalendarBuilders(
+      markerBuilder: (context, date, events) {
+        if (events.isEmpty) return SizedBox();
+        return Positioned(
+          bottom: 1,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: events.map((event) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 1),
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: event.isPositiveCashflow ? Colors.green : Colors.red,
+              ),
+            )).toList(),
+          ),
+        );
+      },
+    ),
   );
 }
