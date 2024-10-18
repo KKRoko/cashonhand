@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'event_model.dart';
+import 'package:cash_on_hand/src/models/event_model.dart';
 
 enum DeleteOption {
   thisDay,

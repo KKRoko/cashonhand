@@ -1,0 +1,25 @@
+lib/
+├── src/
+│   ├── models/
+|   |   ├── event_models.dart
+│   ├── providers/
+|   |   ├── event_provider.dart
+│   ├── repositories/
+|   |   ├── event_repository.dart
+│   ├── services/
+|   |   ├── event_service.dart
+│   ├── ui/
+│   │   ├── calendar/
+|   |   |   ├── calendar_page.dart
+|   |   |   ├── calendar_widget.dart
+│   │   ├── cash_on_hand/
+|   |   |   ├── cash_on_hand_page.dart
+│   │   ├── dialogs/
+|   |   |   ├── delete_event_dialog.dart
+|   |   |   ├── event_dialog.dart
+│   │   └── widgets/
+|   |   |   ├── event_list.dart
+│   └── utils/
+│   │   ├── date_utils.dart
+├── app.dart
+└── main.dart

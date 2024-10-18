@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'home/cash_on_hand.dart';
-import 'home/calendar_page.dart';
-import 'settings/settings_controller.dart';
-import 'settings/settings_view.dart';
+import 'src/ui/cash_on_hand/cash_on_hand_page.dart';
+import 'src/ui/calendar/calendar_page.dart';
+import 'src/settings/settings_controller.dart';
+import 'src/settings/settings_view.dart';
 
 /// The Widget that configures your application.
 class MyApp extends StatelessWidget {
