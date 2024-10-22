@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'event_model.dart';
+import '../../data/models/event_model.dart';
 
-enum DeleteOption {
-  thisDay,
-  allTime,
-  futureOnly,
-  pastOnly,
-}
 
 Future<DeleteOption?> showDeleteEventDialog(BuildContext context, Event event) {
   return showDialog<DeleteOption>(
@@ -30,12 +24,12 @@ Future<DeleteOption?> showDeleteEventDialog(BuildContext context, Event event) {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                child: const Text('From current day to future'),
+                child: const Text('From this day to future'),
                 onPressed: () => Navigator.of(context).pop(DeleteOption.futureOnly),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                child: const Text('From current day to past'),
+                child: const Text('From this day to past'),
                 onPressed: () => Navigator.of(context).pop(DeleteOption.pastOnly),
               ),
             ],

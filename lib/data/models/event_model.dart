@@ -1,5 +1,3 @@
-import 'dart:collection';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:uuid/uuid.dart';
 
 enum RepeatOption { today, daily, weekly, monthly, yearly, custom }
@@ -46,14 +44,13 @@ class Event {
       repeatOption: repeatOption ?? this.repeatOption,
       customRecurrence: customRecurrence ?? this.customRecurrence,
       createdAt: createdAt,
-       isYearEndSummary: isYearEndSummary ?? this.isYearEndSummary,
+      isYearEndSummary: isYearEndSummary ?? this.isYearEndSummary,
     );
   }
 
   @override
   String toString() => title;
 }
-
 
 class CustomRecurrence {
   final RepeatOption interval;
@@ -73,27 +70,9 @@ class CustomRecurrence {
   });
 }
 
-final kEvents = LinkedHashMap<DateTime, List<Event>>(
-  equals: isSameDay,
-  hashCode: getHashCode,
-)..addAll(_kEventSource);
-
-final _kEventSource = <DateTime, List<Event>>{};
-
-int getHashCode(DateTime key) {
-  return key.day * 1000000 + key.month * 10000 + key.year;
+enum DeleteOption {
+  thisDay,
+  allTime,
+  futureOnly,
+  pastOnly,
 }
-
-List<DateTime> daysInRange(DateTime first, DateTime last) {
-  final dayCount = last.difference(first).inDays + 1;
-  return List.generate(
-    dayCount,
-    (index) => DateTime.utc(first.year, first.month, first.day + index),
-  );
-}
-
-final kToday = DateTime.now();
-final kFirstDay = DateTime(kToday.year, 1, 1);
-final kLastDay = DateTime(kToday.year, 12, 31);
-
-// Add any other necessary constants or utilities

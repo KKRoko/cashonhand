@@ -1,0 +1,239 @@
+lib/
+├── data/
+│   ├── models/
+│   │   └── event_model.dart
+│   └── repositories/
+│       └── event_repository.dart
+├──localization
+|   └── lib/localization/app_en.arb
+├── services/
+│   └── event_service.dart
+├── settings/
+│   └── settings_controller.dart
+│   └── settings_service.dart
+│   └── settings_view.dart
+├── ui/
+│   ├── cash_on_hand/
+│   │   ├── cash_on_hand_page.dart
+│   │   └── widgets/
+│   │       └── cash_on_hand_tile.dart
+│   ├── calendar/
+│   │   ├── calendar_page.dart
+│   │   └── widgets/
+│   │       ├── calendar_widget.dart
+│   │       └── event_list_widget.dart
+│   └── dialogs/
+│       ├── add_edit_event_dialog.dart
+│       └── delete_event_dialog.dart
+├── utils/
+│   ├── date_utils.dart
+│   └── formatters.dart
+└── app.dart
+└── main.dart
+
+
+lib/data/models/event_model.dart
+
+I understand that you want a more detailed plan to restructure your codebase according to the new directory structure you've provided. This reorganization aims to improve code cleanliness, organization, and efficiency while adhering to best practices. Here's a detailed plan for restructuring your codebase:
+
+data/models/event_model.dart
+
+Move the Event and CustomRecurrence classes here from the current event_model.dart.
+Remove any business logic, keeping only properties and basic methods like toString() and copyWith().
+Ensure the classes are immutable (final properties).
+
+
+data/repositories/event_repository.dart
+
+Create an EventRepository class with methods for CRUD operations on events.
+Move kEvents here and make it private (_events).
+Implement methods like getEvents(), addEvent(), updateEvent(), deleteEvent().
+Use a Singleton pattern or dependency injection for this class.
+
+
+services/event_service.dart
+
+Create an EventService class to handle business logic.
+Implement methods like addEvent(), editEvent(), deleteEvent(), getEventsForDay(), etc.
+This service should use the EventRepository for data operations.
+Handle recurring event logic here (e.g., generating instances of recurring events).
+
+
+ui/cash_on_hand/cash_on_hand_page.dart
+
+Keep the CashOnHandPage widget here.
+Remove direct data manipulation, use EventService instead.
+Implement state management (e.g., setState, Provider, or BLoC) for updating the UI.
+
+
+ui/cash_on_hand/widgets/cash_on_hand_tile.dart
+
+Extract the tile widget from CashOnHandPage into this file.
+Make it a stateless widget that takes in data as parameters.
+
+
+ui/calendar/calendar_page.dart
+
+Keep the CalendarPage widget here.
+Use EventService for data operations instead of direct manipulation.
+Implement state management for updating the UI.
+
+
+ui/calendar/widgets/calendar_widget.dart
+
+Move the calendar widget here from calendar_widget.dart.
+Focus on UI presentation, receive data as parameters.
+
+
+ui/calendar/widgets/event_list_widget.dart
+
+Move the event list widget here from event_list.dart.
+Make it a stateless widget that takes in events and callback functions as parameters.
+
+
+ui/dialogs/add_edit_event_dialog.dart
+
+Combine add and edit functionality from event_dialog.dart into a single dialog.
+Use EventService for adding/editing events.
+Implement form validation logic here.
+
+
+ui/dialogs/delete_event_dialog.dart
+
+Move the delete event dialog here from delete_event_dialog.dart.
+Use EventService for deleting events.
+
+
+utils/date_utils.dart
+
+Move date-related utility functions here (e.g., findFirstOccurrence, getNextRepeatDate).
+Include functions like daysInRange, getHashCode.
+
+
+utils/formatters.dart
+
+Move formatting-related functions here (e.g., currencyFormatter, dateFormatter).
+Include any other formatting utilities used across the app.
+
+
+app.dart
+
+Keep the main app configuration here.
+Set up dependency injection if used (e.g., Provider setup).
+
+
+
+Additional steps:
+
+Update import statements across all files to reflect the new structure.
+Implement proper error handling and logging throughout the app.
+Add comments and documentation to clarify complex logic.
+Consider adding unit tests for the repository and service classes.
+Ensure consistent naming conventions and code style across all files.
+
+This restructuring will separate concerns (data, business logic, and UI), making the code more maintainable and testable. It also allows for easier future enhancements and better scalability.
+Is this the level of detail you were looking for? Would you like me to elaborate on any specific part of this restructuring plan?
+
+
+
+
+
+
+Event Repository:
+
+An EventRepository class that handles the actual data persistence (e.g., saving to a local database or cloud storage).
+
+
+Database Integration:
+
+Code for integrating with a local database (e.g., SQLite via sqflite package) or a cloud database.
+
+
+Event Model:
+
+The full Event model class definition, including all properties and methods.
+
+
+Custom Recurrence Logic:
+
+Detailed implementation of custom recurrence patterns for events.
+
+
+Error Handling:
+
+Try-catch blocks or other error handling mechanisms, especially in data operations.
+
+
+Loading States:
+
+UI elements or widgets to show loading states when fetching or calculating data.
+
+
+User Authentication:
+
+If the app supports multiple users or syncing, authentication and user management features.
+
+
+Data Sync Mechanism:
+
+If the app supports cloud sync, code for synchronizing local and remote data.
+
+
+Settings Implementation:
+
+Detailed implementation of the settings service, including how settings are stored and retrieved.
+
+
+Notification System:
+
+Code for setting up and triggering notifications for upcoming events or low balance alerts.
+
+
+Data Export/Import:
+
+Functionality to export financial data or import from other sources.
+
+
+Currency Conversion:
+
+If the app supports multiple currencies, logic for currency conversion.
+
+
+Charts or Graphs:
+
+Code for generating visual representations of financial data over time.
+
+
+Search Functionality:
+
+Implementation of search features to find specific events or transactions.
+
+
+Categorization System:
+
+A system for categorizing events and transactions for better organization and reporting.
+
+
+Unit Tests:
+
+A suite of unit tests to ensure the reliability of core functions and calculations.
+
+
+State Management Solution:
+
+Implementation of a state management solution (e.g., Provider, Bloc) for more complex state handling.
+
+
+Input Validation:
+
+More robust input validation in forms and dialogs.
+
+
+Internationalization:
+
+Full implementation of internationalization, including translations for all strings.
+
+
+Accessibility Features:
+
+Implementation of accessibility features to make the app usable for people with disabilities.
