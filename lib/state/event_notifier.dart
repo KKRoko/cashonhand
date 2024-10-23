@@ -34,16 +34,75 @@ class EventNotifier extends ChangeNotifier {
   }
 
 void _addRecurringEvent(DateTime startDay, Event event) {
+    print("Adding recurring event: ${event.title} starting on $startDay");
+
     DateTime currentDay = startDay;
     final endOfYear = DateTime(startDay.year, 12, 31);
+    print("End of year date: $endOfYear");
 
-    while (!currentDay.isAfter(endOfYear)) {
-      _addSingleEvent(currentDay, event);
-      // Fixed: Using RecurrenceDateCalculator class to access the method
-    currentDay = DateUtils.getNextRepeatDate(
-        currentDay, event.repeatOption, event.customRecurrence);
+    // For custom recurrence (weekly events)
+    if (event.repeatOption == RepeatOption.custom && 
+        event.customRecurrence != null && 
+        event.customRecurrence!.selectedDays.any((selected) => selected)) {
+        
+        int currentWeekday = currentDay.weekday;
+        int targetWeekday = -1;
+        
+        // Find the first selected day
+        for (int i = 0; i < 7; i++) {
+            if (event.customRecurrence!.selectedDays[i]) {
+                // Convert from Sunday-first index to DateTime.weekday
+                // Sunday (0) -> 7
+                // Monday (1) -> 1
+                // Tuesday (2) -> 2
+                // ...
+                // Saturday (6) -> 6
+                targetWeekday = i == 0 ? 7 : i;
+                break;
+            }
+        }
+        
+        if (targetWeekday != -1) {
+            // Calculate days until target weekday
+            int daysToAdd = targetWeekday - currentWeekday;
+            if (daysToAdd <= 0) daysToAdd += 7;
+            currentDay = currentDay.add(Duration(days: daysToAdd));
+        }
     }
-  }
+
+    // Rest of the method remains the same...
+    while (!currentDay.isAfter(endOfYear)) {
+        final updatedEvent = event.copyWith(
+            dateTime: DateTime(
+                currentDay.year,
+                currentDay.month,
+                currentDay.day,
+                event.dateTime.hour,
+                event.dateTime.minute,
+                event.dateTime.second,
+                event.dateTime.millisecond,
+                event.dateTime.microsecond
+            )
+        );
+        _addSingleEvent(currentDay, updatedEvent);
+
+        if (event.repeatOption == RepeatOption.custom && 
+            event.customRecurrence != null) {
+            currentDay = currentDay.add(
+                Duration(days: 7 * event.customRecurrence!.frequency));
+        } else {
+            currentDay = DateUtils.getNextRepeatDate(
+                currentDay, event.repeatOption, event.customRecurrence);
+        }
+    }
+
+    print("Events after adding: ");
+    _events.forEach((key, value) {
+        print("Date: $key, Events: ${value.length}");
+    });
+}
+
+
 
   void editEvent(DateTime day, Event oldEvent, Event newEvent) {
     deleteEvent(day, oldEvent, DeleteOption.allTime);
@@ -135,4 +194,21 @@ void _addRecurringEvent(DateTime startDay, Event event) {
     
     notifyListeners();
   }
+
+  // Add this to EventNotifier class
+void debugPrintEvents() {
+    print('Current events in notifier:');
+    _events.forEach((date, events) {
+        print('Date: $date');
+        for (var event in events) {
+            print('  Event: ${event.title}, Amount: ${event.amount}, Date: ${event.dateTime}');
+        }
+    });
+}
+
+int get currentYear {
+    if (_events.isEmpty) return DateTime.now().year;
+    // Get the first event's year
+    return _events.keys.first.year;
+}
 }

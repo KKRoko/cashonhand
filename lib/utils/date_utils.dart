@@ -128,19 +128,41 @@ static List<DateTime> getDaysInRange(DateTime start, DateTime end) {
     }
   }
 
-  /// Returns the next weekly occurrence date
-  static DateTime _nextWeeklyDate(DateTime currentDate, CustomRecurrence customRecurrence) {
+static DateTime _nextWeeklyDate(DateTime currentDate, CustomRecurrence customRecurrence) {
     if (customRecurrence.selectedDays.any((selected) => selected)) {
-      int currentWeekday = currentDate.weekday % 7;
-      for (int i = 1; i <= 7; i++) {
-        int nextDay = (currentWeekday + i) % 7;
-        if (customRecurrence.selectedDays[nextDay]) {
-          return currentDate.add(Duration(days: i));
+        // Convert from Monday-based (1-7) to Sunday-based (0-6) for list index
+        int currentWeekday = currentDate.weekday % 7;
+        int daysUntilTarget = 0;
+        
+        // Find days until next selected day
+        for (int i = 1; i <= 7; i++) {
+            int checkDay = (currentWeekday + i - 1) % 7;
+            if (customRecurrence.selectedDays[checkDay]) {
+                daysUntilTarget = i;
+                break;
+            }
         }
-      }
+
+        // Calculate total days to add including frequency
+        int totalDays = daysUntilTarget;
+        
+        // If we're not finding the first occurrence, apply frequency
+        if (daysUntilTarget == 0 || !_isFirstOccurrence(currentDate)) {
+            totalDays = 7 * customRecurrence.frequency;
+        }
+        
+        return currentDate.add(Duration(days: totalDays));
     }
     return currentDate.add(Duration(days: 7 * customRecurrence.frequency));
-  }
+}
+
+// Helper to determine if this is the first occurrence
+static bool _isFirstOccurrence(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year && 
+           date.month == now.month && 
+           date.day == now.day;
+}
 
   /// Returns the next monthly occurrence date
   static DateTime _nextMonthlyDate(DateTime currentDate, CustomRecurrence customRecurrence) {

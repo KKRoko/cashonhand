@@ -23,7 +23,7 @@ class _CustomRecurrenceDialogState extends State<CustomRecurrenceDialog> {
   late int? _weekOfMonth;
   late int? _month;
 
-  final List<String> _weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final List<String> _weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   final List<String> _weeks = ['First', 'Second', 'Third', 'Fourth', 'Last'];
 
   @override

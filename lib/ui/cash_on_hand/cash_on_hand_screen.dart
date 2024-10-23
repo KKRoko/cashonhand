@@ -22,14 +22,26 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> {
   late DateTime _endOfYear;
   late Map<String, Map<String, double>> _totals;
 
-  @override
-  void initState() {
+@override
+void initState() {
     super.initState();
-    _now = DateTime.now();
+    // Get year from EventNotifier
+    final year = Provider.of<EventNotifier>(context, listen: false).currentYear;
+    print('\nInitializing dates:');
+    print('Current DateTime.now(): ${DateTime.now()}');
+    print('Using year: $year');
+
+    _now = DateTime(year, DateTime.now().month, DateTime.now().day);
+    print('Initialized _now: $_now');
+
     _endOfWeek = _getEndOfWeek(_now);
+    print('End of week: $_endOfWeek');
+
     _endOfMonth = _getEndOfMonth(_now);
-    _endOfYear = DateTime(_now.year, 12, 31);
-  }
+       print('End of month: $_endOfMonth');
+    _endOfYear = DateTime(year, 12, 31);
+       print('End of year: $_endOfYear');
+}
 
   @override
   void didChangeDependencies() {
@@ -46,35 +58,78 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> {
     return DateTime(date.year, date.month + 1, 0);
   }
 
-  void _calculateTotals() {
-    _totals = {
-      'day': {'positive': 0, 'negative': 0},
-      'week': {'positive': 0, 'negative': 0},
-      'month': {'positive': 0, 'negative': 0},
-      'year': {'positive': 0, 'negative': 0},
-    };
+void _calculateTotals() {
+   print('\n=== Starting _calculateTotals ===');
+   print('Reference dates:');
+   print('_now: $_now');
+   print('_endOfWeek: $_endOfWeek');
+   print('_endOfMonth: $_endOfMonth');
+   print('_endOfYear: $_endOfYear');
+   
+   Provider.of<EventNotifier>(context, listen: false).debugPrintEvents();
+   _totals = {
+       'day': {'positive': 0, 'negative': 0},
+       'week': {'positive': 0, 'negative': 0},
+       'month': {'positive': 0, 'negative': 0},
+       'year': {'positive': 0, 'negative': 0},
+   };
 
-    final events = _eventService.getEventsForRange(DateTime(_now.year, 1, 1), _endOfYear);
+   DateTime _stripTime(DateTime dt) {
+       return DateTime(dt.year, dt.month, dt.day);
+   }
 
-  for (var event in events) {
-      final amount = event.amount ?? 0;
-      final date = DateTime(event.createdAt.year, event.createdAt.month, event.createdAt.day);
-      final nowDate = DateTime(_now.year, _now.month, _now.day);
+   final nowDate = _stripTime(_now);
+   print('\nCurrent date for comparison: $nowDate');
+   final events = _eventService.getEventsForRange(DateTime(_now.year, 1, 1), _endOfYear);
 
-      if (!date.isAfter(nowDate)) { 
-        _updateTotals('day', amount, event.isPositiveCashflow);
-      }
-      if (!date.isAfter(_endOfWeek)) {
-        _updateTotals('week', amount, event.isPositiveCashflow);
-      }
-      if (!date.isAfter(_endOfMonth)) {
-        _updateTotals('month', amount, event.isPositiveCashflow);
-      }
-      _updateTotals('year', amount, event.isPositiveCashflow);
-    }
+   print('Number of unique event IDs: ${events.map((e) => e.id).toSet().length}');
+   
+   final processedDayEventIds = <String>{};
+   
+   for (var event in events) {
+       final amount = event.amount ?? 0;
+       final eventDate = _stripTime(event.dateTime);
+       
+       print('\nProcessing event:');
+       print('  ID: ${event.id}');
+       print('  Date: $eventDate');
+       print('  Amount: $amount');
+       print('  Event date components: y${eventDate.year} m${eventDate.month} d${eventDate.day}');
+       print('  Now date components: y${nowDate.year} m${nowDate.month} d${nowDate.day}');
+       print('  Is after now: ${eventDate.isAfter(nowDate)}');
+       print('  Is before now: ${eventDate.isBefore(nowDate)}');
+       print('  Is same day: ${eventDate.year == nowDate.year && eventDate.month == nowDate.month && eventDate.day == nowDate.day}');
+       print('  Already processed: ${processedDayEventIds.contains(event.id)}');
 
-    setState(() {});
-  }
+
+
+       if (!eventDate.isAfter(nowDate)) {
+    print('  >>> Adding to day total: $amount');
+    _updateTotals('day', amount, event.isPositiveCashflow);
+}       
+
+       if (!_stripTime(eventDate).isAfter(_stripTime(_endOfWeek))) {
+           print('  Adding to week total: $amount');
+           _updateTotals('week', amount, event.isPositiveCashflow);
+       }
+       if (!_stripTime(eventDate).isAfter(_stripTime(_endOfMonth))) {
+           print('  Adding to month total: $amount');
+           _updateTotals('month', amount, event.isPositiveCashflow);
+       }
+       if (!_stripTime(eventDate).isAfter(_stripTime(_endOfYear))) {
+           _updateTotals('year', amount, event.isPositiveCashflow);
+       }
+   }
+
+   print('\nProcessed event IDs for day: $processedDayEventIds');
+   print('\nFinal Totals:');
+   print('Day total: ${_totals['day']}');
+   print('Week total: ${_totals['week']}');
+   print('Month total: ${_totals['month']}');
+   print('Year total: ${_totals['year']}');
+   print('=== End _calculateTotals ===\n');
+   setState(() {});
+}
 
   void _updateTotals(String period, double amount, bool isPositive) {
     if (isPositive) {
