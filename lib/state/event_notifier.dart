@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
-import '../data/models/event_model.dart';
+import '../data/models/enums/delete_option.dart';
+import '../data/models/enums/repeat_option.dart';
+import '../data/models/freezed/event.dart';
 import '../data/repositories/event_repository.dart';
 import '../utils/date_utils.dart';
 
@@ -31,13 +33,15 @@ class EventNotifier extends ChangeNotifier {
     }
   }
 
-  void _addRecurringEvent(DateTime startDay, Event event) {
+void _addRecurringEvent(DateTime startDay, Event event) {
     DateTime currentDay = startDay;
     final endOfYear = DateTime(startDay.year, 12, 31);
 
     while (!currentDay.isAfter(endOfYear)) {
       _addSingleEvent(currentDay, event);
-      currentDay = getNextRepeatDate(currentDay, event.repeatOption, event.customRecurrence);
+      // Fixed: Using RecurrenceDateCalculator class to access the method
+    currentDay = DateUtils.getNextRepeatDate(
+        currentDay, event.repeatOption, event.customRecurrence);
     }
   }
 
@@ -107,27 +111,28 @@ class EventNotifier extends ChangeNotifier {
     return result;
   }
 
-void loadEvents() {
-  // Initialize empty map if no events exist
-  _events = {};
-  
-  // Get all dates for current year
-  final startDate = DateTime(DateTime.now().year, 1, 1);
-  final endDate = DateTime(DateTime.now().year, 12, 31);
-  
-  // Load events for the entire year
-  final events = _repository.getEventsForRange(startDate, endDate);
-  
-  // Organize events by date in the _events map
-  for (DateTime date = startDate; 
-       date.isBefore(endDate) || date.isAtSameMomentAs(endDate); 
-       date = date.add(const Duration(days: 1))) {
-    final eventsForDay = _repository.getEvents(date);
-    if (eventsForDay.isNotEmpty) {
-      _events[DateTime(date.year, date.month, date.day)] = eventsForDay;
+  void loadEvents() {
+    _events = {};
+    
+    final startDate = DateTime(DateTime.now().year, 1, 1);
+    final endDate = DateTime(DateTime.now().year, 12, 31);
+    
+    final events = _repository.getEventsForRange(startDate, endDate);
+    
+    for (final event in events) {
+      final eventDate = DateTime(
+        event.dateTime.year,
+        event.dateTime.month, 
+        event.dateTime.day
+      );
+      
+      if (_events.containsKey(eventDate)) {
+        _events[eventDate]!.add(event);
+      } else {
+        _events[eventDate] = [event];
+      }
     }
+    
+    notifyListeners();
   }
-  
-  notifyListeners();
-}
 }

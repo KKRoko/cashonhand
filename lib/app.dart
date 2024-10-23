@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'ui/cash_on_hand/cash_on_hand_page.dart';
-import 'ui/calendar/calendar_page.dart';
+import 'ui/cash_on_hand/cash_on_hand_screen.dart';
+import 'ui/calendar/calendar_screen.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -68,10 +68,10 @@ class MyApp extends StatelessWidget {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
                     return SettingsView(controller: settingsController);
-                  case CalendarPage.routeName:
-                    return const CalendarPage();
+                  case CalendarScreen.routeName:
+                    return const CalendarScreen();
                   default:
-                    return  const CashOnHandPage();
+                    return  const CashOnHandScreen();
                 }
               },
             );

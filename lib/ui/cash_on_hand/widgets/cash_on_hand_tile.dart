@@ -1,5 +1,3 @@
-// lib/ui/cash_on_hand/widgets/cash_on_hand_tile.dart
-
 import 'package:flutter/material.dart';
 import '../../../utils/formatters.dart';
 
@@ -31,17 +29,16 @@ class CashOnHandTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(title, style: Theme.of(context).textTheme.titleLarge),
-            Text(formatDate(date), style: Theme.of(context).textTheme.bodySmall),
+            Text(FormatUtils.formatDate(date), style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
-            _buildAmountRow('Total Positive Cashflow', positiveAmount, Colors.green),
-            _buildAmountRow('Total Negative Cashflow', negativeAmount, Colors.red),
+            _amountRow('Total Positive Cashflow', positiveAmount, Colors.green),
+            _amountRow('Total Negative Cashflow', negativeAmount, Colors.red),
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Cash on hand', style: Theme.of(context).textTheme.titleMedium),
-                Text(
-                  formatCurrency(totalAmount),
+                Text(FormatUtils.formatCurrency(totalAmount),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: totalAmount >= 0 ? Colors.green : Colors.red,
@@ -55,13 +52,12 @@ class CashOnHandTile extends StatelessWidget {
     );
   }
 
-  Widget _buildAmountRow(String label, double amount, Color color) {
+  Widget _amountRow(String label, double amount, Color color) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label),
-        Text(
-          formatCurrency(amount),
+        Text(FormatUtils.formatCurrency(amount),
           style: TextStyle(fontWeight: FontWeight.bold, color: color),
         ),
       ],

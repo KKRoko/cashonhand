@@ -1,138 +1,204 @@
 lib/
+├── core/
+│   ├── di/
+│   │   ├── injection.dart
+│   │   ├── injection.config.dart
+│   │   └── modules/
+│   │       └── database_module.dart
+│   └── error/
+│       ├── failures.dart
+│       └── exceptions.dart
 ├── data/
+│   ├── database/
+│   │   ├── database.dart
+│   │   ├── database.g.dart
+│   │   ├── tables.dart
+│   │   └── type_converters.dart
 │   ├── models/
-│   │   └── event_model.dart
+│   │   ├── enums/
+│   │   │   ├── category_type.dart
+│   │   │   ├── delete_option.dart
+│   │   │   └── repeat_option.dart
+│   │   └── freezed/
+│   │       ├── category.dart
+│   │       ├── category.freezed.dart
+│   │       ├── category.g.dart
+│   │       ├── custom_recurrence.dart
+│   │       ├── custom_recurrence.freezed.dart
+│   │       ├── custom_recurrence.g.dart
+│   │       ├── event.dart
+│   │       ├── event.freezed.dart
+│   │       └── event.g.dart
 │   └── repositories/
+│       ├── base_repository.dart
+│       ├── category_repository.dart
 │       └── event_repository.dart
-├──localization
-|   └── lib/localization/app_en.arb
+├── localization/
+│   └── lib/localization/app_en.arb
 ├── services/
 │   └── event_service.dart
 ├── settings/
-│   └── settings_controller.dart
-│   └── settings_service.dart
+│   ├── settings_controller.dart
+│   ├── settings_service.dart
 │   └── settings_view.dart
+├── state/
+│   ├── category/
+│   │   ├── category_notifier.dart
+│   │   └── category_state.dart
+│   └── event/
+│       ├── event_notifier.dart
+│       └── event_state.dart
 ├── ui/
 │   ├── cash_on_hand/
-│   │   ├── cash_on_hand_page.dart
+│   │   ├── cash_on_hand_screen.dart
 │   │   └── widgets/
 │   │       └── cash_on_hand_tile.dart
 │   ├── calendar/
-│   │   ├── calendar_page.dart
-│   │   └── widgets/
-│   │       ├── calendar_widget.dart
-│   │       └── event_list_widget.dart
+│   │   └── calendar_screen.dart
 │   └── dialogs/
 │       ├── add_edit_event_dialog.dart
-│       └── delete_event_dialog.dart
+│       ├── delete_event_dialog.dart
+│       └── custom_recurrence_dialog.dart
 ├── utils/
 │   ├── date_utils.dart
-│   └── formatters.dart
-└── app.dart
+│   ├── formatters.dart
+│   └── migration_utils.dart
+├── widgets/
+│   ├── calendar_widget.dart
+│   ├── event_list_widget.dart
+│   └── index.dart
+├── app.dart
 └── main.dart
 
+COMPLETED STEPS:
+We've reviewed and updated the following files:
 
-lib/data/models/event_model.dart
+A. UI Files:
 
-I understand that you want a more detailed plan to restructure your codebase according to the new directory structure you've provided. This reorganization aims to improve code cleanliness, organization, and efficiency while adhering to best practices. Here's a detailed plan for restructuring your codebase:
+Renamed and updated calendar_page.dart to calendar_screen.dart
 
-data/models/event_model.dart
-
-Move the Event and CustomRecurrence classes here from the current event_model.dart.
-Remove any business logic, keeping only properties and basic methods like toString() and copyWith().
-Ensure the classes are immutable (final properties).
-
-
-data/repositories/event_repository.dart
-
-Create an EventRepository class with methods for CRUD operations on events.
-Move kEvents here and make it private (_events).
-Implement methods like getEvents(), addEvent(), updateEvent(), deleteEvent().
-Use a Singleton pattern or dependency injection for this class.
+Updated class names (CalendarPage → CalendarScreen)
+Updated state class names (_CalendarPageState → _CalendarScreenState)
+Verified private variables/methods have underscore prefixes
+Maintained widget naming conventions
 
 
-services/event_service.dart
+Renamed and updated cash_on_hand_page.dart to cash_on_hand_screen.dart
 
-Create an EventService class to handle business logic.
-Implement methods like addEvent(), editEvent(), deleteEvent(), getEventsForDay(), etc.
-This service should use the EventRepository for data operations.
-Handle recurring event logic here (e.g., generating instances of recurring events).
-
-
-ui/cash_on_hand/cash_on_hand_page.dart
-
-Keep the CashOnHandPage widget here.
-Remove direct data manipulation, use EventService instead.
-Implement state management (e.g., setState, Provider, or BLoC) for updating the UI.
+Updated class names and state classes
+Verified private variables/methods
+Updated navigation references
 
 
-ui/cash_on_hand/widgets/cash_on_hand_tile.dart
+Updated cash_on_hand_tile.dart
 
-Extract the tile widget from CashOnHandPage into this file.
-Make it a stateless widget that takes in data as parameters.
-
-
-ui/calendar/calendar_page.dart
-
-Keep the CalendarPage widget here.
-Use EventService for data operations instead of direct manipulation.
-Implement state management for updating the UI.
+Changed method names to noun phrases
+Verified widget structure
 
 
-ui/calendar/widgets/calendar_widget.dart
 
-Move the calendar widget here from calendar_widget.dart.
-Focus on UI presentation, receive data as parameters.
+B. Dialog Files:
 
+Updated add_edit_event_dialog.dart
 
-ui/calendar/widgets/event_list_widget.dart
-
-Move the event list widget here from event_list.dart.
-Make it a stateless widget that takes in events and callback functions as parameters.
+Reorganized widget methods
+Added proper private method prefixes
+Improved component structure
 
 
-ui/dialogs/add_edit_event_dialog.dart
+Updated custom_recurrence_dialog.dart
 
-Combine add and edit functionality from event_dialog.dart into a single dialog.
-Use EventService for adding/editing events.
-Implement form validation logic here.
-
-
-ui/dialogs/delete_event_dialog.dart
-
-Move the delete event dialog here from delete_event_dialog.dart.
-Use EventService for deleting events.
+Improved method naming
+Added proper widget organization
+Fixed state management
 
 
-utils/date_utils.dart
+Updated delete_event_dialog.dart
 
-Move date-related utility functions here (e.g., findFirstOccurrence, getNextRepeatDate).
-Include functions like daysInRange, getHashCode.
+Created proper widget class structure
+Improved method organization
 
 
-utils/formatters.dart
 
-Move formatting-related functions here (e.g., currencyFormatter, dateFormatter).
-Include any other formatting utilities used across the app.
+C. Utility Files:
 
+Updated date_utils.dart
+
+Improved method naming
+Added comprehensive documentation
+Extracted smaller utility methods
+
+
+Updated formatters.dart
+
+Created FormatUtils class
+Improved method naming
+Added proper documentation
+
+
+Updated event_service.dart
+
+Improved method naming
+Added proper documentation
+Fixed import paths
+
+
+
+
+REMAINING STEPS:
+
+A. Files to Review and Update:
+
+Settings files:
+
+settings_controller.dart
+settings_service.dart
+settings_view.dart
+
+
+Data layer files:
+
+event_model.dart
+event_repository.dart
+
+
+Root files:
 
 app.dart
-
-Keep the main app configuration here.
-Set up dependency injection if used (e.g., Provider setup).
+main.dart
 
 
+Localization:
 
-Additional steps:
+app_en.arb
 
-Update import statements across all files to reflect the new structure.
-Implement proper error handling and logging throughout the app.
-Add comments and documentation to clarify complex logic.
-Consider adding unit tests for the repository and service classes.
-Ensure consistent naming conventions and code style across all files.
 
-This restructuring will separate concerns (data, business logic, and UI), making the code more maintainable and testable. It also allows for easier future enhancements and better scalability.
-Is this the level of detail you were looking for? Would you like me to elaborate on any specific part of this restructuring plan?
+
+B. For each file, we need to:
+
+Review current naming conventions
+Update class names if needed
+Verify private variable/method prefixes
+Update widget method names to noun phrases
+Update import paths to reflect new file names
+Add proper documentation
+Fix any references to renamed components
+
+C. Final Steps:
+
+Verify all import paths are correct across the entire application
+Update any route definitions using old names
+Test the application to ensure:
+
+Navigation works correctly
+All features function as expected
+No naming conflicts exist
+
+
+Document all changes made
+Create a migration guide if needed for team members
+
+
 
 
 
@@ -237,3 +303,52 @@ Full implementation of internationalization, including translations for all stri
 Accessibility Features:
 
 Implementation of accessibility features to make the app usable for people with disabilities.
+
+__________
+
+
+Add freezed for immutable models
+Implement proper JSON serialization
+Dependencies Setup
+
+List all required packages
+Explain what each package is for
+Show dependency relationships
+
+
+Project Structure Changes
+
+Reorganize models folder structure
+Create new files for separated enums
+New locations for database-related code
+
+
+Models Implementation
+
+Step-by-step conversion to freezed
+Category model creation
+Color handling strategy
+Relationship structure
+
+
+Database Setup
+
+Drift tables design
+Relationships configuration
+Type converters for complex types
+Query methods planning
+
+
+Repository Pattern
+
+Update existing repository
+Category repository
+How they interact
+Transaction handling
+
+
+State Management Updates
+
+How to modify current Provider setup
+New state classes needed
+State updates handling

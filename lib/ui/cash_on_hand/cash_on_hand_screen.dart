@@ -3,19 +3,19 @@ import 'package:provider/provider.dart';
 import '../../services/event_service.dart';
 import '../../state/event_notifier.dart'; 
 import 'widgets/cash_on_hand_tile.dart';
-import '../calendar/calendar_page.dart';
+import '../calendar/calendar_screen.dart';
 
-class CashOnHandPage extends StatefulWidget {
+class CashOnHandScreen extends StatefulWidget {
   static const routeName = '/cashOnHand';
 
-  const CashOnHandPage({super.key});
+  const CashOnHandScreen({super.key});
 
   @override
-  CashOnHandPageState createState() => CashOnHandPageState();
+  _CashOnHandScreenState createState() => _CashOnHandScreenState();
 }
 
-class CashOnHandPageState extends State<CashOnHandPage> {
-  late EventService _eventService;  // Change to late
+class _CashOnHandScreenState extends State<CashOnHandScreen> {
+  late EventService _eventService;
   late DateTime _now;
   late DateTime _endOfWeek;
   late DateTime _endOfMonth;
@@ -56,11 +56,12 @@ class CashOnHandPageState extends State<CashOnHandPage> {
 
     final events = _eventService.getEventsForRange(DateTime(_now.year, 1, 1), _endOfYear);
 
-    for (var event in events) {
+  for (var event in events) {
       final amount = event.amount ?? 0;
-      final date = event.createdAt;
+      final date = DateTime(event.createdAt.year, event.createdAt.month, event.createdAt.day);
+      final nowDate = DateTime(_now.year, _now.month, _now.day);
 
-      if (!date.isAfter(_now)) {
+      if (!date.isAfter(nowDate)) { 
         _updateTotals('day', amount, event.isPositiveCashflow);
       }
       if (!date.isAfter(_endOfWeek)) {
@@ -90,7 +91,7 @@ class CashOnHandPageState extends State<CashOnHandPage> {
         title: const Text('Cash on Hand'),
         elevation: 0,
       ),
-      body: Consumer<EventNotifier>(  // Wrap with Consumer to update when events change
+      body: Consumer<EventNotifier>( 
         builder: (context, eventNotifier, child) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -110,7 +111,7 @@ class CashOnHandPageState extends State<CashOnHandPage> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CalendarPage()),
+            MaterialPageRoute(builder: (context) => const CalendarScreen()),
           ).then((_) => _calculateTotals());
         },
         child: const Icon(Icons.calendar_today),
