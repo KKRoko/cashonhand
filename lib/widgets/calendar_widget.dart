@@ -31,7 +31,7 @@ class CalendarWidget extends StatelessWidget {
       selectedDayPredicate: (day) => isSameDay(selectedDay, day),
       calendarFormat: calendarFormat,
       eventLoader: eventLoader,
-      startingDayOfWeek: StartingDayOfWeek.monday,
+      startingDayOfWeek: StartingDayOfWeek.sunday,
       calendarStyle: CalendarStyle(
         outsideDaysVisible: false,
         weekendTextStyle: TextStyle(color: Colors.red[800]),

@@ -36,8 +36,6 @@ class CustomRecurrence with _$CustomRecurrence {
         return _getWeeklyDescription();
       case RepeatOption.monthly:
         return _getMonthlyDescription();
-      case RepeatOption.yearly:
-        return _getYearlyDescription();
       default:
         return 'Every ${frequency > 1 ? '$frequency ' : ''}${interval.toString().split('.').last}';
     }
@@ -67,16 +65,5 @@ class CustomRecurrence with _$CustomRecurrence {
       return 'Monthly on the $ordinal week';
     }
     return 'Monthly';
-  }
-
-  String _getYearlyDescription() {
-    if (month != null) {
-      final monthName = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ][month! - 1];
-      return 'Yearly in $monthName';
-    }
-    return 'Yearly';
   }
 }

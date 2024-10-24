@@ -50,8 +50,6 @@ static List<DateTime> getDaysInRange(DateTime start, DateTime end) {
         return currentDay.add(const Duration(days: 7));
       case RepeatOption.monthly:
         return DateTime(currentDay.year, currentDay.month + 1, currentDay.day);
-      case RepeatOption.yearly:
-        return DateTime(currentDay.year + 1, currentDay.month, currentDay.day);
       default:
         return currentDay.add(const Duration(days: 1));
     }
@@ -244,4 +242,8 @@ static bool _isFirstOccurrence(DateTime date) {
     if (diff > 0) diff -= 7;
     return lastDay.add(Duration(days: diff));
   }
+
+  static int getDaysInMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
+}
 }

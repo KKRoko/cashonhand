@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../data/models/enums/delete_option.dart';
 import '../data/models/enums/repeat_option.dart';
+import '../data/models/freezed/custom_recurrence.dart';
 import '../data/models/freezed/event.dart';
 import '../data/repositories/event_repository.dart';
 import '../utils/date_utils.dart';
@@ -33,44 +34,10 @@ class EventNotifier extends ChangeNotifier {
     }
   }
 
-void _addRecurringEvent(DateTime startDay, Event event) {
-    print("Adding recurring event: ${event.title} starting on $startDay");
-
+  void _addRecurringEvent(DateTime startDay, Event event) {
     DateTime currentDay = startDay;
     final endOfYear = DateTime(startDay.year, 12, 31);
-    print("End of year date: $endOfYear");
 
-    // For custom recurrence (weekly events)
-    if (event.repeatOption == RepeatOption.custom && 
-        event.customRecurrence != null && 
-        event.customRecurrence!.selectedDays.any((selected) => selected)) {
-        
-        int currentWeekday = currentDay.weekday;
-        int targetWeekday = -1;
-        
-        // Find the first selected day
-        for (int i = 0; i < 7; i++) {
-            if (event.customRecurrence!.selectedDays[i]) {
-                // Convert from Sunday-first index to DateTime.weekday
-                // Sunday (0) -> 7
-                // Monday (1) -> 1
-                // Tuesday (2) -> 2
-                // ...
-                // Saturday (6) -> 6
-                targetWeekday = i == 0 ? 7 : i;
-                break;
-            }
-        }
-        
-        if (targetWeekday != -1) {
-            // Calculate days until target weekday
-            int daysToAdd = targetWeekday - currentWeekday;
-            if (daysToAdd <= 0) daysToAdd += 7;
-            currentDay = currentDay.add(Duration(days: daysToAdd));
-        }
-    }
-
-    // Rest of the method remains the same...
     while (!currentDay.isAfter(endOfYear)) {
         final updatedEvent = event.copyWith(
             dateTime: DateTime(
@@ -86,23 +53,163 @@ void _addRecurringEvent(DateTime startDay, Event event) {
         );
         _addSingleEvent(currentDay, updatedEvent);
 
+        // Handle different recurrence types
         if (event.repeatOption == RepeatOption.custom && 
             event.customRecurrence != null) {
-            currentDay = currentDay.add(
-                Duration(days: 7 * event.customRecurrence!.frequency));
+            
+            switch (event.customRecurrence!.interval) {
+                case RepeatOption.monthly:
+                    currentDay = _getNextMonthlyDate(
+                        currentDay, 
+                        event.customRecurrence!
+                    );
+                    break;
+                    
+                case RepeatOption.weekly:
+                    currentDay = _getNextWeeklyDate(
+                        currentDay, 
+                        event.customRecurrence!
+                    );
+                    break;
+                    
+                default:
+                    currentDay = DateUtils.getNextRepeatDate(
+                        currentDay, 
+                        event.repeatOption, 
+                        event.customRecurrence
+                    );
+            }
         } else {
             currentDay = DateUtils.getNextRepeatDate(
-                currentDay, event.repeatOption, event.customRecurrence);
+                currentDay, 
+                event.repeatOption, 
+                event.customRecurrence
+            );
         }
     }
+  }
 
-    print("Events after adding: ");
-    _events.forEach((key, value) {
-        print("Date: $key, Events: ${value.length}");
-    });
-}
+  DateTime _getNextWeeklyDate(DateTime currentDay, CustomRecurrence recurrence) {
+    if (recurrence.selectedDays.any((selected) => selected)) {
+      int currentWeekday = currentDay.weekday;
+      int? nextWeekday;
+      
+      // Find the next selected day after current weekday
+      for (int i = 0; i < 7; i++) {
+        int checkDay = (currentWeekday + i) % 7;
+        // Convert to Sunday = 0 format for checking selectedDays
+        int selectedDaysIndex = checkDay == 7 ? 0 : checkDay;
+        
+        if (recurrence.selectedDays[selectedDaysIndex]) {
+          if (i > 0) { // Found a day later this week
+            nextWeekday = checkDay == 0 ? 7 : checkDay;
+            break;
+          }
+        }
+      }
+      
+      // If no later day found this week, move to next week and find first selected day
+      if (nextWeekday == null) {
+        for (int i = 0; i < 7; i++) {
+          if (recurrence.selectedDays[i]) {
+            nextWeekday = i == 0 ? 7 : i;
+            currentDay = currentDay.add(Duration(days: 7 * (recurrence.frequency - 1)));
+            break;
+          }
+        }
+      }
+      
+      if (nextWeekday != null) {
+        int daysToAdd = nextWeekday - currentWeekday;
+        if (daysToAdd <= 0) daysToAdd += 7;
+        return currentDay.add(Duration(days: daysToAdd));
+      }
+    }
+    
+    // Default weekly increment if no days selected
+    return currentDay.add(Duration(days: 7 * recurrence.frequency));
+  }
 
+  DateTime _getNextMonthlyDate(DateTime currentDay, CustomRecurrence recurrence) {
+    if (recurrence.dayOfMonth != null) {
+        return _getNextMonthlyByDayOfMonth(
+            currentDay, 
+            recurrence.dayOfMonth!, 
+            recurrence.frequency
+        );
+    } else if (recurrence.weekOfMonth != null) {
+        return _getNextMonthlyByWeekOfMonth(
+            currentDay, 
+            recurrence.weekOfMonth!, 
+            recurrence.frequency
+        );
+    }
+    
+    // Default monthly recurrence
+    return DateTime(
+        currentDay.year,
+        currentDay.month + recurrence.frequency,
+        currentDay.day,
+    );
+  }
 
+  DateTime _getNextMonthlyByDayOfMonth(
+      DateTime currentDay, 
+      int dayOfMonth, 
+      int frequency
+  ) {
+      // Calculate the next month
+      int nextMonth = currentDay.month + frequency;
+      int yearOffset = (nextMonth - 1) ~/ 12;
+      nextMonth = ((nextMonth - 1) % 12) + 1;
+      
+      // Create the next date
+      DateTime nextDate = DateTime(
+          currentDay.year + yearOffset,
+          nextMonth,
+          1  // Start with first day of month
+      );
+      
+      // Adjust to the target day of month, handling month length
+      int actualDay = dayOfMonth;
+      if (dayOfMonth > DateUtils.getDaysInMonth(nextDate.year, nextDate.month)) {
+          actualDay = DateUtils.getDaysInMonth(nextDate.year, nextDate.month);
+      }
+      
+      return DateTime(nextDate.year, nextDate.month, actualDay);
+  }
+
+  DateTime _getNextMonthlyByWeekOfMonth(
+      DateTime currentDay, 
+      int weekOfMonth, 
+      int frequency
+  ) {
+      // Calculate the next month
+      int nextMonth = currentDay.month + frequency;
+      int yearOffset = (nextMonth - 1) ~/ 12;
+      nextMonth = ((nextMonth - 1) % 12) + 1;
+      
+      DateTime nextDate = DateTime(
+          currentDay.year + yearOffset,
+          nextMonth,
+          1  // Start with first day of month
+      );
+      
+      if (weekOfMonth > 0) {
+          // Positive week number (1st to 5th week)
+          int targetDay = (weekOfMonth - 1) * 7 + 1;
+          if (targetDay > DateUtils.getDaysInMonth(nextDate.year, nextDate.month)) {
+              targetDay = DateUtils.getDaysInMonth(nextDate.year, nextDate.month);
+          }
+          return DateTime(nextDate.year, nextDate.month, targetDay);
+      } else {
+          // Negative week number (last week = -1)
+          int daysInMonth = DateUtils.getDaysInMonth(nextDate.year, nextDate.month);
+          int targetDay = daysInMonth + (weekOfMonth * 7) + 1;
+          if (targetDay < 1) targetDay = 1;
+          return DateTime(nextDate.year, nextDate.month, targetDay);
+      }
+  }
 
   void editEvent(DateTime day, Event oldEvent, Event newEvent) {
     deleteEvent(day, oldEvent, DeleteOption.allTime);
@@ -164,8 +271,12 @@ void _addRecurringEvent(DateTime startDay, Event event) {
 
   List<Event> getEventsForRange(DateTime start, DateTime end) {
     List<Event> result = [];
-    for (DateTime date = start; date.isBefore(end) || date.isAtSameMomentAs(end); date = date.add(const Duration(days: 1))) {
-      result.addAll(getEventsForDay(date));
+    DateTime current = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day);
+    
+    while (!current.isAfter(endDate)) {
+      result.addAll(getEventsForDay(current));
+      current = current.add(const Duration(days: 1));
     }
     return result;
   }
@@ -179,36 +290,28 @@ void _addRecurringEvent(DateTime startDay, Event event) {
     final events = _repository.getEventsForRange(startDate, endDate);
     
     for (final event in events) {
-      final eventDate = DateTime(
-        event.dateTime.year,
-        event.dateTime.month, 
-        event.dateTime.day
-      );
-      
-      if (_events.containsKey(eventDate)) {
-        _events[eventDate]!.add(event);
+      if (event.repeatOption == RepeatOption.today) {
+        _addSingleEvent(event.dateTime, event);
       } else {
-        _events[eventDate] = [event];
+        _addRecurringEvent(event.dateTime, event);
       }
     }
     
     notifyListeners();
   }
 
-  // Add this to EventNotifier class
-void debugPrintEvents() {
+  void debugPrintEvents() {
     print('Current events in notifier:');
     _events.forEach((date, events) {
-        print('Date: $date');
-        for (var event in events) {
-            print('  Event: ${event.title}, Amount: ${event.amount}, Date: ${event.dateTime}');
-        }
+      print('Date: $date');
+      for (var event in events) {
+        print('  Event: ${event.title}, Amount: ${event.amount}, Date: ${event.dateTime}');
+      }
     });
-}
+  }
 
-int get currentYear {
+  int get currentYear {
     if (_events.isEmpty) return DateTime.now().year;
-    // Get the first event's year
     return _events.keys.first.year;
-}
+  }
 }

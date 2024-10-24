@@ -36,6 +36,5 @@ const _$RepeatOptionEnumMap = {
   RepeatOption.daily: 'daily',
   RepeatOption.weekly: 'weekly',
   RepeatOption.monthly: 'monthly',
-  RepeatOption.yearly: 'yearly',
   RepeatOption.custom: 'custom',
 };

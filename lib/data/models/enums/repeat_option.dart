@@ -9,8 +9,6 @@ enum RepeatOption {
   weekly,
   @JsonValue('monthly')
   monthly,
-  @JsonValue('yearly')
-  yearly,
   @JsonValue('custom')
   custom
 }

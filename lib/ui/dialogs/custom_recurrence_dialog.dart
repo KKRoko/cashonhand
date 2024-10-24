@@ -24,7 +24,6 @@ class _CustomRecurrenceDialogState extends State<CustomRecurrenceDialog> {
   late int? _month;
 
   final List<String> _weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  final List<String> _weeks = ['First', 'Second', 'Third', 'Fourth', 'Last'];
 
   @override
   void initState() {
@@ -78,7 +77,6 @@ class _CustomRecurrenceDialogState extends State<CustomRecurrenceDialog> {
     RepeatOption.daily,
     RepeatOption.weekly,
     RepeatOption.monthly,
-    RepeatOption.yearly,
   ].map((option) => DropdownMenuItem(
     value: option,
     child: Text(option.toString().split('.').last),
@@ -132,27 +130,8 @@ class _CustomRecurrenceDialogState extends State<CustomRecurrenceDialog> {
   Widget get _monthlySelector {
     if (_interval != RepeatOption.monthly) return const SizedBox.shrink();
 
-    return Column(
-      children: [
-        _weekOfMonthSelector,
-        const SizedBox(height: 8),
-        _dayOfMonthField,
-      ],
-    );
+ return _dayOfMonthField;
   }
-
-  Widget get _weekOfMonthSelector => DropdownButtonFormField<int>(
-    value: _weekOfMonth,
-    decoration: const InputDecoration(labelText: 'Week of Month'),
-    items: _weekOfMonthItems,
-    onChanged: _onWeekOfMonthChanged,
-  );
-
-  List<DropdownMenuItem<int>> get _weekOfMonthItems => 
-    List.generate(5, (index) => DropdownMenuItem(
-      value: index,
-      child: Text(_weeks[index]),
-    ));
 
   Widget get _dayOfMonthField => TextFormField(
     initialValue: _dayOfMonth?.toString() ?? '',
@@ -172,19 +151,12 @@ class _CustomRecurrenceDialogState extends State<CustomRecurrenceDialog> {
         _dayOfMonth = null;
         _weekOfMonth = null;
       }
-      if (_interval != RepeatOption.yearly) _month = null;
     });
   }
 
   void _onFrequencyChanged(String value) {
     setState(() {
       _frequency = int.tryParse(value) ?? 1;
-    });
-  }
-
-  void _onWeekOfMonthChanged(int? value) {
-    setState(() {
-      _weekOfMonth = value;
     });
   }
 

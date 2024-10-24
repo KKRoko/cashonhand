@@ -31,7 +31,7 @@ void initState() {
     print('Current DateTime.now(): ${DateTime.now()}');
     print('Using year: $year');
 
-    _now = DateTime(year, DateTime.now().month, DateTime.now().day);
+    _now = DateTime.now(); 
     print('Initialized _now: $_now');
 
     _endOfWeek = _getEndOfWeek(_now);
