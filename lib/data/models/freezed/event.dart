@@ -55,8 +55,7 @@ class Event with _$Event {
   // Computed properties
   double? get absoluteAmount => amount?.abs();
 
-  bool get hasCustomRecurrence => 
-      repeatOption == RepeatOption.custom && customRecurrence != null;
+
 
   bool get isFinancial => amount != null;
 
@@ -69,9 +68,7 @@ class Event with _$Event {
   }
 
   String get repeatDescription {
-    if (hasCustomRecurrence) {
-      return customRecurrence!.getDescription();
-    }
+
     return repeatOption.toString().split('.').last;
   }
 }

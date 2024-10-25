@@ -1,7 +1,7 @@
 // lib/ui/calendar/widgets/event_list_widget.dart
 
 import 'package:flutter/material.dart';
-import '../data/models/freezed/event.dart';
+import '../../../data/models/freezed/event.dart';
 
 class EventListWidget extends StatelessWidget {
   final List<Event> events;

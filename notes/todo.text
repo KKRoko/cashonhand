@@ -161,70 +161,7 @@ Financial planning
 
 
 
-------------------
-lib/
-├── core/
-│   ├── di/
-│   │   ├── injection.dart
-│   │   ├── injection.config.dart
-│   └── error/
-│       ├── failures.dart
-│       └── exceptions.dart
-├── data/
-│   ├── database/
-│   │   ├── database.dart
-│   │   ├── database.g.dart
-│   │   ├── tables.dart
-│   │   └── type_converters.dart
-│   ├── models/
-│   │   ├── enums/
-│   │   │   ├── category_type.dart
-│   │   │   ├── delete_option.dart
-│   │   │   └── repeat_option.dart
-│   │   └── freezed/
-│   │       ├── category.dart
-│   │       ├── category.freezed.dart
-│   │       ├── category.g.dart
-│   │       ├── custom_recurrence.dart
-│   │       ├── custom_recurrence.freezed.dart
-│   │       ├── custom_recurrence.g.dart
-│   │       ├── event.dart
-│   │       ├── event.freezed.dart
-│   │       └── event.g.dart
-│   └── repositories/
-│       ├── base_repository.dart
-│       └── event_repository.dart
-├── localization/
-│   └── lib/localization/app_en.arb
-├── services/
-│   └── event_service.dart
-├── settings/
-│   ├── settings_controller.dart
-│   ├── settings_service.dart
-│   └── settings_view.dart
-├── state/
-│   └── event_notifier.dart
-├── ui/
-│   ├── cash_on_hand/
-│   │   ├── cash_on_hand_screen.dart
-│   │   └── widgets/
-│   │       └── cash_on_hand_tile.dart
-│   ├── calendar/
-│   │   └── calendar_screen.dart
-│   └── dialogs/
-│       ├── add_edit_event_dialog.dart
-│       ├── delete_event_dialog.dart
-│       └── custom_recurrence_dialog.dart
-├── utils/
-│   ├── date_utils.dart
-│   ├── formatters.dart
-│   └── migration_utils.dart
-├── widgets/
-│   ├── calendar_widget.dart
-│   ├── event_list_widget.dart
-│   └── index.dart
-├── app.dart
-└── main.dart
+
 
 COMPLETED STEPS:
 We've reviewed and updated the following files:

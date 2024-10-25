@@ -6,7 +6,8 @@ import '../../services/event_service.dart';
 import '../dialogs/add_edit_event_dialog.dart';
 import '../dialogs/delete_event_dialog.dart' show showDeleteEventDialog;
 import '../../state/event_notifier.dart';
-import '../../widgets/index.dart';
+import 'widgets/index.dart';
+import 'widgets/calendar_widget.dart';
 
 class CalendarScreen extends StatefulWidget {
   static const routeName = '/calendar';
@@ -85,7 +86,28 @@ Future<void> _showEditEventDialog(Event event) async {
   if (deleteOption != null) {
     _eventService.deleteEvent(_selectedDay!, event, deleteOption);
   }
-}
+ }
+
+  // Add this method to get day amounts
+  double _getDayAmount(DateTime day) {
+    final events = _eventService.getEventsForDay(day);
+    return events.fold(0.0, (sum, event) => sum + (event.amount ?? 0.0));
+  }
+
+  // Add this method to get month summary
+  Map<DateTime, double> _getMonthSummary() {
+    // You'll need to implement this based on your EventService
+    // This is a basic implementation
+    final summary = <DateTime, double>{};
+    final firstDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month, 1);
+    final lastDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
+    
+    for (var day = firstDayOfMonth; day.isBefore(lastDayOfMonth); day = day.add(const Duration(days: 1))) {
+      summary[day] = _getDayAmount(day);
+    }
+    
+    return summary;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +117,15 @@ Future<void> _showEditEventDialog(Event event) async {
       ),
       body: Column(
         children: [
-          CalendarWidget(
+          EnhancedCalendarWidget(  // Changed from CalendarWidget to EnhancedCalendarWidget
             focusedDay: _focusedDay,
             selectedDay: _selectedDay,
             onDaySelected: _onDaySelected,
             onFormatChanged: _onFormatChanged,
             eventLoader: _eventService.getEventsForDay,
+            getDayAmount: _getDayAmount,  // New property
             calendarFormat: _calendarFormat,
+            monthSummary: _getMonthSummary(),  // New property
           ),
           const SizedBox(height: 8.0),
           Expanded(

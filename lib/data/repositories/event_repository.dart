@@ -39,14 +39,21 @@ class EventRepository {
   /// Creates a new event list for the day if none exists.
   /// @param day The date to add the event to
   /// @param event The event to be added
-  void addEvent(DateTime day, Event event) {
-    if (_events[day] != null) {
-      _events[day]!.add(event);
-    } else {
-      _events[day] = [event];
-    }
-    _cleanupEmptyDays(day);
+void addEvent(DateTime day, Event event) {
+  print('Repository receiving day: $day'); // Add this line
+  print('Repository receiving event datetime: ${event.dateTime}'); // Add this line
+  
+  // Normalize the date by removing the time component
+  final normalizedDay = DateTime(day.year, day.month, day.day);
+  print('Normalized day: $normalizedDay'); // Add this line
+  
+  if (_events[normalizedDay] != null) {
+    _events[normalizedDay]!.add(event);
+  } else {
+    _events[normalizedDay] = [event];
   }
+  _cleanupEmptyDays(normalizedDay);
+}
 
   /// Updates an existing event on the specified day.
   /// 

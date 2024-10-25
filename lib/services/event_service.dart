@@ -14,9 +14,12 @@ class EventService {
   }
 
   /// Adds a new event
-  void addEvent(DateTime day, Event event) {
-    _eventNotifier.addEvent(day, event);
-  }
+void addEvent(DateTime day, Event event) {
+  print('EventService adding event for day: $day');
+  print('Event datetime: ${event.dateTime}');
+  // Use the event's date instead of the passed day
+  _eventNotifier.addEvent(event.dateTime, event);
+}
 
   /// Updates an existing event
   void editEvent(DateTime day, Event oldEvent, Event newEvent) {

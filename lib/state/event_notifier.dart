@@ -13,7 +13,12 @@ class EventNotifier extends ChangeNotifier {
   Map<DateTime, List<Event>> get events => _events;
 
   List<Event> getEventsForDay(DateTime day) {
-    return _events[DateTime(day.year, day.month, day.day)] ?? [];
+  print('Getting events for day: $day'); // Debug print
+  final normalizedDay = DateUtils.normalizeDate(day);
+  print('Normalized day for lookup: $normalizedDay'); // Debug print
+  final events = _events[normalizedDay] ?? [];
+  print('Found ${events.length} events'); // Debug print
+  return events;
   }
 
   void addEvent(DateTime day, Event event) {
@@ -25,14 +30,19 @@ class EventNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _addSingleEvent(DateTime day, Event event) {
-    final normalizedDay = DateTime(day.year, day.month, day.day);
-    if (_events.containsKey(normalizedDay)) {
-      _events[normalizedDay]!.add(event);
-    } else {
-      _events[normalizedDay] = [event];
-    }
+void _addSingleEvent(DateTime day, Event event) {
+  // Use the event's datetime instead of the passed day
+  final normalizedDay = DateUtils.normalizeDate(event.dateTime);
+  print('Adding single event for day: ${event.dateTime}');
+  print('Normalized day for storage: $normalizedDay');
+  
+  if (_events.containsKey(normalizedDay)) {
+    _events[normalizedDay]!.add(event);
+  } else {
+    _events[normalizedDay] = [event];
   }
+  print('Event added to: $normalizedDay');
+}
 
   void _addRecurringEvent(DateTime startDay, Event event) {
     DateTime currentDay = startDay;
