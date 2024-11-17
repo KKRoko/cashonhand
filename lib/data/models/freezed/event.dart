@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:uuid/uuid.dart';
 import '../enums/repeat_option.dart';
 import 'custom_recurrence.dart';
+import 'package:intl/intl.dart';
 
 part 'event.freezed.dart';
 part 'event.g.dart';
@@ -12,40 +12,45 @@ class Event with _$Event {
   const Event._();
 
   const factory Event({
-    required String id,
+    int? id,
+    int? originalEventId,
     required String title,
-    double? amount,
-    required bool isPositiveCashflow,
-    required bool isNegativeCashflow,
+    required int categoryId,
+    required double amount,
+    required DateTime dateTime,
     required RepeatOption repeatOption,
+    required bool isRecurring,
+    String? notes,
     CustomRecurrence? customRecurrence,
     required DateTime createdAt,
-    @Default(true) bool isYearEndSummary,
-    required DateTime dateTime,
+    required DateTime updatedAt,
+    required bool isYearEndSummary,
   }) = _Event;
 
   // Named constructor for creating new events
   factory Event.create({
     required String title,
-    double? amount,
-    required bool isPositiveCashflow,
-    required bool isNegativeCashflow,
-    required RepeatOption repeatOption,
-    CustomRecurrence? customRecurrence,
+    required int categoryId,
+    required double amount,
     required DateTime dateTime,
-    bool isYearEndSummary = true,
+    required RepeatOption repeatOption,
+    bool isRecurring = false,
+    String? notes,
+    CustomRecurrence? customRecurrence,
   }) {
+    final now = DateTime.now();
     return Event(
-      id: const Uuid().v4(),
       title: title,
+      categoryId: categoryId,
       amount: amount,
-      isPositiveCashflow: isPositiveCashflow,
-      isNegativeCashflow: isNegativeCashflow,
-      repeatOption: repeatOption,
-      customRecurrence: customRecurrence,
-      createdAt: DateTime.now(),
-      isYearEndSummary: isYearEndSummary,
       dateTime: dateTime,
+      repeatOption: repeatOption,
+      isRecurring: isRecurring,
+      notes: notes,
+      customRecurrence: customRecurrence,
+      createdAt: now,
+      updatedAt: now,
+      isYearEndSummary: false,
     );
   }
 
@@ -53,22 +58,31 @@ class Event with _$Event {
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
 
   // Computed properties
-  double? get absoluteAmount => amount?.abs();
+  double get absoluteAmount => amount.abs();
 
+  bool get isPositiveCashflow => amount > 0;
 
+  bool get isNegativeCashflow => amount < 0;
 
-  bool get isFinancial => amount != null;
+  bool get isFinancial => amount != 0;
 
   bool get isRepeating => repeatOption != RepeatOption.today;
 
-  String? get formattedAmount {
-    if (amount == null) return null;
+  String get formattedAmount {
     final prefix = isPositiveCashflow ? '+' : '-';
-    return '$prefix\$${absoluteAmount?.toStringAsFixed(2)}';
+    final formatter = NumberFormat("#,##0.00", "en_US");
+    return '$prefix\$${formatter.format(absoluteAmount)}';
   }
 
   String get repeatDescription {
-
     return repeatOption.toString().split('.').last;
+  }
+
+  // Add helper method for recurring events
+  Event copyWithNewDate(DateTime newDate) {
+    return copyWith(
+      dateTime: newDate,
+      updatedAt: DateTime.now(),
+    );
   }
 }

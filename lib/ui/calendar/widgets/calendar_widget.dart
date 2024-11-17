@@ -28,12 +28,15 @@ class EnhancedCalendarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildMonthSummaryCard(context),
-        const SizedBox(height: 16),
-        _buildCalendar(context),
-      ],
+    return SingleChildScrollView(  // Wrap with SingleChildScrollView
+      child: Column(
+        mainAxisSize: MainAxisSize.min,  // Add this
+        children: [
+          _buildMonthSummaryCard(context),
+          const SizedBox(height: 5),
+          _buildCalendar(context),
+        ],
+      ),
     );
   }
 
@@ -52,7 +55,7 @@ class EnhancedCalendarWidget extends StatelessWidget {
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border(
@@ -191,59 +194,35 @@ class EnhancedCalendarWidget extends StatelessWidget {
                 ),
               ),
             ),
-          if (amount != 0)
-            Positioned(
-              bottom: 4,
-              left: 4,
-              right: 4,
-              child: Container(
-                height: 2,
-                decoration: BoxDecoration(
-                  color: amount > 0 ? Colors.green : Colors.red,
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
 
 
-  Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> events) {
-    final amount = getDayAmount(date);
-    if (events.isEmpty && amount == 0) return const SizedBox();
+Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> events) {
+  if (events.isEmpty) return const SizedBox();
 
-    return Positioned(
-      bottom: 1,
-      left: 1,
-      right: 1,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 4,
-            height: 4,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: amount > 0 ? Colors.green : Colors.red,
-            ),
+  return Positioned(
+    bottom: 1,
+    left: 1,
+    right: 1,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: events.map((event) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 1),
+        child: Container(
+          width: 4,
+          height: 4,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: event.isPositiveCashflow ? Colors.green : Colors.red,
           ),
-          if (events.isNotEmpty) ...[
-            const SizedBox(width: 2),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.blue,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+        ),
+      )).toList(),
+    ),
+  );
+}
 
   String _getMonthName(DateTime date) {
     const months = [

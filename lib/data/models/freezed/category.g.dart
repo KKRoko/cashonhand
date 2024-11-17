@@ -8,7 +8,7 @@ part of 'category.dart';
 
 _$CategoryImpl _$$CategoryImplFromJson(Map<String, dynamic> json) =>
     _$CategoryImpl(
-      id: json['id'] as String,
+      id: (json['id'] as num).toInt(),
       name: json['name'] as String,
       type: $enumDecode(_$CategoryTypeEnumMap, json['type']),
       color: json['color'] as String?,

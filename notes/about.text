@@ -1,0 +1,14 @@
+this is a financial tracking application that manages cash flow and recurring events/transactions. Here's the key relationships:
+
+ui/cash_on_hand shows the current cash position and projections
+data/models/event.dart defines the core transaction/event data structure
+data/repositories/event_repository.dart handles storing/retrieving events
+services/event_service.dart contains the business logic for processing events
+state/event_notifier.dart manages state updates when events change
+The app uses SQLite for storage (via data/database)
+Events can be recurring with different schedules (defined in models/enums/repeat_option.dart)
+Categories help organize transactions (models/category.dart)
+The UI shows both a calendar view and cash projections
+Dialogs handle adding/editing/deleting events
+
+The flow diagram specifically shows how cash projections are calculated: The UI requests events through the service layer, which gets filtered data from storage, processes it, and returns calculated totals back to display.

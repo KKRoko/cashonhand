@@ -7,33 +7,39 @@ part of 'event.dart';
 // **************************************************************************
 
 _$EventImpl _$$EventImplFromJson(Map<String, dynamic> json) => _$EventImpl(
-      id: json['id'] as String,
+      id: (json['id'] as num?)?.toInt(),
+      originalEventId: (json['originalEventId'] as num?)?.toInt(),
       title: json['title'] as String,
-      amount: (json['amount'] as num?)?.toDouble(),
-      isPositiveCashflow: json['isPositiveCashflow'] as bool,
-      isNegativeCashflow: json['isNegativeCashflow'] as bool,
+      categoryId: (json['categoryId'] as num).toInt(),
+      amount: (json['amount'] as num).toDouble(),
+      dateTime: DateTime.parse(json['dateTime'] as String),
       repeatOption: $enumDecode(_$RepeatOptionEnumMap, json['repeatOption']),
+      isRecurring: json['isRecurring'] as bool,
+      notes: json['notes'] as String?,
       customRecurrence: json['customRecurrence'] == null
           ? null
           : CustomRecurrence.fromJson(
               json['customRecurrence'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['createdAt'] as String),
-      isYearEndSummary: json['isYearEndSummary'] as bool? ?? true,
-      dateTime: DateTime.parse(json['dateTime'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      isYearEndSummary: json['isYearEndSummary'] as bool,
     );
 
 Map<String, dynamic> _$$EventImplToJson(_$EventImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'originalEventId': instance.originalEventId,
       'title': instance.title,
+      'categoryId': instance.categoryId,
       'amount': instance.amount,
-      'isPositiveCashflow': instance.isPositiveCashflow,
-      'isNegativeCashflow': instance.isNegativeCashflow,
+      'dateTime': instance.dateTime.toIso8601String(),
       'repeatOption': _$RepeatOptionEnumMap[instance.repeatOption]!,
+      'isRecurring': instance.isRecurring,
+      'notes': instance.notes,
       'customRecurrence': instance.customRecurrence?.toJson(),
       'createdAt': instance.createdAt.toIso8601String(),
+      'updatedAt': instance.updatedAt.toIso8601String(),
       'isYearEndSummary': instance.isYearEndSummary,
-      'dateTime': instance.dateTime.toIso8601String(),
     };
 
 const _$RepeatOptionEnumMap = {

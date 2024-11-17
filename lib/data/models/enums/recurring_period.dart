@@ -1,0 +1,4 @@
+enum RecurringPeriod {
+  weekly,
+  monthly
+}

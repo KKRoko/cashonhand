@@ -1,0 +1,13 @@
+Core files:
+
+models/freezed/event.dart
+data/repositories/event_repository.dart
+services/event_service.dart
+ui/cash_on_hand/cash_on_hand_screen.dart
+data/models/enums/category_type.dart
+data/models/enums/repeat_option.dart
+ui/dialogs/add_edit_event_dialog.dart
+
+
+are you able to summarize our entire conversation into one prompt so when I start a new chat, it will know what I want?
+

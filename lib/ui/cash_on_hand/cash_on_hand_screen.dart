@@ -1,9 +1,8 @@
-// cash_on_hand_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/event_service.dart';
+import '../../settings/settings_view.dart';
 import '../../state/event_notifier.dart';
-import '../calendar/calendar_screen.dart';
+import '../achievements/achievement_screen.dart';
 import '../../utils/formatters.dart';
 
 class CashOnHandScreen extends StatefulWidget {
@@ -11,18 +10,19 @@ class CashOnHandScreen extends StatefulWidget {
   const CashOnHandScreen({super.key});
 
   @override
-  _CashOnHandScreenState createState() => _CashOnHandScreenState();
+  State<CashOnHandScreen> createState() => _CashOnHandScreenState();
 }
 
-class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerProviderStateMixin {
-  late EventService _eventService;
+class _CashOnHandScreenState extends State<CashOnHandScreen>
+    with SingleTickerProviderStateMixin {
   late DateTime _now;
   late DateTime _endOfWeek;
   late DateTime _endOfMonth;
   late DateTime _endOfYear;
   late Map<String, Map<String, double>> _totals;
   String? _expandedTileId;
-  
+  bool _isLoading = false;
+
   // Animation controller for progress bars
   late AnimationController _progressController;
 
@@ -35,11 +35,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
     )..forward();
 
     // Initialize dates
-    final year = Provider.of<EventNotifier>(context, listen: false).currentYear;
     _now = DateTime.now();
     _endOfWeek = _getEndOfWeek(_now);
     _endOfMonth = _getEndOfMonth(_now);
-    _endOfYear = DateTime(year, 12, 31);
 
     // Initialize totals
     _totals = {
@@ -48,6 +46,26 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
       'month': {'positive': 0, 'negative': 0},
       'year': {'positive': 0, 'negative': 0},
     };
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
+      eventNotifier.loadInitialEvents();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Get the EventNotifier and initialize dates that depend on it
+    final eventNotifier = Provider.of<EventNotifier>(context);
+    final year = eventNotifier.currentYear;
+    _endOfYear = DateTime(year, 12, 31);
+
+    // Get EventService from EventNotifier
+
+    // Initial load of totals
+    _calculateTotals();
   }
 
   @override
@@ -56,69 +74,88 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _eventService = EventService(Provider.of<EventNotifier>(context));
-    _calculateTotals();
-  }
-
   DateTime _getEndOfWeek(DateTime date) {
-    return date.add(Duration(days: DateTime.saturday - date.weekday + 
-      (date.weekday == DateTime.sunday ? 7 : 0)));
+    return date.add(Duration(
+        days: DateTime.saturday -
+            date.weekday +
+            (date.weekday == DateTime.sunday ? 7 : 0)));
   }
 
   DateTime _getEndOfMonth(DateTime date) {
     return DateTime(date.year, date.month + 1, 0);
   }
 
-  void _calculateTotals() {
-    _totals = {
-      'day': {'positive': 0, 'negative': 0},
-      'week': {'positive': 0, 'negative': 0},
-      'month': {'positive': 0, 'negative': 0},
-      'year': {'positive': 0, 'negative': 0},
-    };
+  Future<void> _calculateTotals() async {
+    if (_isLoading) return;
 
-    DateTime _stripTime(DateTime dt) {
-      return DateTime(dt.year, dt.month, dt.day);
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
+      final events = eventNotifier.getEventsForDateRange(
+        DateTime(_now.year, 1, 1),
+        _endOfYear,
+      );
+
+      // Reset totals
+      _totals = {
+        'day': {'positive': 0, 'negative': 0},
+        'week': {'positive': 0, 'negative': 0},
+        'month': {'positive': 0, 'negative': 0},
+        'year': {'positive': 0, 'negative': 0},
+      };
+
+      final nowDate = DateTime(_now.year, _now.month, _now.day);
+
+      for (var event in events) {
+        final amount = event.amount;
+        final eventDate = DateTime(
+            event.dateTime.year, event.dateTime.month, event.dateTime.day);
+
+        if (!eventDate.isAfter(nowDate)) {
+          _updateTotals('day', amount.abs(), amount >= 0);
+        }
+        if (!eventDate.isAfter(_endOfWeek)) {
+          _updateTotals('week', amount.abs(), amount >= 0);
+        }
+        if (!eventDate.isAfter(_endOfMonth)) {
+          _updateTotals('month', amount.abs(), amount >= 0);
+        }
+        if (!eventDate.isAfter(_endOfYear)) {
+          _updateTotals('year', amount.abs(), amount >= 0);
+        }
+      }
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error calculating totals: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-
-    final nowDate = _stripTime(_now);
-    final events = _eventService.getEventsForRange(
-      DateTime(_now.year, 1, 1),
-      _endOfYear
-    );
-
-    for (var event in events) {
-      final amount = event.amount ?? 0;
-      final eventDate = _stripTime(event.dateTime);
-
-      if (!eventDate.isAfter(nowDate)) {
-        _updateTotals('day', amount, event.isPositiveCashflow);
-      }
-      if (!_stripTime(eventDate).isAfter(_stripTime(_endOfWeek))) {
-        _updateTotals('week', amount, event.isPositiveCashflow);
-      }
-      if (!_stripTime(eventDate).isAfter(_stripTime(_endOfMonth))) {
-        _updateTotals('month', amount, event.isPositiveCashflow);
-      }
-      if (!_stripTime(eventDate).isAfter(_stripTime(_endOfYear))) {
-        _updateTotals('year', amount, event.isPositiveCashflow);
-      }
-    }
-    setState(() {});
   }
 
   void _updateTotals(String period, double amount, bool isPositive) {
     if (isPositive) {
-      _totals[period]!['positive'] = (_totals[period]!['positive'] ?? 0) + amount;
+      _totals[period]!['positive'] =
+          (_totals[period]!['positive'] ?? 0) + amount;
     } else {
-      _totals[period]!['negative'] = (_totals[period]!['negative'] ?? 0) + amount;
+      _totals[period]!['negative'] =
+          (_totals[period]!['negative'] ?? 0) + amount;
     }
   }
 
-  // Achievement badge widget
   Widget _buildAchievementBadge({
     required String title,
     required String description,
@@ -149,8 +186,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
                 Text(
                   description,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
+                        color: Colors.grey.shade600,
+                      ),
                 ),
               ],
             ),
@@ -160,7 +197,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
     );
   }
 
-  // Cash flow tile widget
   Widget _buildCashFlowTile({
     required String period,
     required Map<String, double> amounts,
@@ -215,7 +251,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
                           ),
                           if (isYearEnd) ...[
                             const SizedBox(width: 8),
-                            Icon(Icons.auto_awesome,
+                            Icon(
+                              Icons.auto_awesome,
                               color: Colors.amber.shade700,
                             ),
                           ],
@@ -225,9 +262,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
                     Text(
                       FormatUtils.formatCurrency(totalAmount),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: totalAmount >= 0 ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: totalAmount >= 0 ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(width: 8),
                     AnimatedRotation(
@@ -300,101 +337,120 @@ class _CashOnHandScreenState extends State<CashOnHandScreen> with SingleTickerPr
       appBar: AppBar(
         title: const Text('Cash on Hand'),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              AchievementsScreen.routeName,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              SettingsView.routeName,
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Consumer<EventNotifier>(
           builder: (context, eventNotifier, child) {
-            return ListView(
-              padding: const EdgeInsets.all(16),
+            return Stack(
               children: [
-                // Progress Alert
-                Container(
+                ListView(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.trending_up,
-                        color: Colors.green.shade700,
+                  children: [
+                    // Progress Alert
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          "You're on track to save 15% more than last month!",
-                          style: TextStyle(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.trending_up,
                             color: Colors.green.shade700,
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "You're on track to save 15% more than last month!",
+                              style: TextStyle(
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Cash Flow Tiles
-                _buildCashFlowTile(
-                  period: 'End of Day',
-                  amounts: _totals['day']!,
-                  date: _now,
-                  progress: 0.85,
-                  isYearEnd: false,
-                ),
-                _buildCashFlowTile(
-                  period: 'End of Week',
-                  amounts: _totals['week']!,
-                  date: _endOfWeek,
-                  progress: 0.87,
-                  isYearEnd: false,
-                ),
-                _buildCashFlowTile(
-                  period: 'End of Month',
-                  amounts: _totals['month']!,
-                  date: _endOfMonth,
-                  progress: 0.84,
-                  isYearEnd: false,
-                ),
-                _buildCashFlowTile(
-                  period: 'End of Year',
-                  amounts: _totals['year']!,
-                  date: _endOfYear,
-                  progress: 0.75,
-                  isYearEnd: true,
-                ),
+                    ),
+                    const SizedBox(height: 16),
 
-                const SizedBox(height: 24),
-                
-                // Achievements Section
-                Text(
-                  'Achievements',
-                  style: Theme.of(context).textTheme.titleLarge,
+                    // Cash Flow Tiles
+                    _buildCashFlowTile(
+                      period: 'End of Day',
+                      amounts: _totals['day']!,
+                      date: _now,
+                      progress: 0.85,
+                      isYearEnd: false,
+                    ),
+                    _buildCashFlowTile(
+                      period: 'End of Week',
+                      amounts: _totals['week']!,
+                      date: _endOfWeek,
+                      progress: 0.87,
+                      isYearEnd: false,
+                    ),
+                    _buildCashFlowTile(
+                      period: 'End of Month',
+                      amounts: _totals['month']!,
+                      date: _endOfMonth,
+                      progress: 0.84,
+                      isYearEnd: false,
+                    ),
+                    _buildCashFlowTile(
+                      period: 'End of Year',
+                      amounts: _totals['year']!,
+                      date: _endOfYear,
+                      progress: 0.75,
+                      isYearEnd: true,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Achievements Section
+                    Text(
+                      'Achievements',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildAchievementBadge(
+                      title: 'Saving Starter',
+                      description: 'Save your first \$1,000',
+                      obtained: true,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildAchievementBadge(
+                      title: 'Consistent Saver',
+                      description: 'Save money 3 months in a row',
+                      obtained: false,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                _buildAchievementBadge(
-                  title: 'Saving Starter',
-                  description: 'Save your first \$1,000',
-                  obtained: true,
-                ),
-                const SizedBox(height: 8),
-                _buildAchievementBadge(
-                  title: 'Consistent Saver',
-                  description: 'Save money 3 months in a row',
-                  obtained: false,
-                ),
+                if (_isLoading)
+                  Container(
+                    color: Colors.black.withOpacity(0.3),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
               ],
             );
           },
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CalendarScreen()),
-          ).then((_) => _calculateTotals());
-        },
-        child: const Icon(Icons.calendar_today),
       ),
     );
   }

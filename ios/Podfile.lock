@@ -3,10 +3,27 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - sqlite3 (3.39.4):
+    - sqlite3/common (= 3.39.4)
+  - sqlite3/common (3.39.4)
+  - sqlite3/fts5 (3.39.4):
+    - sqlite3/common
+  - sqlite3/json1 (3.39.4):
+    - sqlite3/common
+  - sqlite3/rtree (3.39.4):
+    - sqlite3/common
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - sqlite3 (~> 3.39.3)
+  - sqlite3/fts5
+  - sqlite3/json1
+  - sqlite3/rtree
+
+SPEC REPOS:
+  trunk:
+    - sqlite3
 
 EXTERNAL SOURCES:
   Flutter:
@@ -17,7 +34,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  sqlite3: 401936402fe5aa242c07f87fccfee5fc2b606f45
 
-PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+PODFILE CHECKSUM: cbe7583f7373c0234ad1a5fb1114695389f9a8c3
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

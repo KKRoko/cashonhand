@@ -12,7 +12,7 @@ class AppTheme {
   
   // Spacing
   static const double defaultRadius = 12.0;
-  static const double defaultPadding = 16.0;
+  static const double defaultPadding = 10.0;
   static const double cardElevation = 2.0;
   
   // Shadow
@@ -25,11 +25,10 @@ class AppTheme {
   static ThemeData lightTheme() {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: _primary,
         secondary: _secondary,
         surface: _surface,
-        background: _background,
         // Amount colors
         error: _secondary,  // Used for negative amounts
         onError: Colors.white,
@@ -90,7 +89,6 @@ class AppTheme {
         primary: _primary,
         secondary: _secondary,
         surface: Colors.grey[900]!,
-        background: Colors.grey[850]!,
         error: _secondary.withOpacity(0.9),
         onError: Colors.white,
         tertiary: _primary.withOpacity(0.9),

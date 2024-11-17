@@ -14,10 +14,13 @@ _$CustomRecurrenceImpl _$$CustomRecurrenceImplFromJson(
       selectedDays: (json['selectedDays'] as List<dynamic>?)
               ?.map((e) => e as bool)
               .toList() ??
-          const [false, false, false, false, false, false, false],
+          const [],
       dayOfMonth: (json['dayOfMonth'] as num?)?.toInt(),
-      weekOfMonth: (json['weekOfMonth'] as num?)?.toInt(),
-      month: (json['month'] as num?)?.toInt(),
+      repeatAtEndOfMonth: json['repeatAtEndOfMonth'] as bool? ?? false,
+      useLastDayOfMonth: json['useLastDayOfMonth'] as bool? ?? false,
+      originalDate: json['originalDate'] == null
+          ? null
+          : DateTime.parse(json['originalDate'] as String),
     );
 
 Map<String, dynamic> _$$CustomRecurrenceImplToJson(
@@ -27,8 +30,9 @@ Map<String, dynamic> _$$CustomRecurrenceImplToJson(
       'frequency': instance.frequency,
       'selectedDays': instance.selectedDays,
       'dayOfMonth': instance.dayOfMonth,
-      'weekOfMonth': instance.weekOfMonth,
-      'month': instance.month,
+      'repeatAtEndOfMonth': instance.repeatAtEndOfMonth,
+      'useLastDayOfMonth': instance.useLastDayOfMonth,
+      'originalDate': instance.originalDate?.toIso8601String(),
     };
 
 const _$RepeatOptionEnumMap = {

@@ -20,7 +20,7 @@ Category _$CategoryFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Category {
-  String get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   CategoryType get type => throw _privateConstructorUsedError;
   String? get color => throw _privateConstructorUsedError;
@@ -42,11 +42,7 @@ abstract class $CategoryCopyWith<$Res> {
       _$CategoryCopyWithImpl<$Res, Category>;
   @useResult
   $Res call(
-      {String id,
-      String name,
-      CategoryType type,
-      String? color,
-      bool isActive});
+      {int id, String name, CategoryType type, String? color, bool isActive});
 }
 
 /// @nodoc
@@ -74,7 +70,7 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -104,11 +100,7 @@ abstract class _$$CategoryImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id,
-      String name,
-      CategoryType type,
-      String? color,
-      bool isActive});
+      {int id, String name, CategoryType type, String? color, bool isActive});
 }
 
 /// @nodoc
@@ -134,7 +126,7 @@ class __$$CategoryImplCopyWithImpl<$Res>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -169,7 +161,7 @@ class _$CategoryImpl implements _Category {
       _$$CategoryImplFromJson(json);
 
   @override
-  final String id;
+  final int id;
   @override
   final String name;
   @override
@@ -220,7 +212,7 @@ class _$CategoryImpl implements _Category {
 
 abstract class _Category implements Category {
   factory _Category(
-      {required final String id,
+      {required final int id,
       required final String name,
       required final CategoryType type,
       final String? color,
@@ -230,7 +222,7 @@ abstract class _Category implements Category {
       _$CategoryImpl.fromJson;
 
   @override
-  String get id;
+  int get id;
   @override
   String get name;
   @override

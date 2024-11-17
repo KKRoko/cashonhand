@@ -24,8 +24,9 @@ mixin _$CustomRecurrence {
   int get frequency => throw _privateConstructorUsedError;
   List<bool> get selectedDays => throw _privateConstructorUsedError;
   int? get dayOfMonth => throw _privateConstructorUsedError;
-  int? get weekOfMonth => throw _privateConstructorUsedError;
-  int? get month => throw _privateConstructorUsedError;
+  bool get repeatAtEndOfMonth => throw _privateConstructorUsedError;
+  bool get useLastDayOfMonth => throw _privateConstructorUsedError;
+  DateTime? get originalDate => throw _privateConstructorUsedError;
 
   /// Serializes this CustomRecurrence to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -48,8 +49,9 @@ abstract class $CustomRecurrenceCopyWith<$Res> {
       int frequency,
       List<bool> selectedDays,
       int? dayOfMonth,
-      int? weekOfMonth,
-      int? month});
+      bool repeatAtEndOfMonth,
+      bool useLastDayOfMonth,
+      DateTime? originalDate});
 }
 
 /// @nodoc
@@ -71,8 +73,9 @@ class _$CustomRecurrenceCopyWithImpl<$Res, $Val extends CustomRecurrence>
     Object? frequency = null,
     Object? selectedDays = null,
     Object? dayOfMonth = freezed,
-    Object? weekOfMonth = freezed,
-    Object? month = freezed,
+    Object? repeatAtEndOfMonth = null,
+    Object? useLastDayOfMonth = null,
+    Object? originalDate = freezed,
   }) {
     return _then(_value.copyWith(
       interval: null == interval
@@ -91,14 +94,18 @@ class _$CustomRecurrenceCopyWithImpl<$Res, $Val extends CustomRecurrence>
           ? _value.dayOfMonth
           : dayOfMonth // ignore: cast_nullable_to_non_nullable
               as int?,
-      weekOfMonth: freezed == weekOfMonth
-          ? _value.weekOfMonth
-          : weekOfMonth // ignore: cast_nullable_to_non_nullable
-              as int?,
-      month: freezed == month
-          ? _value.month
-          : month // ignore: cast_nullable_to_non_nullable
-              as int?,
+      repeatAtEndOfMonth: null == repeatAtEndOfMonth
+          ? _value.repeatAtEndOfMonth
+          : repeatAtEndOfMonth // ignore: cast_nullable_to_non_nullable
+              as bool,
+      useLastDayOfMonth: null == useLastDayOfMonth
+          ? _value.useLastDayOfMonth
+          : useLastDayOfMonth // ignore: cast_nullable_to_non_nullable
+              as bool,
+      originalDate: freezed == originalDate
+          ? _value.originalDate
+          : originalDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -116,8 +123,9 @@ abstract class _$$CustomRecurrenceImplCopyWith<$Res>
       int frequency,
       List<bool> selectedDays,
       int? dayOfMonth,
-      int? weekOfMonth,
-      int? month});
+      bool repeatAtEndOfMonth,
+      bool useLastDayOfMonth,
+      DateTime? originalDate});
 }
 
 /// @nodoc
@@ -137,8 +145,9 @@ class __$$CustomRecurrenceImplCopyWithImpl<$Res>
     Object? frequency = null,
     Object? selectedDays = null,
     Object? dayOfMonth = freezed,
-    Object? weekOfMonth = freezed,
-    Object? month = freezed,
+    Object? repeatAtEndOfMonth = null,
+    Object? useLastDayOfMonth = null,
+    Object? originalDate = freezed,
   }) {
     return _then(_$CustomRecurrenceImpl(
       interval: null == interval
@@ -157,14 +166,18 @@ class __$$CustomRecurrenceImplCopyWithImpl<$Res>
           ? _value.dayOfMonth
           : dayOfMonth // ignore: cast_nullable_to_non_nullable
               as int?,
-      weekOfMonth: freezed == weekOfMonth
-          ? _value.weekOfMonth
-          : weekOfMonth // ignore: cast_nullable_to_non_nullable
-              as int?,
-      month: freezed == month
-          ? _value.month
-          : month // ignore: cast_nullable_to_non_nullable
-              as int?,
+      repeatAtEndOfMonth: null == repeatAtEndOfMonth
+          ? _value.repeatAtEndOfMonth
+          : repeatAtEndOfMonth // ignore: cast_nullable_to_non_nullable
+              as bool,
+      useLastDayOfMonth: null == useLastDayOfMonth
+          ? _value.useLastDayOfMonth
+          : useLastDayOfMonth // ignore: cast_nullable_to_non_nullable
+              as bool,
+      originalDate: freezed == originalDate
+          ? _value.originalDate
+          : originalDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -175,18 +188,11 @@ class _$CustomRecurrenceImpl extends _CustomRecurrence {
   const _$CustomRecurrenceImpl(
       {required this.interval,
       required this.frequency,
-      final List<bool> selectedDays = const [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
+      final List<bool> selectedDays = const [],
       this.dayOfMonth,
-      this.weekOfMonth,
-      this.month})
+      this.repeatAtEndOfMonth = false,
+      this.useLastDayOfMonth = false,
+      this.originalDate})
       : _selectedDays = selectedDays,
         super._();
 
@@ -209,13 +215,17 @@ class _$CustomRecurrenceImpl extends _CustomRecurrence {
   @override
   final int? dayOfMonth;
   @override
-  final int? weekOfMonth;
+  @JsonKey()
+  final bool repeatAtEndOfMonth;
   @override
-  final int? month;
+  @JsonKey()
+  final bool useLastDayOfMonth;
+  @override
+  final DateTime? originalDate;
 
   @override
   String toString() {
-    return 'CustomRecurrence(interval: $interval, frequency: $frequency, selectedDays: $selectedDays, dayOfMonth: $dayOfMonth, weekOfMonth: $weekOfMonth, month: $month)';
+    return 'CustomRecurrence(interval: $interval, frequency: $frequency, selectedDays: $selectedDays, dayOfMonth: $dayOfMonth, repeatAtEndOfMonth: $repeatAtEndOfMonth, useLastDayOfMonth: $useLastDayOfMonth, originalDate: $originalDate)';
   }
 
   @override
@@ -231,9 +241,12 @@ class _$CustomRecurrenceImpl extends _CustomRecurrence {
                 .equals(other._selectedDays, _selectedDays) &&
             (identical(other.dayOfMonth, dayOfMonth) ||
                 other.dayOfMonth == dayOfMonth) &&
-            (identical(other.weekOfMonth, weekOfMonth) ||
-                other.weekOfMonth == weekOfMonth) &&
-            (identical(other.month, month) || other.month == month));
+            (identical(other.repeatAtEndOfMonth, repeatAtEndOfMonth) ||
+                other.repeatAtEndOfMonth == repeatAtEndOfMonth) &&
+            (identical(other.useLastDayOfMonth, useLastDayOfMonth) ||
+                other.useLastDayOfMonth == useLastDayOfMonth) &&
+            (identical(other.originalDate, originalDate) ||
+                other.originalDate == originalDate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -244,8 +257,9 @@ class _$CustomRecurrenceImpl extends _CustomRecurrence {
       frequency,
       const DeepCollectionEquality().hash(_selectedDays),
       dayOfMonth,
-      weekOfMonth,
-      month);
+      repeatAtEndOfMonth,
+      useLastDayOfMonth,
+      originalDate);
 
   /// Create a copy of CustomRecurrence
   /// with the given fields replaced by the non-null parameter values.
@@ -270,8 +284,9 @@ abstract class _CustomRecurrence extends CustomRecurrence {
       required final int frequency,
       final List<bool> selectedDays,
       final int? dayOfMonth,
-      final int? weekOfMonth,
-      final int? month}) = _$CustomRecurrenceImpl;
+      final bool repeatAtEndOfMonth,
+      final bool useLastDayOfMonth,
+      final DateTime? originalDate}) = _$CustomRecurrenceImpl;
   const _CustomRecurrence._() : super._();
 
   factory _CustomRecurrence.fromJson(Map<String, dynamic> json) =
@@ -286,9 +301,11 @@ abstract class _CustomRecurrence extends CustomRecurrence {
   @override
   int? get dayOfMonth;
   @override
-  int? get weekOfMonth;
+  bool get repeatAtEndOfMonth;
   @override
-  int? get month;
+  bool get useLastDayOfMonth;
+  @override
+  DateTime? get originalDate;
 
   /// Create a copy of CustomRecurrence
   /// with the given fields replaced by the non-null parameter values.

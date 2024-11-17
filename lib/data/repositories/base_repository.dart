@@ -3,6 +3,7 @@ import '../../core/error/exception.dart';
 import '../../core/error/failures.dart';
 
 abstract class BaseRepository<T> {
+  // ignore: avoid_shadowing_type_parameters
   Future<Either<Failure, T>> catchError<T>(Future<T> Function() call) async {
     try {
       final result = await call();

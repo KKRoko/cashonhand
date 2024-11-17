@@ -6,64 +6,46 @@ part 'custom_recurrence.g.dart';
 
 @freezed
 class CustomRecurrence with _$CustomRecurrence {
-  // Keep the private constructor for methods
-  const CustomRecurrence._();
-
   const factory CustomRecurrence({
     required RepeatOption interval,
     required int frequency,
-    @Default([false, false, false, false, false, false, false]) 
-    List<bool> selectedDays,
+    @Default([]) List<bool> selectedDays,
     int? dayOfMonth,
-    int? weekOfMonth,
-    int? month,
-  }) = _CustomRecurrence;  // Note: using _CustomRecurrence here
+    @Default(false) bool repeatAtEndOfMonth,
+    @Default(false) bool useLastDayOfMonth,
+    DateTime? originalDate,
+  }) = _CustomRecurrence;
+
+  const CustomRecurrence._();
 
   factory CustomRecurrence.fromJson(Map<String, dynamic> json) =>
       _$CustomRecurrenceFromJson(json);
 
-  // Keep your methods here
-  bool get hasSelectedDays => selectedDays.contains(true);
+  bool get hasSelectedDays => selectedDays.any((day) => day);
 
-  List<int> get selectedDayIndices => 
-    List.generate(selectedDays.length, (i) => i)
-        .where((i) => selectedDays[i])
-        .toList();
+  List<int> get selectedDayIndices {
+    List<int> indices = [];
+    for (int i = 0; i < selectedDays.length; i++) {
+      if (selectedDays[i]) indices.add(i);
+    }
+    return indices;
+  }
 
   String getDescription() {
     switch (interval) {
+      case RepeatOption.daily:
+        return frequency == 1 ? 'Daily' : 'Every $frequency days';
       case RepeatOption.weekly:
-        return _getWeeklyDescription();
+        return frequency == 1 ? 'Weekly' : 'Every $frequency weeks';
       case RepeatOption.monthly:
-        return _getMonthlyDescription();
+        if (repeatAtEndOfMonth) {
+          return frequency == 1
+              ? 'Monthly (End of month)'
+              : 'Every $frequency months (End of month)';
+        }
+        return frequency == 1 ? 'Monthly' : 'Every $frequency months';
       default:
-        return 'Every ${frequency > 1 ? '$frequency ' : ''}${interval.toString().split('.').last}';
+        return 'Custom';
     }
-  }
-
-  String _getWeeklyDescription() {
-    if (!hasSelectedDays) return 'Weekly';
-    
-    final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    final selectedDays = days
-        .asMap()
-        .entries
-        .where((e) => this.selectedDays[e.key])
-        .map((e) => e.value)
-        .join(', ');
-    
-    return 'Weekly on $selectedDays';
-  }
-
-  String _getMonthlyDescription() {
-    if (dayOfMonth != null) {
-      return 'Monthly on day $dayOfMonth';
-    }
-    if (weekOfMonth != null) {
-      final ordinal = ['first', 'second', 'third', 'fourth', 'fifth', 'last']
-          [weekOfMonth!.abs() - 1];
-      return 'Monthly on the $ordinal week';
-    }
-    return 'Monthly';
   }
 }
