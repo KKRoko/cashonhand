@@ -9,6 +9,7 @@ class EnhancedCalendarWidget extends StatelessWidget {
   final DateTime? selectedDay;
   final Function(DateTime, DateTime) onDaySelected;
   final Function(CalendarFormat) onFormatChanged;
+  final Function(DateTime)? onPageChanged;
   final List<Event> Function(DateTime) eventLoader;
   final double Function(DateTime) getDayAmount;
   final CalendarFormat calendarFormat;
@@ -20,6 +21,7 @@ class EnhancedCalendarWidget extends StatelessWidget {
     required this.selectedDay,
     required this.onDaySelected,
     required this.onFormatChanged,
+    this.onPageChanged,
     required this.eventLoader,
     required this.getDayAmount,
     required this.calendarFormat,
@@ -131,6 +133,7 @@ class EnhancedCalendarWidget extends StatelessWidget {
         ),
         onDaySelected: onDaySelected,
         onFormatChanged: onFormatChanged,
+        onPageChanged: onPageChanged,
         calendarBuilders: CalendarBuilders(
           markerBuilder: (context, date, events) {
             return _buildDayIndicator(context, date, events);

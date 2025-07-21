@@ -108,6 +108,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
+  void _onPageChanged(DateTime focusedDay) {
+    setState(() {
+      _focusedDay = focusedDay;
+      
+      // Update selected day to be in the new month to keep event list relevant
+      if (_selectedDay != null) {
+        final currentSelectedDay = _selectedDay!.day;
+        final newMonth = focusedDay.month;
+        final newYear = focusedDay.year;
+        
+        // Try to keep the same day of month, but ensure it's valid for the new month
+        final daysInNewMonth = DateTime(newYear, newMonth + 1, 0).day;
+        final validDay = currentSelectedDay <= daysInNewMonth ? currentSelectedDay : daysInNewMonth;
+        
+        _selectedDay = DateTime(newYear, newMonth, validDay);
+        print('Selected day updated to: ${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year}');
+        
+        // Load events for the new selected day
+        context.read<EventNotifier>().loadEventsForDay(_selectedDay!);
+      }
+    });
+    print('Calendar page changed to: ${focusedDay.month}/${focusedDay.year}');
+  }
+
   Future<void> _showAddEventDialog({required bool isPositiveCashflow}) async {
     if (!_isDatabaseInitialized) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -293,12 +317,17 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
     final firstDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month, 1);
     final lastDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
 
+    // Calculate total for the entire month
+    double monthTotal = 0.0;
     for (var day = firstDayOfMonth;
-        day.isBefore(lastDayOfMonth);
+        !day.isAfter(lastDayOfMonth);
         day = day.add(const Duration(days: 1))) {
-      summary[day] = _getDayAmount(day);
+      monthTotal += _getDayAmount(day);
     }
 
+    // Store the monthly total using the first day of the month as key
+    summary[firstDayOfMonth] = monthTotal;
+    print('Monthly summary for ${firstDayOfMonth.month}/${firstDayOfMonth.year}: \$${monthTotal.toStringAsFixed(2)}');
     return summary;
   }
 
@@ -328,6 +357,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                         selectedDay: _selectedDay,
                         onDaySelected: _onDaySelected,
                         onFormatChanged: _onFormatChanged,
+                        onPageChanged: _onPageChanged,
                         eventLoader: (day) => eventNotifier.getEventsForDay(day),
                         getDayAmount: _getDayAmount,
                         calendarFormat: _calendarFormat,
