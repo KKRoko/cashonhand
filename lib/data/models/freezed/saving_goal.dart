@@ -6,11 +6,10 @@ import '../enums/recurring_period.dart';
 part 'saving_goal.freezed.dart';
 part 'saving_goal.g.dart';
 
-
 @freezed
 class SavingGoal with _$SavingGoal {
   const factory SavingGoal({
-    required String id,
+    required int id,
     required String title,
     required String description,
     required double targetAmount,
@@ -80,7 +79,7 @@ class SavingGoal with _$SavingGoal {
     required double targetAmount,
   }) {
     return SavingGoal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 0,  // Will be replaced by DB auto-increment
       title: title,
       description: description,
       targetAmount: targetAmount,
@@ -98,7 +97,7 @@ class SavingGoal with _$SavingGoal {
     required DateTime deadlineDate,
   }) {
     return SavingGoal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 0,  // Will be replaced by DB auto-increment
       title: title,
       description: description,
       targetAmount: targetAmount,
@@ -118,7 +117,7 @@ class SavingGoal with _$SavingGoal {
     required double recurringTarget,
   }) {
     return SavingGoal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: 0,  // Will be replaced by DB auto-increment
       title: title,
       description: description,
       targetAmount: targetAmount,

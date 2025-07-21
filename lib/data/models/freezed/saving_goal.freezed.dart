@@ -20,7 +20,7 @@ SavingGoal _$SavingGoalFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SavingGoal {
-  String get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   double get targetAmount => throw _privateConstructorUsedError;
@@ -50,7 +50,7 @@ abstract class $SavingGoalCopyWith<$Res> {
       _$SavingGoalCopyWithImpl<$Res, SavingGoal>;
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String title,
       String description,
       double targetAmount,
@@ -96,7 +96,7 @@ class _$SavingGoalCopyWithImpl<$Res, $Val extends SavingGoal>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -154,7 +154,7 @@ abstract class _$$SavingGoalImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id,
+      {int id,
       String title,
       String description,
       double targetAmount,
@@ -198,7 +198,7 @@ class __$$SavingGoalImplCopyWithImpl<$Res>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -270,7 +270,7 @@ class _$SavingGoalImpl extends _SavingGoal {
       _$$SavingGoalImplFromJson(json);
 
   @override
-  final String id;
+  final int id;
   @override
   final String title;
   @override
@@ -370,7 +370,7 @@ class _$SavingGoalImpl extends _SavingGoal {
 
 abstract class _SavingGoal extends SavingGoal {
   const factory _SavingGoal(
-      {required final String id,
+      {required final int id,
       required final String title,
       required final String description,
       required final double targetAmount,
@@ -388,7 +388,7 @@ abstract class _SavingGoal extends SavingGoal {
       _$SavingGoalImpl.fromJson;
 
   @override
-  String get id;
+  int get id;
   @override
   String get title;
   @override

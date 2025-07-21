@@ -27,40 +27,54 @@ class AddEditEventDialog extends StatefulWidget {
 }
 
 class _AddEditEventDialogState extends State<AddEditEventDialog> {
-  late int _selectedCategoryId;
+  // Controllers
   late TextEditingController _titleController;
   late TextEditingController _amountController;
+  late TextEditingController _frequencyController;
+  late TextEditingController _dayOfMonthController;
+
+  // State variables
+  late int _selectedCategoryId;
   late bool _isPositiveCashflow;
   late RepeatOption _repeatOption;
   late DateTime selectedDate;
   CustomRecurrence? _customRecurrence;
+  
+  // UI state
   bool _showAmountError = false;
   bool _showTitleError = false;
-
+  String _firstOccurrenceText = '';
   bool _isBasicExpanded = false;
   bool _isRecurrenceExpanded = false;
-
-  // Controller for day of month input
-  late TextEditingController _dayOfMonthController;
 
   @override
   void initState() {
     super.initState();
-    _selectedCategoryId =
-        widget.event?.categoryId ?? widget.categories.first.id;
+    _initializeControllers();
+    _initializeState();
+    
+    // Calculate initial first occurrence text
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateFirstOccurrenceText();
+    });
+  }
+
+  void _initializeControllers() {
     _titleController = TextEditingController(text: widget.event?.title ?? '');
-    _amountController =
-        TextEditingController(text: widget.event?.amount.toString() ?? '');
-    _isPositiveCashflow =
-        widget.event?.isPositiveCashflow ?? widget.isPositiveCashflow;
+    _amountController = TextEditingController(text: widget.event?.amount.toString() ?? '');
+    _frequencyController = TextEditingController(text: widget.event?.customRecurrence?.frequency.toString() ?? '1');
+    _dayOfMonthController = TextEditingController(
+      text: widget.event?.customRecurrence?.dayOfMonth?.toString() ?? 
+            widget.selectedDay.day.toString()
+    );
+  }
+
+  void _initializeState() {
+    _selectedCategoryId = widget.event?.categoryId ?? widget.categories.first.id;
+    _isPositiveCashflow = widget.event?.isPositiveCashflow ?? widget.isPositiveCashflow;
     _repeatOption = widget.event?.repeatOption ?? RepeatOption.today;
     _customRecurrence = widget.event?.customRecurrence;
     selectedDate = widget.event?.dateTime ?? widget.selectedDay;
-
-    // Initialize day of month controller
-    _dayOfMonthController = TextEditingController(
-        text: _customRecurrence?.dayOfMonth?.toString() ??
-            selectedDate.day.toString());
   }
 
   @override
@@ -68,40 +82,11 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     _titleController.dispose();
     _amountController.dispose();
     _dayOfMonthController.dispose();
+    _frequencyController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-            child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-          maxWidth: MediaQuery.of(context).size.width * 0.9,
-        ),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildAmountCard(),
-              const SizedBox(height: 16),
-              _buildBasicDetailsSection(),
-              const SizedBox(height: 8),
-              _buildRecurrenceSection(),
-              const SizedBox(height: 16),
-              _buildActions(),
-            ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Modify the date selection handler
+  // Event handlers
   void _handleDateSelected(DateTime newDate) {
     setState(() {
       selectedDate = newDate;
@@ -114,21 +99,23 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       // Auto-close the section
       _isBasicExpanded = false;
     });
+    _updateFirstOccurrenceText();
   }
 
-  // Modify the repeat option handler
   void _handleRepeatOptionSelected(RepeatOption option) {
     if (option == _repeatOption) return;
     
     setState(() {
       _repeatOption = option;
+      final frequency = int.tryParse(_frequencyController.text) ?? 1;
+      
       if (option == RepeatOption.today) {
         _customRecurrence = null;
       } else if (option == RepeatOption.monthly) {
         _dayOfMonthController.text = selectedDate.day.toString();
         _customRecurrence = CustomRecurrence(
           interval: option,
-          frequency: 1,
+          frequency: frequency,
           dayOfMonth: selectedDate.day,
           useLastDayOfMonth: selectedDate.day >= 29,
           repeatAtEndOfMonth: false,
@@ -136,17 +123,254 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       } else {
         _customRecurrence = CustomRecurrence(
           interval: option,
-          frequency: 1,
+          frequency: frequency,
           selectedDays: option == RepeatOption.weekly
               ? List.generate(7, (index) => index == selectedDate.weekday % 7)
               : List.filled(7, false),
         );
       }
+
       // Auto-close the section
       _isRecurrenceExpanded = false;
+
+      print('DEBUG - Custom Recurrence set to: ${_customRecurrence?.toJson()}');
+      print('DEBUG - Frequency: ${_customRecurrence?.frequency}');
+    });
+    _updateFirstOccurrenceText();
+  }
+
+  // Helper methods
+  void _updateFirstOccurrenceText() {
+    if (_repeatOption == RepeatOption.today) {
+      setState(() {
+        _firstOccurrenceText = '';
+      });
+      return;
+    }
+
+    DateTime adjustedDate = selectedDate;
+    
+    if (_repeatOption == RepeatOption.weekly && _customRecurrence != null) {
+      final selectedDayIndices = _customRecurrence!.selectedDayIndices;
+      if (selectedDayIndices.isNotEmpty) {
+        int currentWeekdayIndex = selectedDate.weekday % 7;
+        bool todayIsSelectedDay = selectedDayIndices.contains(currentWeekdayIndex);
+        
+        if (!todayIsSelectedDay) {
+          int nextDayIndex = selectedDayIndices.firstWhere(
+            (dayIndex) => dayIndex > currentWeekdayIndex,
+            orElse: () => selectedDayIndices.first
+          );
+          
+          int daysUntilNext;
+          if (nextDayIndex > currentWeekdayIndex) {
+            daysUntilNext = nextDayIndex - currentWeekdayIndex;
+          } else {
+            daysUntilNext = 7 - currentWeekdayIndex + nextDayIndex;
+          }
+          
+          adjustedDate = selectedDate.add(Duration(days: daysUntilNext));
+        }
+      }
+    } else if (_repeatOption == RepeatOption.monthly && _customRecurrence != null) {
+      if (_customRecurrence!.repeatAtEndOfMonth) {
+        adjustedDate = EventDateUtils.getEndOfMonth(selectedDate);
+      } else {
+        adjustedDate = selectedDate;
+      }
+    }
+    
+    setState(() {
+      if (adjustedDate.year == selectedDate.year && 
+          adjustedDate.month == selectedDate.month && 
+          adjustedDate.day == selectedDate.day) {
+        _firstOccurrenceText = "Starts today";
+      } else {
+        final formatter = DateFormat('EEE, MMM d');
+        _firstOccurrenceText = "Starts ${formatter.format(adjustedDate)}";
+      }
     });
   }
 
+  void _updateMonthlyRecurrence(int day) {
+    setState(() {
+      _customRecurrence = (_customRecurrence ??
+              const CustomRecurrence(
+                interval: RepeatOption.monthly,
+                frequency: 1,
+              ))
+          .copyWith(
+        dayOfMonth: day,
+        repeatAtEndOfMonth: false,
+        useLastDayOfMonth: day >= 29,
+      );
+    });
+  }
+
+  String _getIntervalLabel() {
+    switch (_repeatOption) {
+      case RepeatOption.daily:
+        return 'days';
+      case RepeatOption.weekly:
+        return 'weeks';
+      case RepeatOption.monthly:
+        return 'months';
+      default:
+        return '';
+    }
+  }
+
+  void _saveEvent() {
+    // Validate required fields
+    if (_amountController.text.isEmpty || _titleController.text.isEmpty) {
+          setState(() {
+      _showAmountError = _amountController.text.isEmpty;
+      _showTitleError = _titleController.text.isEmpty;
+    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate and parse amount
+final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
+    if (parsedAmount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid amount'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Calculate final amount based on positive/negative cashflow
+    final amount = _isPositiveCashflow ? parsedAmount : -parsedAmount;
+
+    if (_repeatOption != RepeatOption.today) {
+      final frequency = int.tryParse(_frequencyController.text) ?? 1;
+      
+      if (_repeatOption == RepeatOption.weekly) {
+        _customRecurrence = CustomRecurrence(
+          interval: _repeatOption,
+          frequency: frequency,
+          selectedDays: _customRecurrence?.selectedDays ?? List.filled(7, false),
+          originalDate: selectedDate,
+        );
+      } else if (_repeatOption == RepeatOption.monthly) {
+        _customRecurrence = CustomRecurrence(
+          interval: _repeatOption,
+          frequency: frequency,
+          dayOfMonth: _customRecurrence?.dayOfMonth,
+          repeatAtEndOfMonth: _customRecurrence?.repeatAtEndOfMonth ?? false,
+          useLastDayOfMonth: _customRecurrence?.useLastDayOfMonth ?? false,
+        );
+
+           if (_customRecurrence?.repeatAtEndOfMonth == true) {
+        selectedDate = EventDateUtils.getEndOfMonth(selectedDate);
+      }
+      } else {
+        _customRecurrence = CustomRecurrence(
+          interval: _repeatOption,
+          frequency: frequency,
+          selectedDays: List.filled(7, false),
+        );
+      }
+    }
+
+    print('DEBUG - Final CustomRecurrence before save: ${_customRecurrence?.toJson()}');
+
+    if (_repeatOption == RepeatOption.weekly) {
+      _customRecurrence = _customRecurrence?.copyWith(
+        originalDate: selectedDate,
+      );
+    }
+
+// In add_edit_event_dialog.dart, replace the adjustedDate calculation section with this:
+
+DateTime adjustedDate = selectedDate;
+if (_repeatOption == RepeatOption.weekly && _customRecurrence != null) {
+  final selectedDayIndices = _customRecurrence!.selectedDayIndices;
+  if (selectedDayIndices.isNotEmpty) {
+    int currentWeekdayIndex = selectedDate.weekday % 7;
+    
+    // Check if today is one of the selected days
+    bool todayIsSelectedDay = selectedDayIndices.contains(currentWeekdayIndex);
+    
+    if (todayIsSelectedDay) {
+      // Smart Start: If today is a selected day, start today
+      adjustedDate = selectedDate;
+      print('DEBUG - Today is a selected day, starting today');
+    } else {
+      // Smart Start: If today is NOT a selected day, find the next occurrence
+      int nextDayIndex = selectedDayIndices.firstWhere(
+        (dayIndex) => dayIndex > currentWeekdayIndex,
+        orElse: () => selectedDayIndices.first
+      );
+      
+      int daysUntilNext;
+      if (nextDayIndex > currentWeekdayIndex) {
+        // Next selected day is later this week
+        daysUntilNext = nextDayIndex - currentWeekdayIndex;
+      } else {
+        // Next selected day is next week
+        daysUntilNext = 7 - currentWeekdayIndex + nextDayIndex;
+      }
+      
+      adjustedDate = selectedDate.add(Duration(days: daysUntilNext));
+      print('DEBUG - Today is not a selected day, starting on next occurrence: ${adjustedDate.toIso8601String()}');
+    }
+  }
+} else if (_repeatOption == RepeatOption.monthly && _customRecurrence != null) {
+  if (_customRecurrence!.repeatAtEndOfMonth) {
+    // Calculate the first occurrence at end of month
+    adjustedDate = EventDateUtils.getEndOfMonth(selectedDate);
+  } else {
+    adjustedDate = EventDateUtils.adjustDateForEndOfMonth(selectedDate, _customRecurrence);
+  }
+}
+
+print('DEBUG - Before save:');
+print('DEBUG - selectedDate: $selectedDate');
+print('DEBUG - adjustedDate: $adjustedDate');
+print('DEBUG - repeatOption: $_repeatOption');
+if (_customRecurrence != null) {
+  print('DEBUG - selectedDays: ${_customRecurrence!.selectedDays}');
+  print('DEBUG - selectedDayIndices: ${_customRecurrence!.selectedDayIndices}');
+}
+
+  final event = widget.event?.id != null
+      ? Event(
+          id: widget.event!.id,
+          title: _titleController.text,
+          categoryId: _selectedCategoryId,
+          amount: amount,
+          dateTime: adjustedDate,
+          repeatOption: _repeatOption,
+          isRecurring: _repeatOption != RepeatOption.today,
+          customRecurrence: _customRecurrence,
+          createdAt: widget.event!.createdAt,
+          updatedAt: DateTime.now(),
+          isYearEndSummary: widget.event!.isYearEndSummary,
+          notes: null,
+        )
+      : Event.create(
+          title: _titleController.text,
+          categoryId: _selectedCategoryId,
+          amount: amount,
+          dateTime: adjustedDate,
+          repeatOption: _repeatOption,
+          isRecurring: _repeatOption != RepeatOption.today,
+          customRecurrence: _customRecurrence,
+          notes: null,
+        );
+
+  Navigator.of(context).pop(event);
+}
 
   Widget _buildAmountCard() {
     return Card(
@@ -227,7 +451,31 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     );
   }
 
-  Widget _buildBasicDetailsSection() {
+    Widget _buildDateChip(String label, DateTime date) {
+    final isSelected = selectedDate.year == date.year &&
+        selectedDate.month == date.month &&
+        selectedDate.day == date.day;
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            selectedDate = date;
+            // Update day of month if in monthly mode
+            if (_repeatOption == RepeatOption.monthly &&
+                !(_customRecurrence?.repeatAtEndOfMonth ?? false)) {
+              _dayOfMonthController.text = date.day.toString();
+              _updateMonthlyRecurrence(date.day);
+            }
+          });
+        }
+      },
+    );
+  }
+
+    Widget _buildBasicDetailsSection() {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -304,77 +552,150 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     );
   }
 
-  Widget _buildRecurrenceSection() {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () =>
-                setState(() => _isRecurrenceExpanded = !_isRecurrenceExpanded),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  const Icon(Icons.repeat, size: 20),
-                  const SizedBox(width: 8),
-                  const Text('Does this repeat?',
-                      style: TextStyle(fontWeight: FontWeight.w500)),
-                  const Spacer(),
-                  if (_repeatOption != RepeatOption.today)
-                    Text(
-                      _customRecurrence?.getDescription() ??
-                          _repeatOption.toString().split('.').last,
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  const SizedBox(width: 8),
-                  RotatedBox(
-                    quarterTurns: _isRecurrenceExpanded ? 2 : 0,
-                    child: const Icon(Icons.keyboard_arrow_down),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (_isRecurrenceExpanded) ...[
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _buildRepeatOptionChip(RepeatOption.today, 'One-time'),
-                      _buildRepeatOptionChip(RepeatOption.daily, 'Daily'),
-                      _buildRepeatOptionChip(RepeatOption.weekly, 'Weekly'),
-                      _buildRepeatOptionChip(RepeatOption.monthly, 'Monthly'),
-                    ],
-                  ),
-                  if (_repeatOption != RepeatOption.today) ...[
-                    const SizedBox(height: 16),
-                    _buildFrequencySelector(),
-                    if (_repeatOption == RepeatOption.weekly)
-                      _buildWeeklySelector(),
-                    if (_repeatOption == RepeatOption.monthly)
-                      _buildSimplifiedMonthlySelector(),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
+    Widget _buildRepeatOptionChip(RepeatOption option, String label) {
+    final isSelected = _repeatOption == option;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            _repeatOption = option;
+            if (option == RepeatOption.today) {
+              _customRecurrence = null;
+            } else if (option == RepeatOption.monthly) {
+              // Initialize monthly recurrence with current date's day
+              _dayOfMonthController.text = selectedDate.day.toString();
+              _customRecurrence = CustomRecurrence(
+                interval: option,
+                frequency: 1,
+                dayOfMonth: selectedDate.day,
+                useLastDayOfMonth: selectedDate.day >= 29,
+                repeatAtEndOfMonth: false,
+              );
+            } else {
+              _customRecurrence = CustomRecurrence(
+                interval: option,
+                frequency: 1,
+                selectedDays: option == RepeatOption.weekly
+                    ? List.generate(
+                        7, (index) => index == selectedDate.weekday % 7)
+                    : List.filled(7, false),
+              );
+            }
+                        // Add debug prints here
+            print('DEBUG - Custom Recurrence set to: ${_customRecurrence?.toJson()}');
+            print('DEBUG - Frequency: ${_customRecurrence?.frequency}');
+          });
+        }
+      },
     );
   }
 
-  Widget _buildSimplifiedMonthlySelector() {
+
+  Widget _buildFrequencySelector() {
+  return Row(
+    children: [
+      const Text('Repeat every'),
+      const SizedBox(width: 8),
+      SizedBox(
+        width: 60,
+        child: TextField(
+          controller: _frequencyController,  // Use the existing controller
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          ),
+          onChanged: (value) {
+            final frequency = int.tryParse(value) ?? 1;
+            setState(() {
+              _customRecurrence = (_customRecurrence ?? CustomRecurrence(
+                interval: _repeatOption,
+                frequency: frequency,
+                selectedDays: _repeatOption == RepeatOption.weekly
+                    ? List.generate(7, (index) => index == selectedDate.weekday % 7)
+                    : List.filled(7, false),
+              )).copyWith(frequency: frequency);  // Add copyWith here
+                
+              print('DEBUG - Updated frequency to: $frequency');
+              print('DEBUG - Custom Recurrence: ${_customRecurrence?.toJson()}');
+            });
+            _updateFirstOccurrenceText();
+          },
+        ),
+      ),
+      const SizedBox(width: 8),
+      Text(_getIntervalLabel()),
+    ],
+  );
+}  
+
+  Widget _buildWeeklySelector() {
+    print(
+        "Selected days in weekly selector: ${_customRecurrence?.selectedDays}");
+
+    final weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        const Text('Repeat on:', style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(7, (index) {
+            final isSelected = _customRecurrence?.selectedDays[index] ?? false;
+            return InkWell(
+            onTap: () {
+                // Create new list of all false values
+                final newSelectedDays = List.filled(7, false);
+                // Set only the tapped day to true
+                newSelectedDays[index] = true;
+                
+                setState(() {
+                  _customRecurrence = _customRecurrence?.copyWith(
+                        selectedDays: newSelectedDays,
+                      ) ??
+                      CustomRecurrence(
+                        interval: RepeatOption.weekly,
+                        frequency: 1,
+                        selectedDays: newSelectedDays,
+                      );
+                });
+                  _updateFirstOccurrenceText(); 
+              },
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? Theme.of(context).primaryColor
+                      : Colors.transparent,
+                  border: Border.all(
+                    color: isSelected
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    weekDays[index],
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+    Widget _buildSimplifiedMonthlySelector() {
     final isEndOfMonth = _customRecurrence?.repeatAtEndOfMonth ?? false;
 
     return Column(
@@ -387,7 +708,10 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
           onChanged: (value) {
             setState(() {
               if (value ?? false) {
-                // Enable end of month and clear day of month
+                // When enabling end of month, immediately adjust the date
+                final endOfMonth = EventDateUtils.getEndOfMonth(selectedDate);
+                selectedDate = endOfMonth; // Update the selected date
+                
                 _customRecurrence = (_customRecurrence ??
                         const CustomRecurrence(
                           interval: RepeatOption.monthly,
@@ -440,130 +764,98 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     );
   }
 
-  void _updateMonthlyRecurrence(int day) {
-    setState(() {
-      _customRecurrence = (_customRecurrence ??
-              const CustomRecurrence(
-                interval: RepeatOption.monthly,
-                frequency: 1,
-              ))
-          .copyWith(
-        dayOfMonth: day,
-        repeatAtEndOfMonth: false,
-        useLastDayOfMonth:
-            day >= 29, // Set useLastDayOfMonth for internal calculations
-      );
-    });
-  }
-
-  Widget _buildDateChip(String label, DateTime date) {
-    final isSelected = selectedDate.year == date.year &&
-        selectedDate.month == date.month &&
-        selectedDate.day == date.day;
-
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        if (selected) {
-          setState(() {
-            selectedDate = date;
-            // Update day of month if in monthly mode
-            if (_repeatOption == RepeatOption.monthly &&
-                !(_customRecurrence?.repeatAtEndOfMonth ?? false)) {
-              _dayOfMonthController.text = date.day.toString();
-              _updateMonthlyRecurrence(date.day);
-            }
-          });
-        }
-      },
-    );
-  }
-
-  Widget _buildRepeatOptionChip(RepeatOption option, String label) {
-    final isSelected = _repeatOption == option;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        if (selected) {
-          setState(() {
-            _repeatOption = option;
-            if (option == RepeatOption.today) {
-              _customRecurrence = null;
-            } else if (option == RepeatOption.monthly) {
-              // Initialize monthly recurrence with current date's day
-              _dayOfMonthController.text = selectedDate.day.toString();
-              _customRecurrence = CustomRecurrence(
-                interval: option,
-                frequency: 1,
-                dayOfMonth: selectedDate.day,
-                useLastDayOfMonth: selectedDate.day >= 29,
-                repeatAtEndOfMonth: false,
-              );
-            } else {
-              _customRecurrence = CustomRecurrence(
-                interval: option,
-                frequency: 1,
-                selectedDays: option == RepeatOption.weekly
-                    ? List.generate(
-                        7, (index) => index == selectedDate.weekday % 7)
-                    : List.filled(7, false),
-              );
-            }
-          });
-        }
-      },
-    );
-  }
-
-  Widget _buildFrequencySelector() {
-    return Row(
-      children: [
-        const Text('Repeat every'),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 60,
-          child: TextField(
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+   Widget _buildRecurrenceSection() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () =>
+                setState(() => _isRecurrenceExpanded = !_isRecurrenceExpanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.repeat, size: 20),
+                  const SizedBox(width: 8),
+                  const Text('Repeat',
+                      style: TextStyle(fontWeight: FontWeight.w500)),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (_repeatOption != RepeatOption.today) ...[
+                        Text(
+                          _customRecurrence?.getDescription() ??
+                              _repeatOption.toString().split('.').last,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                        if (_firstOccurrenceText.isNotEmpty)
+                          const SizedBox(height: 2),
+                        if (_firstOccurrenceText.isNotEmpty)
+                          Text(
+                            _firstOccurrenceText,
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  RotatedBox(
+                    quarterTurns: _isRecurrenceExpanded ? 2 : 0,
+                    child: const Icon(Icons.keyboard_arrow_down),
+                  ),
+                ],
+              ),
             ),
-            controller: TextEditingController(
-              text: _customRecurrence?.frequency.toString() ?? '1',
-            ),
-            onChanged: (value) {
-              final frequency = int.tryParse(value) ?? 1;
-              setState(() {
-                _customRecurrence =
-                    _customRecurrence?.copyWith(frequency: frequency);
-              });
-            },
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(_getIntervalLabel()),
-      ],
+          if (_isRecurrenceExpanded) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildRepeatOptionChip(RepeatOption.today, 'One-time'),
+                      _buildRepeatOptionChip(RepeatOption.daily, 'Daily'),
+                      _buildRepeatOptionChip(RepeatOption.weekly, 'Weekly'),
+                      _buildRepeatOptionChip(RepeatOption.monthly, 'Monthly'),
+                    ],
+                  ),
+                  if (_repeatOption != RepeatOption.today) ...[
+                    const SizedBox(height: 16),
+                    _buildFrequencySelector(),
+                    if (_repeatOption == RepeatOption.weekly)
+                      _buildWeeklySelector(),
+                    if (_repeatOption == RepeatOption.monthly)
+                      _buildSimplifiedMonthlySelector(),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
-  }
-
-  String _getIntervalLabel() {
-    switch (_repeatOption) {
-      case RepeatOption.daily:
-        return 'days';
-      case RepeatOption.weekly:
-        return 'weeks';
-      case RepeatOption.monthly:
-        return 'months';
-      default:
-        return '';
-    }
-  }
+  } 
 
   Widget _buildActions() {
     bool isValid = _amountController.text.isNotEmpty &&
         _titleController.text.isNotEmpty &&
-        double.tryParse(_amountController.text) != null;
+        CurrencyInputFormatter.parse(_amountController.text) != null;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -579,159 +871,35 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
         ),
       ],
     );
-  }
+  } 
 
-  void _saveEvent() {
-    // Validate required fields
-    if (_amountController.text.isEmpty || _titleController.text.isEmpty) {
-          setState(() {
-      _showAmountError = _amountController.text.isEmpty;
-      _showTitleError = _titleController.text.isEmpty;
-    });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+            child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
         ),
-      );
-      return;
-    }
-
-    // Validate and parse amount
-final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
-    if (parsedAmount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid amount'),
-          backgroundColor: Colors.red,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildAmountCard(),
+              const SizedBox(height: 16),
+              _buildBasicDetailsSection(),
+              const SizedBox(height: 8),
+              _buildRecurrenceSection(),
+              const SizedBox(height: 16),
+              _buildActions(),
+            ],
+            ),
+          ),
         ),
-      );
-      return;
-    }
-
-    // Calculate final amount based on positive/negative cashflow
-    final amount = _isPositiveCashflow ? parsedAmount : -parsedAmount;
-
-    if (_repeatOption == RepeatOption.weekly) {
-      _customRecurrence = _customRecurrence?.copyWith(
-        originalDate: selectedDate,
-      );
-    }
-
-DateTime adjustedDate = selectedDate;
-  if (_repeatOption == RepeatOption.weekly && _customRecurrence != null) {
-    final selectedDayIndices = _customRecurrence!.selectedDayIndices;
-    if (selectedDayIndices.isNotEmpty) {
-      int currentWeekdayIndex = selectedDate.weekday % 7;
-      
-      int nextDayIndex = selectedDayIndices.firstWhere(
-        (dayIndex) => dayIndex >= currentWeekdayIndex,
-        orElse: () => selectedDayIndices.first
-      );
-      
-      int daysUntilNext;
-      if (nextDayIndex >= currentWeekdayIndex) {
-        daysUntilNext = nextDayIndex - currentWeekdayIndex;
-      } else {
-        daysUntilNext = 7 - currentWeekdayIndex + nextDayIndex;
-      }
-      
-      adjustedDate = selectedDate.add(Duration(days: daysUntilNext));
-    }
-  } else {
-    adjustedDate = EventDateUtils.adjustDateForEndOfMonth(selectedDate, _customRecurrence);
-  }
-
-  final event = widget.event?.id != null
-      ? Event(
-          id: widget.event!.id,
-          title: _titleController.text,
-          categoryId: _selectedCategoryId,
-          amount: amount,
-          dateTime: adjustedDate,
-          repeatOption: _repeatOption,
-          isRecurring: _repeatOption != RepeatOption.today,
-          customRecurrence: _customRecurrence,
-          createdAt: widget.event!.createdAt,
-          updatedAt: DateTime.now(),
-          isYearEndSummary: widget.event!.isYearEndSummary,
-          notes: null,
-        )
-      : Event.create(
-          title: _titleController.text,
-          categoryId: _selectedCategoryId,
-          amount: amount,
-          dateTime: adjustedDate,
-          repeatOption: _repeatOption,
-          isRecurring: _repeatOption != RepeatOption.today,
-          customRecurrence: _customRecurrence,
-          notes: null,
-        );
-
-  Navigator.of(context).pop(event);
-}
-
-  Widget _buildWeeklySelector() {
-    print(
-        "Selected days in weekly selector: ${_customRecurrence?.selectedDays}");
-
-    final weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text('Repeat on:', style: TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(7, (index) {
-            final isSelected = _customRecurrence?.selectedDays[index] ?? false;
-            return InkWell(
-            onTap: () {
-                // Create new list of all false values
-                final newSelectedDays = List.filled(7, false);
-                // Set only the tapped day to true
-                newSelectedDays[index] = true;
-                
-                setState(() {
-                  _customRecurrence = _customRecurrence?.copyWith(
-                        selectedDays: newSelectedDays,
-                      ) ??
-                      CustomRecurrence(
-                        interval: RepeatOption.weekly,
-                        frequency: 1,
-                        selectedDays: newSelectedDays,
-                      );
-                });
-              },
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected
-                      ? Theme.of(context).primaryColor
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: isSelected
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    weekDays[index],
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ],
+      ),
     );
   }
 }

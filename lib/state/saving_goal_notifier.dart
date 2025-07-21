@@ -64,10 +64,10 @@ class SavingGoalNotifier extends ChangeNotifier {
   }
 
   // Delete goal
-  Future<void> deleteGoal(String id) async {
+  Future<void> deleteGoal(int id) async {  // Changed from String to int
     _error = null;
-    try {
-      await _service.deleteGoal(id as int);
+  try {
+      await _service.deleteGoal(id);
       _goals.removeWhere((g) => g.id == id);
       notifyListeners();
     } catch (e) {

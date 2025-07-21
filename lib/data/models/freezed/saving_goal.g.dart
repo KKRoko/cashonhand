@@ -8,7 +8,7 @@ part of 'saving_goal.dart';
 
 _$SavingGoalImpl _$$SavingGoalImplFromJson(Map<String, dynamic> json) =>
     _$SavingGoalImpl(
-      id: json['id'] as String,
+      id: (json['id'] as num).toInt(),
       title: json['title'] as String,
       description: json['description'] as String,
       targetAmount: (json['targetAmount'] as num).toDouble(),

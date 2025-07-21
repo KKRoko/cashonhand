@@ -16,7 +16,7 @@ class SavingGoalsScreen extends StatefulWidget {
 }
 
 class _SavingGoalsScreenState extends State<SavingGoalsScreen> {
-  String? _expandedGoalId;
+  int? _expandedGoalId;
 
   @override
   void initState() {  

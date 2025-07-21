@@ -1,15 +1,16 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../core/di/injection.dart';
 import '../../data/database/database.dart';
 import '../../data/models/enums/category_type.dart';
+import '../../data/models/enums/edit_option.dart';
 import '../../data/models/freezed/event.dart';
-import '../../services/event_service.dart';
 import '../dialogs/add_edit_event_dialog.dart';
 import '../dialogs/delete_event_dialog.dart' show showDeleteEventDialog;
+import '../dialogs/edit_scope_dialog.dart';
 import '../../state/event_notifier.dart';
+import '../../state/category_notifier.dart';
 import 'widgets/index.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -17,23 +18,21 @@ class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  _CalendarScreenState createState() => _CalendarScreenState();
+  State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  late EventService _eventService;
-  late Database _database;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isLoading = false;
   bool _isDatabaseInitialized = false;
+  late Database _database;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
-    _eventService = getIt<EventService>();
     _database = getIt<Database>();
     _initializeDatabase();
   }
@@ -44,12 +43,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _isLoading = true;
       });
 
-      // Test a simple query to ensure database is working
       final categoryCount = await _database
           .getCategoryCount()
           .timeout(const Duration(seconds: 5));
 
-      // Add this part to ensure default categories exist
       if (categoryCount == 0) {
         print("No categories found, adding defaults");
         await _database.ensureDefaultCategories();
@@ -62,6 +59,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
           _isDatabaseInitialized = true;
           _isLoading = false;
         });
+
+        // Initialize data through notifiers
+        context.read<EventNotifier>().loadInitialEvents();
+        context.read<CategoryNotifier>().loadCategories();
       }
     } catch (e) {
       if (mounted) {
@@ -103,8 +104,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     if (!_isDatabaseInitialized) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Database not initialized. Please wait or restart the app.'),
+          content: Text('Database not initialized. Please wait or restart the app.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -113,38 +113,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     try {
       print("Starting _showAddEventDialog");
-      final categoryType =
-          isPositiveCashflow ? CategoryType.income : CategoryType.expense;
-
-      if (!context.mounted) return;
-
-      setState(() {
-        _isLoading = true;
-      });
-
-      print("Fetching categories for type: $categoryType");
-      final categories =
-          await _database.getCategories(type: categoryType).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          print("Category fetch timed out");
-          throw TimeoutException(
-              'Database query took too long. Please try again.');
-        },
-      );
-
-      print("Categories fetched: ${categories.length}");
-
-      if (!context.mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      final categoryNotifier = context.read<CategoryNotifier>();
+      final eventNotifier = context.read<EventNotifier>();
+      
+      final categoryType = isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+final categories = categoryNotifier.getCategoriesByType(categoryType)
+    .map((category) => CategoryTableData(
+          id: category.id,
+          name: category.name,
+          type: category.type,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ))
+    .toList();
 
       if (categories.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No categories found. Please add categories first.'),
-          ),
+          const SnackBar(content: Text('No categories found. Please add categories first.')),
         );
         return;
       }
@@ -162,10 +147,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         },
       );
 
-      print(
-          "Dialog result: ${newEvent != null ? 'event created' : 'cancelled'}");
-      if (newEvent != null && context.mounted) {
-        final eventNotifier = context.read<EventNotifier>();
+      print("Dialog result: ${newEvent != null ? 'event created' : 'cancelled'}");
+      if (newEvent != null) {
         await eventNotifier.addEvent(_selectedDay!, newEvent);
         print("Event added successfully");
       }
@@ -173,11 +156,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       print("Error in _showAddEventDialog: $e");
       print("Stack trace: $stackTrace");
 
-      if (!context.mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -189,74 +168,91 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _showEditEventDialog(Event event) async {
-    try {
-      final categoryType =
-          event.isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+    final categoryNotifier = context.read<CategoryNotifier>();
+    final eventNotifier = context.read<EventNotifier>();
+    
+    final categoryType = event.isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+    final categories = categoryNotifier.getCategoriesByType(categoryType)
+        .map((category) => CategoryTableData(
+              id: category.id,
+              name: category.name,
+              type: category.type,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+            ))
+        .toList();
 
-      if (!context.mounted) return;
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      final categories = await _database.getCategories(type: categoryType);
-
-      if (!context.mounted) return;
-      Navigator.of(context).pop();
-
-      if (categories.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No categories found. Please add categories first.'),
-          ),
-        );
-        return;
-      }
-
-      final editedEvent = await showDialog<Event>(
-        context: context,
-        builder: (BuildContext context) {
-          return AddEditEventDialog(
-            selectedDay: _selectedDay!,
-            event: event,
-            isPositiveCashflow: event.isPositiveCashflow,
-            categories: categories,
-          );
-        },
-      );
-
-      if (editedEvent != null) {
-        _eventService.updateEvent(_selectedDay!, event, editedEvent);
-      }
-    } catch (e) {
-      if (!context.mounted) return;
-
-      Navigator.of(context).pop();
-
+    if (categories.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading categories: ${e.toString()}'),
-        ),
+        const SnackBar(content: Text('No categories found. Please add categories first.')),
       );
+      return;
+    }
+
+    final editedEvent = await showDialog<Event>(
+      context: context,
+      builder: (BuildContext context) {
+        return AddEditEventDialog(
+          selectedDay: _selectedDay!,
+          event: event,
+          isPositiveCashflow: event.isPositiveCashflow,
+          categories: categories,
+        );
+      },
+    );
+
+    if (editedEvent != null) {
+      // Check if this is a recurring event and show scope dialog
+      if (event.isRecurring && event.originalEventId != null) {
+        await _handleRecurringEventEdit(event, editedEvent);
+      } else {
+        // Non-recurring event, use regular update
+        await eventNotifier.updateEvent(_selectedDay!, event, editedEvent);
+      }
+    }
+  }
+
+  Future<void> _handleRecurringEventEdit(Event originalEvent, Event editedEvent) async {
+    final eventNotifier = context.read<EventNotifier>();
+    
+    // Get edit impact counts for the dialog
+    final impactResult = await eventNotifier.getEditImpactCounts(originalEvent, _selectedDay!);
+    
+    Map<String, int> impactCounts = {'total': 0, 'future': 0, 'past': 0};
+    impactResult.fold(
+      (failure) {
+        print('Failed to get impact counts: ${failure.message}');
+      },
+      (counts) {
+        impactCounts = counts;
+      },
+    );
+
+    // Show edit scope dialog
+    final editOption = await showEditScopeDialog(
+      context: context,
+      event: originalEvent,
+      selectedDate: _selectedDay!,
+      totalEventsInSeries: impactCounts['total'],
+      futureEventsCount: impactCounts['future'],
+      pastEventsCount: impactCounts['past'],
+    );
+
+    if (editOption != null) {
+      // Perform the scoped update
+      await eventNotifier.updateEventWithScope(_selectedDay!, originalEvent, editedEvent, editOption);
     }
   }
 
   Future<void> _showDeleteEventDialog(Event event) async {
     final deleteOption = await showDeleteEventDialog(context, event);
     if (deleteOption != null) {
-      _eventService.deleteEvent(_selectedDay!, event, deleteOption);
+      await context.read<EventNotifier>().deleteEvent(_selectedDay!, event, deleteOption);
     }
   }
 
   double _getDayAmount(DateTime day) {
-    final eventNotifier = context.read<EventNotifier>();
-    final events = eventNotifier.getEventsForDay(day);
+    final events = context.read<EventNotifier>().getEventsForDay(day);
     return events.fold(0.0, (sum, event) => sum + (event.amount));
   }
 
@@ -283,93 +279,95 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: Stack(
         children: [
           SafeArea(
-  child: Column(
-    children: [
-      Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.5,
-        ),
-        child: EnhancedCalendarWidget(
-          focusedDay: _focusedDay,
-          selectedDay: _selectedDay,
-          onDaySelected: _onDaySelected,
-          onFormatChanged: _onFormatChanged,
-          eventLoader: (day) => context.watch<EventNotifier>().getEventsForDay(day),
-          getDayAmount: _getDayAmount,
-          calendarFormat: _calendarFormat,
-          monthSummary: _getMonthSummary(),
-        ),
-      ),
-      Expanded(
-        child: Consumer<EventNotifier>(
-          builder: (context, eventNotifier, _) {
-            final events = eventNotifier.getEventsForDay(_selectedDay!);
-            return events.isEmpty
-              ? const Center(
-                  child: Text('No events for selected day'),
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: EventListWidget(
-                    events: events,
-                    onDeleteEvent: _showDeleteEventDialog,
-                    onEditEvent: _showEditEventDialog,
-                  ),
+            child: Consumer2<EventNotifier, CategoryNotifier>(
+              builder: (context, eventNotifier, categoryNotifier, _) {
+                if (eventNotifier.error != null) {
+                  return Center(child: Text(eventNotifier.error!));
+                }
+
+                return Column(
+                  children: [
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.5,
+                      ),
+                      child: EnhancedCalendarWidget(
+                        focusedDay: _focusedDay,
+                        selectedDay: _selectedDay,
+                        onDaySelected: _onDaySelected,
+                        onFormatChanged: _onFormatChanged,
+                        eventLoader: (day) => eventNotifier.getEventsForDay(day),
+                        getDayAmount: _getDayAmount,
+                        calendarFormat: _calendarFormat,
+                        monthSummary: _getMonthSummary(),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: EventListWidget(
+                          events: eventNotifier.getEventsForDay(_selectedDay!),
+                          onDeleteEvent: _showDeleteEventDialog,
+                          onEditEvent: _showEditEventDialog,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        border: Border(
+                          top: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                            width: 1.0,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              ),
+                              icon: const Icon(Icons.add, color: Colors.white),
+                              label: const Text(
+                                'Add Income',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              ),
+                              icon: const Icon(Icons.remove, color: Colors.white),
+                              label: const Text(
+                                'Add Expense',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 );
-          },
-        ),
-      ),
-      Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).dividerColor,
-              width: 1.0,
+              },
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                ),
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text(
-                  'Add Income',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                ),
-                icon: const Icon(Icons.remove, color: Colors.white),
-                label: const Text(
-                  'Add Expense',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
           if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
             ),
         ],
       ),

@@ -23,7 +23,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
   // Convert database model to domain model
   SavingGoal _convertToModel(SavingGoalTableData data) {
     return SavingGoal(
-      id: data.id.toString(),
+      id: data.id,
       title: data.title,
       description: data.description,
       targetAmount: data.targetAmount,
@@ -59,16 +59,6 @@ class SavingGoalRepository implements ISavingGoalRepository {
   }
 
   @override
-  Future<Either<Failure, List<SavingGoal>>> getAllGoals() async {
-    try {
-      final goals = await _db.getAllSavingGoals();
-      return Right(goals.map(_convertToModel).toList());
-    } catch (e) {
-      return Left(DatabaseFailure('Failed to fetch saving goals: $e'));
-    }
-  }
-
-  @override
   Future<Either<Failure, SavingGoal?>> getGoalById(int id) async {
     try {
       final goal = await _db.getSavingGoalById(id);
@@ -92,7 +82,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
   Future<Either<Failure, bool>> updateGoal(SavingGoal goal) async {
     try {
       final data = SavingGoalTableData(
-        id: int.parse(goal.id),
+        id: goal.id,
         title: goal.title,
         description: goal.description,
         targetAmount: goal.targetAmount,
@@ -108,7 +98,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
             ? jsonEncode(goal.checkpoints!.map((date) => date.toIso8601String()).toList())
             : null,
       );
-      final result = await _db.updateSavingGoal(data);
+     final result = await _db.updateSavingGoal(data);
       return Right(result);
     } catch (e) {
       return Left(DatabaseFailure('Failed to update saving goal: $e'));
@@ -122,6 +112,16 @@ class SavingGoalRepository implements ISavingGoalRepository {
       return Right(result);
     } catch (e) {
       return Left(DatabaseFailure('Failed to delete saving goal: $e'));
+    }
+  }
+
+   @override
+  Future<Either<Failure, List<SavingGoal>>> getAllGoals() async {
+    try {
+      final goals = await _db.getAllSavingGoals();
+      return Right(goals.map(_convertToModel).toList());
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to fetch saving goals: $e'));
     }
   }
 

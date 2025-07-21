@@ -75,7 +75,7 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
         targetAmount: double.parse(_targetAmountController.text),
         deadlineDate: _deadlineDate,         // Changed from targetDate
       ).copyWith(
-        id: widget.goal?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id: widget.goal?.id ?? DateTime.now().millisecondsSinceEpoch,
         currentAmount: double.parse(_currentAmountController.text),
         createdAt: widget.goal?.createdAt ?? DateTime.now(),
       );

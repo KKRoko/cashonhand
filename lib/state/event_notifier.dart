@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import '../data/models/enums/delete_option.dart';
+import '../data/models/enums/edit_option.dart';
 import '../data/models/enums/repeat_option.dart';
 import '../data/models/freezed/event.dart';
 import '../services/event_service.dart';
+import '../core/error/failures.dart';
+import 'package:dartz/dartz.dart';
 import '../utils/event_date_utils.dart';
 
 @injectable
@@ -12,6 +15,7 @@ class EventNotifier extends ChangeNotifier {
   final Map<DateTime, List<Event>> _events = {};
   bool _isLoading = false;
   String? _error;
+  bool _isAddingRecurringEvent = false;
 
   EventNotifier(this.eventService); 
 
@@ -19,6 +23,7 @@ class EventNotifier extends ChangeNotifier {
   Map<DateTime, List<Event>> get events => _events;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isAddingRecurringEvent => _isAddingRecurringEvent;
   
   int get currentYear {
     if (_events.isEmpty) return DateTime.now().year;
@@ -90,29 +95,77 @@ class EventNotifier extends ChangeNotifier {
     _setLoading(false);
   }
 
-Future<void> deleteEvent(DateTime day, Event event, DeleteOption deleteOption) async {
- _setLoading(true);
+  Future<void> updateEventWithScope(DateTime day, Event oldEvent, Event newEvent, EditOption editOption) async {
+    print('🔍 DEBUG: EventNotifier.updateEventWithScope called');
+    print('🔍 DEBUG: Event - ID: ${oldEvent.id}, Title: "${oldEvent.title}", OriginalID: ${oldEvent.originalEventId}');
+    print('🔍 DEBUG: Date: ${day.toIso8601String()}, EditOption: $editOption');
+    
+    _setLoading(true);
 
- final result = await eventService.deleteEvent(day, event, deleteOption);
- result.fold(
-   (failure) => _setError(failure.message),
-   (success) {
-     if (success) {
-       _handleEventDeletion(day, event, deleteOption); // This method already exists
-       notifyListeners();
-     }
-   }
- );
+    final result = await eventService.updateEventWithScope(day, oldEvent, newEvent, editOption);
+    result.fold(
+      (failure) {
+        print('❌ ERROR: EventNotifier - Scoped update failed: ${failure.message}');
+        _setError(failure.message);
+      },
+      (updatedCount) {
+        print('🔍 DEBUG: EventNotifier - Scoped update success: $updatedCount events updated');
+        if (updatedCount > 0) {
+          // For now, don't automatically clear cache to avoid recursion issues
+          // User can manually refresh by navigating away and back
+          print('🔍 DEBUG: EventNotifier - Update successful, cache preserved to avoid recursion');
+        } else {
+          print('⚠️ WARNING: EventNotifier - Scoped update returned 0 (no events updated)');
+        }
+      }
+    );
 
- _setLoading(false);
-}
+    _setLoading(false);
+    print('🔍 DEBUG: EventNotifier.updateEventWithScope completed');
+  }
 
-List<Event> getEventsForDay(DateTime day) {
-  final normalizedDay = DateTime(day.year, day.month, day.day);
-  final events = _events[normalizedDay] ?? [];
-  print("UI requesting events for $normalizedDay: found ${events.length} events");
-  return events;
-}
+  Future<Either<Failure, Map<String, int>>> getEditImpactCounts(Event event, DateTime cutoffDate) async {
+    return await eventService.getEditImpactCounts(event, cutoffDate);
+  }
+
+  Future<void> deleteEvent(DateTime day, Event event, DeleteOption deleteOption) async {
+    print('🔍 DEBUG: EventNotifier.deleteEvent called');
+    print('🔍 DEBUG: Event - ID: ${event.id}, Title: "${event.title}", OriginalID: ${event.originalEventId}');
+    print('🔍 DEBUG: Date: ${day.toIso8601String()}, DeleteOption: $deleteOption');
+    
+    _setLoading(true);
+
+    final result = await eventService.deleteEvent(day, event, deleteOption);
+    result.fold(
+      (failure) {
+        print('❌ ERROR: EventNotifier - Delete failed: ${failure.message}');
+        _setError(failure.message);
+      },
+      (success) {
+        print('🔍 DEBUG: EventNotifier - Delete success: $success');
+        if (success) {
+          _handleEventDeletion(day, event, deleteOption);
+          notifyListeners();
+          print('🔍 DEBUG: EventNotifier - UI state updated');
+        } else {
+          print('⚠️ WARNING: EventNotifier - Delete returned false (no events deleted)');
+        }
+      }
+    );
+
+    _setLoading(false);
+    print('🔍 DEBUG: EventNotifier.deleteEvent completed');
+  }
+
+  List<Event> getEventsForDay(DateTime day) {
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    final events = _events[normalizedDay] ?? [];
+    print("UI requesting events for $normalizedDay: found ${events.length} events");
+    for (var event in events) {
+        print("- Title: ${event.title}, Amount: ${event.amount}, ID: ${event.id}, OriginalID: ${event.originalEventId}");
+    }
+    return events;
+  }
 
   List<Event> getEventsForDateRange(DateTime start, DateTime end) {
     List<Event> result = [];
@@ -142,17 +195,42 @@ List<Event> getEventsForDay(DateTime day) {
     notifyListeners();
   }
 
-  void _groupEventsByDay(List<Event> events) {
+void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
+  if (clearExisting) {
     _events.clear();
-    for (final event in events) {
-      final normalizedDay = DateTime(
-        event.dateTime.year,
-        event.dateTime.month,
-        event.dateTime.day,
-      );
-      _events[normalizedDay] = [...(_events[normalizedDay] ?? []), event];
+  }
+  
+  // Create a temporary map to handle duplicates
+  final Map<DateTime, Map<String, Event>> tempEvents = {};
+  
+  for (final event in events) {
+    final normalizedDay = DateTime(
+      event.dateTime.year,
+      event.dateTime.month,
+      event.dateTime.day,
+    );
+    
+    if (!tempEvents.containsKey(normalizedDay)) {
+      tempEvents[normalizedDay] = {};
+    }
+    
+    // Create a unique key for each event series
+    final String eventKey = event.originalEventId != null 
+      ? '${event.originalEventId}-${event.dateTime}'
+      : '${event.id}-${event.dateTime}';
+    
+    // Prefer generated instances over original events
+    if (!tempEvents[normalizedDay]!.containsKey(eventKey) ||
+        event.originalEventId != null) {
+      tempEvents[normalizedDay]![eventKey] = event;
     }
   }
+  
+  // Convert back to the original structure
+  tempEvents.forEach((day, eventMap) {
+    _events[day] = eventMap.values.toList();
+  });
+}
 
   Future<void> _addSingleEvent(DateTime day, Event event) async {
     final result = await eventService.addEvent(day, event);
@@ -170,53 +248,39 @@ List<Event> getEventsForDay(DateTime day) {
     );
   }
 
-Future<void> _addRecurringEvent(DateTime startDay, Event event) async {
-  // Initialize first occurrence
-  DateTime firstOccurrence = startDay;
-  final selectedWeekdays = event.customRecurrence?.selectedDays ?? [];
-
-  if (event.repeatOption == RepeatOption.weekly && selectedWeekdays.any((day) => day)) {
-    // Get the first selected weekday index (0 = Sunday, 6 = Saturday)
-    // No need to add 1 since array index matches weekday for calculation
-    int targetWeekday = selectedWeekdays.indexOf(true);
-    
-    // Convert Sunday-based index (0-6) to Monday-based (1-7) for calculation
-    int dateTimeWeekday = targetWeekday == 0 ? 7 : targetWeekday;
-    
-    // Calculate days until next target weekday
-    int daysUntilTarget = (dateTimeWeekday - startDay.weekday + 7) % 7;
-    if (daysUntilTarget == 0) daysUntilTarget = 7;
-    
-    // Adjust to first occurrence
-    firstOccurrence = startDay.add(Duration(days: daysUntilTarget));
+  Future<void> _addRecurringEvent(DateTime startDay, Event event) async {
+  print('🔍 DEBUG: EventNotifier._addRecurringEvent called - Title: ${event.title}, Amount: \$${event.amount}');
+  print('🔍 DEBUG: StartDay: ${startDay.toIso8601String()}, RepeatOption: ${event.repeatOption}');
+  
+  // Prevent multiple simultaneous recurring event additions
+  if (_isAddingRecurringEvent) {
+    print('🚫 DEBUG: Already adding a recurring event, ignoring duplicate call');
+    return;
   }
+  
+  _isAddingRecurringEvent = true;
+  _setLoading(true);
+  
+  final result = await eventService.addEvent(startDay, event);
+  result.fold(
+    (failure) {
+      print('🔍 DEBUG: _addRecurringEvent failed: ${failure.message}');
+      _setError(failure.message);
+      _isAddingRecurringEvent = false;
+    },
+    (originalEvent) async {
+      print('🔍 DEBUG: _addRecurringEvent succeeded, clearing events...');
+      // Clear existing events - UI will reload naturally when needed
+      _events.clear();
+      print('🔍 DEBUG: Events cleared, UI will refresh naturally');
+    }
+  );
 
-  DateTime currentDay = firstOccurrence;
-  final endOfYear = DateTime(startDay.year, 12, 31);
-
-  while (!currentDay.isAfter(endOfYear)) {
-    final updatedEvent = event.copyWith(
-      dateTime: DateTime(
-        currentDay.year,
-        currentDay.month,
-        currentDay.day,
-        event.dateTime.hour,
-        event.dateTime.minute,
-        event.dateTime.second,
-        event.dateTime.millisecond,
-        event.dateTime.microsecond
-      )
-    );
-    
-    await _addSingleEvent(currentDay, updatedEvent);
-    
-    currentDay = EventDateUtils.getNextRepeatDate(
-      currentDay, 
-      event.repeatOption, 
-      event.customRecurrence
-    );
-  }
+  _setLoading(false);
+  _isAddingRecurringEvent = false;
+  print('🔍 DEBUG: _addRecurringEvent completed');
 }
+
 
   void _handleEventUpdate(Event oldEvent, Event updatedEvent, DateTime newDay) {
     final oldDay = DateTime(
@@ -240,82 +304,82 @@ Future<void> _addRecurringEvent(DateTime startDay, Event event) async {
     } else {
       _events[normalizedNewDay] = [updatedEvent];
     }
+    notifyListeners();
   }
 
   void _handleEventDeletion(DateTime day, Event event, DeleteOption deleteOption) {
+      print('EventNotifier: Handling deletion of event ${event.id} with option $deleteOption');
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    
     switch (deleteOption) {
       case DeleteOption.thisDay:
-        _deleteSingleEventFromCache(day, event);
+        if (_events.containsKey(normalizedDay)) {
+          _events[normalizedDay]?.removeWhere((e) => e.id == event.id);
+          if (_events[normalizedDay]?.isEmpty ?? false) {
+            _events.remove(normalizedDay);
+          }
+        }
         break;
+        
       case DeleteOption.allTime:
-        _deleteAllEventOccurrencesFromCache(event);
+        // Remove from all days
+      final eventCount = _events.values.expand((e) => e).length;
+      print('EventNotifier: Total events before deletion: $eventCount');
+        _events.removeWhere((date, events) {
+          events.removeWhere((e) => e.id == event.id || e.originalEventId == event.originalEventId);
+          return events.isEmpty;
+        });
+              final remainingCount = _events.values.expand((e) => e).length;
+      print('EventNotifier: Events remaining after deletion: $remainingCount');
         break;
+        
       case DeleteOption.futureOnly:
-        _deleteFutureEventsFromCache(day, event);
+        // Remove from current day and future
+        _events.removeWhere((date, events) {
+          if (!date.isBefore(normalizedDay)) {
+            events.removeWhere((e) => e.id == event.id || e.originalEventId == event.originalEventId);
+            return events.isEmpty;
+          }
+          return false;
+        });
         break;
+        
       case DeleteOption.pastOnly:
-        _deletePastEventsFromCache(day, event);
+        // Remove from past including current day
+        _events.removeWhere((date, events) {
+          if (!date.isAfter(normalizedDay)) {
+            events.removeWhere((e) => e.id == event.id || e.originalEventId == event.originalEventId);
+            return events.isEmpty;
+          }
+          return false;
+        });
         break;
     }
-  }
+    
+    notifyListeners();
+      print('EventNotifier: UI update triggered');
 
-  void _deleteSingleEventFromCache(DateTime day, Event event) {
-    final normalizedDay = DateTime(day.year, day.month, day.day);
-    if (_events.containsKey(normalizedDay)) {
-      _events[normalizedDay]!.removeWhere((e) => e.id == event.id);
-      if (_events[normalizedDay]!.isEmpty) {
-        _events.remove(normalizedDay);
-      }
-    }
-  }
-
-  void _deleteAllEventOccurrencesFromCache(Event event) {
-    _events.forEach((day, events) {
-      events.removeWhere((e) => e.id == event.id);
-    });
-    _events.removeWhere((day, events) => events.isEmpty);
-  }
-
-  void _deleteFutureEventsFromCache(DateTime fromDay, Event event) {
-    _events.removeWhere((day, events) {
-      if (day.isAfter(fromDay) || day.isAtSameMomentAs(fromDay)) {
-        events.removeWhere((e) => e.id == event.id);
-        return events.isEmpty;
-      }
-      return false;
-    });
-  }
-
-  void _deletePastEventsFromCache(DateTime toDay, Event event) {
-    _events.removeWhere((day, events) {
-      if (day.isBefore(toDay)) {
-        events.removeWhere((e) => e.id == event.id);
-        return events.isEmpty;
-      }
-      return false;
-    });
   }
 
   void debugPrintEvents() {
     _events.forEach((date, events) {
-      // ignore: avoid_print
       print('Date: $date');
       for (var event in events) {
-        // ignore: avoid_print
         print('  Event: ${event.title} (${event.id})');
       }
     });
   }
 
-void clearState() {
-  _events.clear();
-  notifyListeners();
-}
-void debugState() {
-  print("Current events in state: ${_events.length}");
-  _events.forEach((date, events) {
-    print("Date: $date, Events: ${events.length}");
-    events.forEach((event) => print("  - ${event.title}"));
-  });
-}
+  void clearState() {
+    _events.clear();
+    notifyListeners();
+  }
+
+  void debugState() {
+    print("Current events in state: ${_events.length}");
+    _events.forEach((date, events) {
+      print("Date: $date, Events: ${events.length}");
+      events.forEach((event) => print("  - ${event.title}"));
+    });
+  }
 }

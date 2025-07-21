@@ -15,6 +15,7 @@ lib/
 │   │   └── type_converters.dart
 │   ├── models/
 │   │   ├── enums/
+│   │   │   ├── achievement_type.dart
 │   │   │   ├── category_type.dart
 │   │   │   ├── delete_option.dart
 │   │   │   ├── goal_type.dart

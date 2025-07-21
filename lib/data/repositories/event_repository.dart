@@ -4,8 +4,10 @@ import 'package:injectable/injectable.dart';
 import '../../core/error/failures.dart';
 import '../../core/error/exception.dart';
 import '../../utils/event_date_utils.dart';
+import '../../services/recurrence_calculation_service.dart';
 import '../database/database.dart';
 import '../models/enums/delete_option.dart';
+import '../models/enums/edit_option.dart';
 import '../models/freezed/custom_recurrence.dart';
 import '../models/freezed/event.dart';
 import '../models/enums/repeat_option.dart';
@@ -21,30 +23,27 @@ class EventRepository extends BaseRepository<Event>
 
 @override
 Future<Either<Failure, List<Event>>> getEvents(DateTime day) {
-    return catchError(() async {
-      // First, get all events
-      final events = await _database.getAllEvents();
-      List<Event> eventsForDay = [];
+  return catchError(() async {
+    print('🔍 DEBUG: getEvents called for day: ${day.toIso8601String().substring(0, 10)}');
+    
+    final events = await _database.getAllEvents();
+    print('🔍 DEBUG: Found ${events.length} total events in database');
+    
+    List<Event> eventsForDay = [];
+    
+    // Simple approach: get events that match the date
+    for (var eventData in events) {
+      final event = await _convertToEvent(eventData);
       
-      for (var eventData in events) {
-        final event = await _convertToEvent(eventData);
-        
-        // For non-recurring events, just check the exact date
-        if (!event.isRecurring) {
-          if (EventDateUtils.isSameDay(event.dateTime, day)) {
-            eventsForDay.add(event);
-          }
-          continue;
-        }
-
-        // For recurring events, check if this day matches the pattern
-        if (_doesEventOccurOnDay(event, day)) {
-          eventsForDay.add(event.copyWith(dateTime: day));
-        }
+      if (EventDateUtils.isSameDay(event.dateTime, day)) {
+        eventsForDay.add(event);
+        print('🔍 DEBUG: Added event for ${day.toIso8601String().substring(0, 10)}: ${event.title} (\$${event.amount}) - ID: ${event.id}, OriginalID: ${event.originalEventId}');
       }
+    }
 
-      return eventsForDay;
-    });
+    print('🔍 DEBUG: Returning ${eventsForDay.length} events for ${day.toIso8601String().substring(0, 10)}');
+    return eventsForDay;
+  });
 }
 
 bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
@@ -55,7 +54,7 @@ bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
         if (EventDateUtils.isSameDay(currentDate, targetDay)) {
             return true;
         }
-        currentDate = _getNextDate(currentDate, event.repeatOption, event.customRecurrence);
+        currentDate = RecurrenceCalculationService.getNextOccurrence(currentDate, event.repeatOption, event.customRecurrence);
         
         // Prevent infinite loops
         if (currentDate.isAfter(DateTime(targetDay.year + 1, 1, 1))) {
@@ -89,24 +88,38 @@ bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
   }
 
   @override
-  Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
-    return catchError(() async {
-      final eventCompanion = EventsCompanion.insert(
-        title: event.title,
-        categoryId: event.categoryId,
-        amount: event.amount,
-        date: day,
-        repeatOption: event.repeatOption,
-        isRecurring: Value(event.isRecurring),
-        notes: Value(event.notes),
-        createdAt: Value(DateTime.now()),
-        updatedAt: Value(DateTime.now()),
-      );
+Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
+  return catchError(() async {
+    final eventCompanion = EventsCompanion.insert(
+      title: event.title,
+      categoryId: event.categoryId,
+      amount: event.amount,
+      date: event.dateTime,
+      repeatOption: event.repeatOption,
+      isRecurring: Value(event.isRecurring),
+      notes: Value(event.notes),
+      customRecurrence: Value(event.customRecurrence),
+      createdAt: Value(DateTime.now()),
+      updatedAt: Value(DateTime.now()),
+    );
 
-      final id = await _database.createEvent(eventCompanion);
-      return event.copyWith(id: id);
-    });
-  }
+    final id = await _database.createEvent(eventCompanion, generateRecurring: event.isRecurring);
+    
+    // Add verification
+    final createdEvent = await _database.getEventById(id);
+    print('Created event verification - ID: ${createdEvent.id}, OriginalID: ${createdEvent.originalEventId}');
+    
+    if (createdEvent.originalEventId == null) {
+      print('WARNING: originalEventId is null after creation for event ID: ${createdEvent.id}');
+    }
+    
+    // Return the event with the id and originalEventId
+    return event.copyWith(
+      id: id,
+      originalEventId: createdEvent.originalEventId ?? id  // Fallback to id if null
+    );
+  });
+}
 
   @override
   Future<Either<Failure, Event>> updateEvent(
@@ -117,10 +130,12 @@ bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
         title: newEvent.title,
         categoryId: newEvent.categoryId,
         amount: newEvent.amount,
-        date: day,
+        date: newEvent.dateTime,
         repeatOption: newEvent.repeatOption,
         isRecurring: newEvent.isRecurring,
         notes: newEvent.notes,
+        customRecurrence: newEvent.customRecurrence,
+        originalEventId: oldEvent.originalEventId,
         createdAt: oldEvent.createdAt,
         updatedAt: DateTime.now(),
       );
@@ -134,13 +149,75 @@ bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
     });
   }
 
-  @override
-Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOption option) {
+  // New method for scoped event updates
+  Future<Either<Failure, int>> updateEventWithScope(
+      DateTime day, Event oldEvent, Event newEvent, EditOption editOption) {
+    print('🔍 DEBUG: Repository.updateEventWithScope called');
+    print('🔍 DEBUG: Event details - ID: ${oldEvent.id}, Title: "${oldEvent.title}", OriginalID: ${oldEvent.originalEventId}');
+    print('🔍 DEBUG: Edit option: $editOption, Date: ${day.toIso8601String()}');
+    
+    return catchError(() async {
+      if (oldEvent.id == null) {
+        print('❌ ERROR: Repository - Cannot update event without id');
+        throw DatabaseException('Cannot update event without id');
+      }
+
+      final eventData = EventTableData(
+        id: newEvent.id ?? oldEvent.id!,
+        title: newEvent.title,
+        categoryId: newEvent.categoryId,
+        amount: newEvent.amount,
+        date: newEvent.dateTime,
+        repeatOption: newEvent.repeatOption,
+        isRecurring: newEvent.isRecurring,
+        notes: newEvent.notes,
+        customRecurrence: newEvent.customRecurrence,
+        originalEventId: oldEvent.originalEventId,
+        createdAt: oldEvent.createdAt,
+        updatedAt: DateTime.now(),
+      );
+      
+      print('🔍 DEBUG: Repository - Calling database.updateEventsWithOption with eventId: ${oldEvent.id}');
+      final updatedCount = await _database.updateEventsWithOption(
+        oldEvent.id!, 
+        eventData, 
+        editOption, 
+        day
+      );
+      print('🔍 DEBUG: Repository - Database returned updatedCount: $updatedCount');
+
+      return updatedCount;
+    });
+  }
+
+  // Helper method to get edit impact counts
+  Future<Either<Failure, Map<String, int>>> getEditImpactCounts(
+      Event event, DateTime cutoffDate) {
     return catchError(() async {
       if (event.id == null) {
+        throw DatabaseException('Cannot get impact counts for event without id');
+      }
+      
+      return await _database.getEditImpactCounts(event.id!, cutoffDate);
+    });
+  }
+
+  @override
+Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOption option) {
+    print('🔍 DEBUG: Repository.deleteEvent called');
+    print('🔍 DEBUG: Event details - ID: ${event.id}, Title: "${event.title}", OriginalID: ${event.originalEventId}');
+    print('🔍 DEBUG: Delete option: $option, Date: ${day.toIso8601String()}');
+    
+    return catchError(() async {
+      if (event.id == null) {
+        print('❌ ERROR: Repository - Cannot delete event without id');
         throw DatabaseException('Cannot delete event without id');
       }
-    final deletedCount = await _database.deleteEventsWithOption(event.id!, option, day);
+      
+      print('🔍 DEBUG: Repository - Calling database.deleteEventsWithOption with eventId: ${event.id}');
+      final deletedCount = await _database.deleteEventsWithOption(event.id!, option, day);
+      print('🔍 DEBUG: Repository - Database returned deletedCount: $deletedCount');
+
       return deletedCount > 0;
     });
   }
@@ -168,20 +245,23 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
   Future<Either<Failure, List<Event>>> addRecurringEvent(
       DateTime startDay, Event event) {
     return catchError(() async {
+      print('🔍 DEBUG: addRecurringEvent called for ${event.title} (\$${event.amount}) starting ${startDay.toIso8601String().substring(0, 10)}');
+      
       final events = await _generateRecurringEvents(startDay, event);
+      print('🔍 DEBUG: addRecurringEvent generated ${events.length} events');
       return events;
     });
   }
 
   Future<List<Event>> _generateRecurringEvents(DateTime startDate, Event event) async {
+    print('🔍 DEBUG: _generateRecurringEvents called for: ${event.title}, startDate: ${startDate.toIso8601String()}');
+    print('🔍 DEBUG: Event details - Amount: \$${event.amount}, RepeatOption: ${event.repeatOption}, CustomRecurrence: ${event.customRecurrence?.frequency}');
+    
     List<Event> events = [];
-    DateTime currentDate = startDate;
+    DateTime currentDate = _calculateFirstOccurrence(startDate, event);
     final endDate = DateTime(startDate.year, 12, 31); // Generate until year-end
-
-    // For weekly recurring events, adjust the start date to first occurrence
-    if (event.repeatOption == RepeatOption.weekly && event.customRecurrence != null) {
-        currentDate = startDate; // We already adjusted this in the dialog
-    }
+    
+    print('🔍 DEBUG: First occurrence calculated as: ${currentDate.toIso8601String()}');
 
     // Create first event
     final firstEventCompanion = EventsCompanion.insert(
@@ -192,19 +272,44 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
       repeatOption: event.repeatOption,
       isRecurring: Value(true),
       notes: Value(event.notes),
-      customRecurrence: Value(event.customRecurrence!.toJson() as CustomRecurrence?),
+      customRecurrence: Value(event.customRecurrence),
       createdAt: Value(DateTime.now()),
       updatedAt: Value(DateTime.now()),
     );
 
-    final originalId = await _database.createEvent(firstEventCompanion);
-    events.add(event.copyWith(id: originalId, dateTime: currentDate));
+    print('🔍 DEBUG: Creating first event in database...');
+    final originalId = await _database.createEvent(firstEventCompanion, generateRecurring: false);
+    
+    // Update the first event to set its originalEventId to itself
+    final updatedFirstEvent = EventTableData(
+      id: originalId,
+      title: event.title,
+      categoryId: event.categoryId,
+      amount: event.amount,
+      date: currentDate,
+      repeatOption: event.repeatOption,
+      isRecurring: true,
+      notes: event.notes,
+      customRecurrence: event.customRecurrence,
+      originalEventId: originalId, // Set originalEventId to itself
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    
+    await _database.updateEvent(updatedFirstEvent);
+    
+    events.add(event.copyWith(id: originalId, dateTime: currentDate, originalEventId: originalId));
+    print('🔍 DEBUG: First event created with ID: $originalId, Date: ${currentDate.toIso8601String()}, OriginalEventId: $originalId');
 
     // Generate remaining events in series
+    int eventCount = 1;
     while (currentDate.isBefore(endDate)) {
-        currentDate = _getNextDate(currentDate, event.repeatOption, event.customRecurrence);
+        currentDate = RecurrenceCalculationService.getNextOccurrence(currentDate, event.repeatOption, event.customRecurrence);
         
         if (currentDate.isAfter(endDate)) break;
+        
+        eventCount++;
+        print('🔍 DEBUG: Creating event #$eventCount for date: ${currentDate.toIso8601String()}');
 
         final eventCompanion = EventsCompanion.insert(
           title: event.title,
@@ -215,115 +320,113 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
           isRecurring: Value(true),
           notes: Value(event.notes),
           customRecurrence: Value(event.customRecurrence),
+          originalEventId: Value(originalId),
           createdAt: Value(DateTime.now()),
           updatedAt: Value(DateTime.now()),
         );
 
-        final id = await _database.createEvent(eventCompanion);
+        final id = await _database.createEvent(eventCompanion, generateRecurring: false);
         events.add(event.copyWith(
             id: id, 
             dateTime: currentDate, 
             originalEventId: originalId
         ));
+        print('🔍 DEBUG: Event #$eventCount created with ID: $id');
     }
 
+    print('🔍 DEBUG: Total events generated: ${events.length}');
     return events;
 }
 
-DateTime _getNextDate(DateTime current, RepeatOption repeatOption, CustomRecurrence? customRecurrence) {
-    if (customRecurrence == null) {
-      // Handle basic recurrence without custom pattern
-      switch (repeatOption) {
-        case RepeatOption.daily:
-          return current.add(const Duration(days: 1));
-        case RepeatOption.weekly:
-          return current.add(const Duration(days: 7));
-        case RepeatOption.monthly:
-          return _addMonths(current, 1);
-        default:
-          return current;
-      }
+  DateTime _calculateFirstOccurrence(DateTime startDate, Event event) {
+    // For non-recurring or events without custom recurrence, use start date
+    if (!event.isRecurring || event.customRecurrence == null) {
+      return startDate;
     }
 
-    // Handle custom recurrence patterns
-    switch (customRecurrence.interval) {
-    case RepeatOption.daily:
-      return current.add(Duration(days: customRecurrence.frequency));
-      
-    case RepeatOption.weekly:
-      if (!customRecurrence.hasSelectedDays) {
-        return current.add(Duration(days: 7 * customRecurrence.frequency));
-      }
-      
-      List<int> selectedDayIndices = customRecurrence.selectedDayIndices;
-      if (selectedDayIndices.isEmpty) {
-        return current.add(Duration(days: 7 * customRecurrence.frequency));
-      }
-
-      // Current weekday in 0-6 format
-      int currentWeekdayIndex = current.weekday % 7;
-      
-      // Find next selected day
-      int nextDayIndex = selectedDayIndices.firstWhere(
-        (dayIndex) => dayIndex > currentWeekdayIndex,
-        orElse: () => selectedDayIndices.first
-      );
-      
-      // Calculate days until next occurrence
-      DateTime nextDate;
-      if (nextDayIndex > currentWeekdayIndex) {
-        // Next day is later this week
-        nextDate = current.add(Duration(days: nextDayIndex - currentWeekdayIndex));
-      } else {
-        // Next day is in the next frequency period
-        nextDate = current.add(Duration(days: 7 - currentWeekdayIndex + nextDayIndex));
-      }
-      
-      // Add additional weeks based on frequency
-      if (nextDayIndex <= currentWeekdayIndex) {
-        nextDate = nextDate.add(Duration(days: 7 * (customRecurrence.frequency - 1)));
-      }
-      
-      return nextDate;
-        
+    final customRecurrence = event.customRecurrence!;
+    
+    switch (event.repeatOption) {
       case RepeatOption.monthly:
-        DateTime baseDate = _addMonths(current, customRecurrence.frequency);
-        
-        if (customRecurrence.repeatAtEndOfMonth) {
-          return DateTime(baseDate.year, baseDate.month + 1, 0); // Last day of month
-        }
-        
-        if (customRecurrence.useLastDayOfMonth) {
-          int lastDay = DateTime(baseDate.year, baseDate.month + 1, 0).day;
-          return DateTime(baseDate.year, baseDate.month, lastDay);
-        }
-        
+        // Handle monthly events with specific dayOfMonth
         if (customRecurrence.dayOfMonth != null) {
-          int lastDay = DateTime(baseDate.year, baseDate.month + 1, 0).day;
-          int targetDay = customRecurrence.dayOfMonth!;
-          // Ensure we don't exceed the month's length
-          targetDay = targetDay.clamp(1, lastDay);
-          return DateTime(baseDate.year, baseDate.month, targetDay);
+          final targetDay = customRecurrence.dayOfMonth!;
+          final currentMonth = startDate.month;
+          final currentYear = startDate.year;
+          
+          // Check if target day exists in current month
+          final lastDayOfCurrentMonth = DateTime(currentYear, currentMonth + 1, 0).day;
+          final clampedTargetDay = targetDay.clamp(1, lastDayOfCurrentMonth);
+          
+          // If target day hasn't passed this month, use it
+          if (clampedTargetDay >= startDate.day) {
+            return DateTime(currentYear, currentMonth, clampedTargetDay);
+          }
+          
+          // Otherwise, move to next month
+          final nextMonth = currentMonth + 1;
+          final nextYear = currentYear + (nextMonth > 12 ? 1 : 0);
+          final adjustedMonth = nextMonth > 12 ? 1 : nextMonth;
+          final lastDayOfNextMonth = DateTime(nextYear, adjustedMonth + 1, 0).day;
+          final clampedNextTargetDay = targetDay.clamp(1, lastDayOfNextMonth);
+          
+          return DateTime(nextYear, adjustedMonth, clampedNextTargetDay);
         }
         
-        return baseDate;
+        // Handle end of month cases
+        if (customRecurrence.repeatAtEndOfMonth || customRecurrence.useLastDayOfMonth) {
+          final currentMonth = startDate.month;
+          final currentYear = startDate.year;
+          final lastDayOfMonth = DateTime(currentYear, currentMonth + 1, 0);
+          
+          // If we haven't reached end of month yet, use it
+          if (lastDayOfMonth.day >= startDate.day) {
+            return DateTime(currentYear, currentMonth, lastDayOfMonth.day);
+          }
+          
+          // Otherwise, move to next month's end
+          return DateTime(currentYear, currentMonth + 1 + 1, 0);
+        }
+        
+        // Default: use start date for monthly
+        return startDate;
+        
+      case RepeatOption.weekly:
+        // Handle weekly events with selected days
+        if (customRecurrence.hasSelectedDays) {
+          final selectedDayIndices = customRecurrence.selectedDayIndices;
+          if (selectedDayIndices.isNotEmpty) {
+            final currentWeekdayIndex = startDate.weekday % 7;
+            
+            // Check if today is a selected day
+            if (selectedDayIndices.contains(currentWeekdayIndex)) {
+              return startDate;
+            }
+            
+            // Find next selected day this week
+            for (int dayIndex in selectedDayIndices) {
+              if (dayIndex > currentWeekdayIndex) {
+                final daysToAdd = dayIndex - currentWeekdayIndex;
+                return startDate.add(Duration(days: daysToAdd));
+              }
+            }
+            
+            // No selected day this week, go to first selected day next week
+            final firstSelectedDay = selectedDayIndices.first;
+            final daysToAdd = (7 - currentWeekdayIndex) + firstSelectedDay;
+            return startDate.add(Duration(days: daysToAdd));
+          }
+        }
+        
+        // Default: use start date for weekly
+        return startDate;
         
       default:
-        return current;
+        // For daily and other types, use start date
+        return startDate;
     }
-}
+  }
 
-// Helper function to properly handle month addition
-DateTime _addMonths(DateTime date, int months) {
-    var year = date.year + (date.month + months - 1) ~/ 12;
-    var month = (date.month + months - 1) % 12 + 1;
-    
-    // Handle month length differences
-    var lastDayOfMonth = DateTime(year, month + 1, 0).day;
-    var day = date.day.clamp(1, lastDayOfMonth);
-    
-    return DateTime(year, month, day);
-}
 
 
   @override
@@ -353,6 +456,7 @@ Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
     eventData.map((e) async {
       return Event(
         id: e.id,
+        originalEventId: e.originalEventId, 
         title: e.title,
         categoryId: e.categoryId,
         amount: e.amount,
@@ -360,6 +464,7 @@ Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
         repeatOption: e.repeatOption,
         isRecurring: e.isRecurring,
         notes: e.notes,
+        customRecurrence: e.customRecurrence, 
         createdAt: e.createdAt,
         updatedAt: e.updatedAt,
         isYearEndSummary: false, // Add this as well
@@ -378,6 +483,7 @@ Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
       repeatOption: e.repeatOption,
       isRecurring: e.isRecurring,
       notes: e.notes,
+      customRecurrence: e.customRecurrence, 
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
       isYearEndSummary: false,
