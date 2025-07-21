@@ -87,5 +87,8 @@ class SavingGoalService {
 
   getGoals() {}
 
-  addGoal(SavingGoal goal) {}
+  Future<Either<Failure, int>> addGoal(SavingGoal goal) async {
+    print("Debug Service: addGoal called with title: ${goal.title}");
+    return await createGoal(goal);
+  }
 }

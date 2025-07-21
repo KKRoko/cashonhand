@@ -37,14 +37,22 @@ class SavingGoalNotifier extends ChangeNotifier {
   // Add new goal
   Future<void> addGoal(SavingGoal goal) async {
     _error = null;
-    try {
-      await _service.addGoal(goal);
-      _goals.add(goal);
-      notifyListeners();
-    } catch (e) {
-      _error = 'Failed to add goal: ${e.toString()}';
-      notifyListeners();
-    }
+    print("Debug Notifier: addGoal called for: ${goal.title}");
+    
+    final result = await _service.addGoal(goal);
+    result.fold(
+      (failure) {
+        _error = 'Failed to add goal: ${failure.message}';
+        print("Debug Notifier: addGoal failed - ${failure.message}");
+        notifyListeners();
+      },
+      (id) {
+        print("Debug Notifier: addGoal succeeded with ID: $id");
+        final goalWithId = goal.copyWith(id: id);
+        _goals.add(goalWithId);
+        notifyListeners();
+      }
+    );
   }
 
   // Update existing goal

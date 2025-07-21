@@ -889,7 +889,9 @@ if (_customRecurrence != null) {
   Widget _buildGoalAllocationSection() {
     // Only show goal allocation for meaningful amounts and if goals are available
     final amount = double.tryParse(_amountController.text) ?? 0.0;
+    print("Debug Goal Allocation: availableGoals.length = ${widget.availableGoals.length}, amount = $amount, amountText = '${_amountController.text}'");
     if (widget.availableGoals.isEmpty || amount <= 0) {
+      print("Debug: Hiding goal allocation section - goals empty: ${widget.availableGoals.isEmpty}, amount <= 0: ${amount <= 0}");
       return const SizedBox.shrink();
     }
 

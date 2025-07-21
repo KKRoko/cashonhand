@@ -170,6 +170,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       // Get available goals for allocation
       final database = getIt<Database>();
       final availableGoals = await database.getActiveGoals();
+      print("Debug: Found ${availableGoals.length} active goals for allocation");
       
       print("About to show AddEditEventDialog");
       final result = await showDialog<EventCreationResult>(
@@ -261,6 +262,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
     // Get available goals for allocation
     final database = getIt<Database>();
     final availableGoals = await database.getActiveGoals();
+    print("Debug: Found ${availableGoals.length} active goals for edit dialog");
     
     final result = await showDialog<EventCreationResult>(
       context: context,

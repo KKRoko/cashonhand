@@ -646,8 +646,12 @@ Future<void> _generateAndInsertFutureInstances(EventsCompanion event, int origin
       (select(savingGoalsTable)..where((t) => t.id.equalsNullable(id)))
           .getSingleOrNull();
 
-  Future<int> createSavingGoal(SavingGoalsTableCompanion goal) =>
-      into(savingGoalsTable).insert(goal);
+  Future<int> createSavingGoal(SavingGoalsTableCompanion goal) async {
+    print("Debug Database: Creating saving goal with title: ${goal.title.value}");
+    final id = await into(savingGoalsTable).insert(goal);
+    print("Debug Database: Goal created successfully with ID: $id");
+    return id;
+  }
 
   Future<bool> updateSavingGoal(SavingGoalTableData goal) =>
       update(savingGoalsTable).replace(goal);
@@ -656,11 +660,22 @@ Future<void> _generateAndInsertFutureInstances(EventsCompanion event, int origin
       (delete(savingGoalsTable)..where((t) => t.id.equalsNullable(id))).go();
 
   // Query methods with fixed DateTime comparisons
-  Future<List<SavingGoalTableData>> getActiveGoals() =>
-      (select(savingGoalsTable)
+  Future<List<SavingGoalTableData>> getActiveGoals() async {
+    final goals = await (select(savingGoalsTable)
             ..where((t) => t.isCompleted.equalsNullable(false))
             ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
           .get();
+    
+    // Debug logging
+    final allGoals = await select(savingGoalsTable).get();
+    print("Debug Database: Total goals in database: ${allGoals.length}");
+    for (final goal in allGoals) {
+      print("Debug Database: Goal '${goal.title}' - isCompleted: ${goal.isCompleted}");
+    }
+    print("Debug Database: Active goals returned: ${goals.length}");
+    
+    return goals;
+  }
 
   Future<List<SavingGoalTableData>> getOverdueGoals() =>
       (select(savingGoalsTable)
