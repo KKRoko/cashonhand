@@ -103,20 +103,18 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
       updatedAt: Value(DateTime.now()),
     );
 
-    final id = await _database.createEvent(eventCompanion, generateRecurring: event.isRecurring);
-    
-    // Add verification
-    final createdEvent = await _database.getEventById(id);
-    print('Created event verification - ID: ${createdEvent.id}, OriginalID: ${createdEvent.originalEventId}');
+    final createdEvent = await _database.createEvent(eventCompanion, generateRecurring: event.isRecurring);
+    print('Created event - ID: ${createdEvent.id}, OriginalID: ${createdEvent.originalEventId}');
     
     if (createdEvent.originalEventId == null) {
-      print('WARNING: originalEventId is null after creation for event ID: ${createdEvent.id}');
+      print('WARNING: originalEventId is still null after creation for event ID: ${createdEvent.id}');
     }
     
-    // Return the event with the id and originalEventId
+    // Convert database event back to domain event
     return event.copyWith(
-      id: id,
-      originalEventId: createdEvent.originalEventId ?? id  // Fallback to id if null
+      id: createdEvent.id,
+      originalEventId: createdEvent.originalEventId,
+      dateTime: createdEvent.date,
     );
   });
 }
@@ -278,25 +276,10 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
     );
 
     print('🔍 DEBUG: Creating first event in database...');
-    final originalId = await _database.createEvent(firstEventCompanion, generateRecurring: false);
+    final firstEvent = await _database.createEvent(firstEventCompanion, generateRecurring: false);
+    final originalId = firstEvent.id;
     
-    // Update the first event to set its originalEventId to itself
-    final updatedFirstEvent = EventTableData(
-      id: originalId,
-      title: event.title,
-      categoryId: event.categoryId,
-      amount: event.amount,
-      date: currentDate,
-      repeatOption: event.repeatOption,
-      isRecurring: true,
-      notes: event.notes,
-      customRecurrence: event.customRecurrence,
-      originalEventId: originalId, // Set originalEventId to itself
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-    
-    await _database.updateEvent(updatedFirstEvent);
+    // The first event already has its originalEventId set correctly from createEvent
     
     events.add(event.copyWith(id: originalId, dateTime: currentDate, originalEventId: originalId));
     print('🔍 DEBUG: First event created with ID: $originalId, Date: ${currentDate.toIso8601String()}, OriginalEventId: $originalId');
@@ -325,13 +308,13 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
           updatedAt: Value(DateTime.now()),
         );
 
-        final id = await _database.createEvent(eventCompanion, generateRecurring: false);
+        final createdEvent = await _database.createEvent(eventCompanion, generateRecurring: false);
         events.add(event.copyWith(
-            id: id, 
-            dateTime: currentDate, 
-            originalEventId: originalId
+            id: createdEvent.id, 
+            dateTime: createdEvent.date, 
+            originalEventId: createdEvent.originalEventId
         ));
-        print('🔍 DEBUG: Event #$eventCount created with ID: $id');
+        print('🔍 DEBUG: Event #$eventCount created with ID: ${createdEvent.id}');
     }
 
     print('🔍 DEBUG: Total events generated: ${events.length}');

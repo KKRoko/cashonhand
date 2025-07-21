@@ -145,11 +145,10 @@ class EventNotifier extends ChangeNotifier {
         print('❌ ERROR: EventNotifier - Delete failed: ${failure.message}');
         _setError(failure.message);
       },
-      (success) {
+      (success) async {
         print('🔍 DEBUG: EventNotifier - Delete success: $success');
         if (success) {
-          _handleEventDeletion(day, event, deleteOption);
-          notifyListeners();
+          await _handleEventDeletion(day, event, deleteOption);
           print('🔍 DEBUG: EventNotifier - UI state updated');
         } else {
           print('⚠️ WARNING: EventNotifier - Delete returned false (no events deleted)');
@@ -314,12 +313,13 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
     notifyListeners();
   }
 
-  void _handleEventDeletion(DateTime day, Event event, DeleteOption deleteOption) {
-      print('EventNotifier: Handling deletion of event ${event.id} with option $deleteOption');
+  Future<void> _handleEventDeletion(DateTime day, Event event, DeleteOption deleteOption) async {
+    print('EventNotifier: Handling deletion of event ${event.id} with option $deleteOption');
     final normalizedDay = DateTime(day.year, day.month, day.day);
     
     switch (deleteOption) {
       case DeleteOption.thisDay:
+        // For single event deletion, just remove from the specific day
         if (_events.containsKey(normalizedDay)) {
           _events[normalizedDay]?.removeWhere((e) => e.id == event.id);
           if (_events[normalizedDay]?.isEmpty ?? false) {
@@ -329,43 +329,24 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
         break;
         
       case DeleteOption.allTime:
-        // Remove from all days
-      final eventCount = _events.values.expand((e) => e).length;
-      print('EventNotifier: Total events before deletion: $eventCount');
-        _events.removeWhere((date, events) {
-          events.removeWhere((e) => e.id == event.id || e.originalEventId == event.originalEventId);
-          return events.isEmpty;
-        });
-              final remainingCount = _events.values.expand((e) => e).length;
-      print('EventNotifier: Events remaining after deletion: $remainingCount');
-        break;
-        
       case DeleteOption.futureOnly:
-        // Remove from current day and future
-        _events.removeWhere((date, events) {
-          if (!date.isBefore(normalizedDay)) {
-            events.removeWhere((e) => e.id == event.id || e.originalEventId == event.originalEventId);
-            return events.isEmpty;
-          }
-          return false;
-        });
-        break;
-        
       case DeleteOption.pastOnly:
-        // Remove from past including current day
-        _events.removeWhere((date, events) {
-          if (!date.isAfter(normalizedDay)) {
-            events.removeWhere((e) => e.id == event.id || e.originalEventId == event.originalEventId);
-            return events.isEmpty;
-          }
-          return false;
-        });
+        // For series deletions, clear cache and reload to ensure accuracy
+        // This is more robust than trying to manually sync complex deletions
+        print('EventNotifier: Clearing cache and reloading due to series deletion');
+        final eventCount = _events.values.expand((e) => e).length;
+        print('EventNotifier: Total events before deletion: $eventCount');
+        
+        _events.clear();
+        await loadInitialEvents();
+        
+        final remainingCount = _events.values.expand((e) => e).length;
+        print('EventNotifier: Events remaining after deletion: $remainingCount');
         break;
     }
     
     notifyListeners();
-      print('EventNotifier: UI update triggered');
-
+    print('EventNotifier: UI update triggered');
   }
 
   void debugPrintEvents() {

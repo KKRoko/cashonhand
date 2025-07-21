@@ -563,39 +563,42 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
   Future<List<EventTableData>> getAllEvents() => select(events).get();
 
   Future<EventTableData> getEventById(int id) =>
-      (select(events)..where((t) => t.id.equalsNullable(id))).getSingle();
+      (select(events)..where((t) => t.id.equals(id))).getSingle();
 
-Future<int> createEvent(EventsCompanion event, {bool generateRecurring = false}) async {
+Future<EventTableData> createEvent(EventsCompanion event, {bool generateRecurring = false}) async {
    print('Creating event with customRecurrence: ${event.customRecurrence}');
    
-   // First, create the base event
-   final id = await into(events).insert(event);
-   print('Event created with ID: $id');
+   return await transaction(() async {
+     // First, create the base event
+     final id = await into(events).insert(event);
+     print('Event created with ID: $id');
 
-   // Only set originalEventId to itself if it wasn't already provided
-   // (i.e., this is the first event in a series, not a recurring instance)
-   if (event.originalEventId == const Value.absent()) {
-     await (update(events)..where((t) => t.id.equals(id)))
-      .write(EventsCompanion(originalEventId: Value(id)));
-   }
-   
-   // Verify the update worked
-   final updatedEvent = await getEventById(id);
-   print('Event after update - ID: ${updatedEvent.id}, OriginalID: ${updatedEvent.originalEventId}');
+     // Only set originalEventId to itself if it wasn't already provided
+     // (i.e., this is the first event in a series, not a recurring instance)
+     if (event.originalEventId == const Value.absent()) {
+       await (update(events)..where((t) => t.id.equals(id)))
+        .write(EventsCompanion(originalEventId: Value(id)));
+       print('Updated originalEventId for event $id');
+     }
+     
+     // Get the final event with correct originalEventId
+     final updatedEvent = await getEventById(id);
+     print('Event after update - ID: ${updatedEvent.id}, OriginalID: ${updatedEvent.originalEventId}');
 
-   // Only generate recurring instances if explicitly requested
-   if (event.isRecurring.value && generateRecurring) {
-     // Modify the future instances generation to explicitly set originalEventId
-     await _generateAndInsertFutureInstances(
-       event.copyWith(
-         originalEventId: Value(id),
-         customRecurrence: event.customRecurrence
-       ), 
-       id
-     );
-   }
-   
-   return id;
+     // Only generate recurring instances if explicitly requested
+     if (event.isRecurring.value && generateRecurring) {
+       // Modify the future instances generation to explicitly set originalEventId
+       await _generateAndInsertFutureInstances(
+         event.copyWith(
+           originalEventId: Value(id),
+           customRecurrence: event.customRecurrence
+         ), 
+         id
+       );
+     }
+     
+     return updatedEvent;
+   });
 }
 
 Future<void> _generateAndInsertFutureInstances(EventsCompanion event, int originalId) async {
