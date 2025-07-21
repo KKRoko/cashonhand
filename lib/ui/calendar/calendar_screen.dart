@@ -232,45 +232,47 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
     );
 
     if (editedEvent != null) {
-      // Check if this is a recurring event and show scope dialog
-      if (event.isRecurring && event.originalEventId != null) {
-        await _handleRecurringEventEdit(event, editedEvent);
-      } else {
-        // Non-recurring event, use regular update
-        await eventNotifier.updateEvent(_selectedDay!, event, editedEvent);
-      }
+      // Always show scope dialog for all events (both single and recurring)
+      await _handleEventEdit(event, editedEvent);
     }
   }
 
-  Future<void> _handleRecurringEventEdit(Event originalEvent, Event editedEvent) async {
+  Future<void> _handleEventEdit(Event originalEvent, Event editedEvent) async {
     final eventNotifier = context.read<EventNotifier>();
     
-    // Get edit impact counts for the dialog
+    // Get edit impact counts for the dialog (works for both single and recurring events)
     final impactResult = await eventNotifier.getEditImpactCounts(originalEvent, _selectedDay!);
     
     Map<String, int> impactCounts = {'total': 0, 'future': 0, 'past': 0};
     impactResult.fold(
       (failure) {
         print('Failed to get impact counts: ${failure.message}');
+        // For single events or on failure, set counts to indicate single event
+        impactCounts = {'total': 1, 'future': 0, 'past': 0};
       },
       (counts) {
         impactCounts = counts;
       },
     );
 
-    // Show edit scope dialog
+    // Show edit scope dialog for all events (single and recurring)
     final editOption = await showEditScopeDialog(
       context: context,
       event: originalEvent,
       selectedDate: _selectedDay!,
-      totalEventsInSeries: impactCounts['total'],
-      futureEventsCount: impactCounts['future'],
-      pastEventsCount: impactCounts['past'],
+      totalEventsInSeries: impactCounts['total'] ?? 1,
+      futureEventsCount: impactCounts['future'] ?? 0,
+      pastEventsCount: impactCounts['past'] ?? 0,
     );
 
     if (editOption != null) {
-      // Perform the scoped update
-      await eventNotifier.updateEventWithScope(_selectedDay!, originalEvent, editedEvent, editOption);
+      if (originalEvent.isRecurring || impactCounts['total']! > 1) {
+        // Use scoped update for recurring events
+        await eventNotifier.updateEventWithScope(_selectedDay!, originalEvent, editedEvent, editOption);
+      } else {
+        // For single events, use regular update regardless of scope selection
+        await eventNotifier.updateEvent(_selectedDay!, originalEvent, editedEvent);
+      }
     }
   }
 

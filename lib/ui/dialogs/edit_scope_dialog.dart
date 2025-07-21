@@ -26,6 +26,16 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
   EditOption? selectedOption;
 
   @override
+  void initState() {
+    super.initState();
+    // Auto-select "This event only" for single events
+    final isSingleEvent = (widget.totalEventsInSeries ?? 1) <= 1;
+    if (isSingleEvent) {
+      selectedOption = EditOption.thisInstance;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
@@ -64,16 +74,22 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
 
   Widget _buildEditOptionTile(EditOption option) {
     final isSelected = selectedOption == option;
+    final isSingleEvent = (widget.totalEventsInSeries ?? 1) <= 1;
+    final isDisabled = _isOptionDisabled(option, isSingleEvent);
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!,
+          color: isDisabled 
+              ? Colors.grey[300]! 
+              : isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!,
           width: isSelected ? 2 : 1,
         ),
         borderRadius: BorderRadius.circular(8),
-        color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.05) : null,
+        color: isDisabled
+            ? Colors.grey[50]
+            : isSelected ? Theme.of(context).primaryColor.withOpacity(0.05) : null,
       ),
       child: RadioListTile<EditOption>(
         title: Text(
@@ -81,6 +97,7 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            color: isDisabled ? Colors.grey[400] : null,
           ),
         ),
         subtitle: Column(
@@ -91,16 +108,16 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
               option.description,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: isDisabled ? Colors.grey[400] : Colors.grey[600],
               ),
             ),
             const SizedBox(height: 4),
-            _buildImpactText(option),
+            _buildImpactText(option, isDisabled),
           ],
         ),
         value: option,
         groupValue: selectedOption,
-        onChanged: (value) {
+        onChanged: isDisabled ? null : (value) {
           setState(() {
             selectedOption = value;
           });
@@ -110,9 +127,23 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
     );
   }
 
-  Widget _buildImpactText(EditOption option) {
+  bool _isOptionDisabled(EditOption option, bool isSingleEvent) {
+    if (!isSingleEvent) return false; // All options available for recurring events
+    
+    // For single events, disable options that don't make sense
+    switch (option) {
+      case EditOption.thisInstance:
+        return false; // Always available
+      case EditOption.allInstances:
+      case EditOption.futureInstances:
+      case EditOption.pastInstances:
+        return true; // Disabled for single events
+    }
+  }
+
+  Widget _buildImpactText(EditOption option, bool isDisabled) {
     String impactText;
-    Color impactColor = Colors.blue[600]!;
+    Color impactColor = isDisabled ? Colors.grey[400]! : Colors.blue[600]!;
     
     switch (option) {
       case EditOption.thisInstance:
@@ -120,18 +151,33 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
         break;
       case EditOption.allInstances:
         final total = widget.totalEventsInSeries ?? 0;
-        impactText = total > 0 ? 'Affects $total events' : 'Affects entire series';
-        impactColor = total > 10 ? Colors.orange[600]! : Colors.blue[600]!;
+        if (total <= 1) {
+          impactText = 'Not applicable for single events';
+          impactColor = Colors.grey[400]!;
+        } else {
+          impactText = total > 0 ? 'Affects $total events' : 'Affects entire series';
+          impactColor = isDisabled ? Colors.grey[400]! : (total > 10 ? Colors.orange[600]! : Colors.blue[600]!);
+        }
         break;
       case EditOption.futureInstances:
         final future = widget.futureEventsCount ?? 0;
-        impactText = future > 0 ? 'Affects $future future events' : 'Affects future events';
-        impactColor = future > 5 ? Colors.orange[600]! : Colors.blue[600]!;
+        if (future == 0) {
+          impactText = 'No future events';
+          impactColor = Colors.grey[400]!;
+        } else {
+          impactText = 'Affects $future future events';
+          impactColor = isDisabled ? Colors.grey[400]! : (future > 5 ? Colors.orange[600]! : Colors.blue[600]!);
+        }
         break;
       case EditOption.pastInstances:
         final past = widget.pastEventsCount ?? 0;
-        impactText = past > 0 ? 'Affects $past past events' : 'Affects past events';
-        impactColor = past > 5 ? Colors.orange[600]! : Colors.blue[600]!;
+        if (past == 0) {
+          impactText = 'No past events';
+          impactColor = Colors.grey[400]!;
+        } else {
+          impactText = 'Affects $past past events';
+          impactColor = isDisabled ? Colors.grey[400]! : (past > 5 ? Colors.orange[600]! : Colors.blue[600]!);
+        }
         break;
     }
     
