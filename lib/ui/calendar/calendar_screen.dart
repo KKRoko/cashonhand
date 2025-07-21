@@ -63,6 +63,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
         // Initialize data through notifiers
         context.read<EventNotifier>().loadInitialEvents();
         context.read<CategoryNotifier>().loadCategories();
+        
+        // Load events for the currently selected day
+        if (_selectedDay != null) {
+          context.read<EventNotifier>().loadEventsForDay(_selectedDay!);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -90,6 +95,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       _selectedDay = selectedDay;
       _focusedDay = focusedDay;
     });
+    
+    // Load events for the selected day
+    context.read<EventNotifier>().loadEventsForDay(selectedDay);
   }
 
   void _onFormatChanged(CalendarFormat format) {

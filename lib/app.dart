@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/di/injection.dart';
 import 'state/category_notifier.dart';
+import 'state/event_notifier.dart';
 import 'theme/app_theme.dart';
 import 'ui/achievements/achievement_screen.dart';
 import 'ui/cash_on_hand/cash_on_hand_screen.dart';
@@ -27,7 +28,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<CategoryNotifier>(
           create: (_) => getIt<CategoryNotifier>(),
         ),
-        // Add any other providers you have
+        ChangeNotifierProvider<EventNotifier>(
+          create: (_) => getIt<EventNotifier>(),
+        ),
       ],
       child: ListenableBuilder(
         listenable: settingsController,

@@ -163,22 +163,7 @@ class EventNotifier extends ChangeNotifier {
 
   List<Event> getEventsForDay(DateTime day) {
     final normalizedDay = DateTime(day.year, day.month, day.day);
-    
-    // If events are not cached for this day, schedule loading after build
-    if (!_events.containsKey(normalizedDay)) {
-      print("UI requesting events for $normalizedDay: not cached, scheduling load...");
-      // Use WidgetsBinding to defer the async operation until after build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        loadEventsForDay(normalizedDay);
-      });
-      return []; // Return empty list for now, UI will refresh when loaded
-    }
-    
     final events = _events[normalizedDay] ?? [];
-    print("UI requesting events for $normalizedDay: found ${events.length} events in cache");
-    for (var event in events) {
-        print("- Title: ${event.title}, Amount: ${event.amount}, ID: ${event.id}, OriginalID: ${event.originalEventId}");
-    }
     return events;
   }
 
@@ -264,45 +249,44 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
   }
 
   Future<DateTime?> _addRecurringEvent(DateTime startDay, Event event) async {
-  print('🔍 DEBUG: EventNotifier._addRecurringEvent called - Title: ${event.title}, Amount: \$${event.amount}');
-  print('🔍 DEBUG: StartDay: ${startDay.toIso8601String()}, RepeatOption: ${event.repeatOption}');
-  
-  // Prevent multiple simultaneous recurring event additions
-  if (_isAddingRecurringEvent) {
-    print('🚫 DEBUG: Already adding a recurring event, ignoring duplicate call');
-    return null;
-  }
-  
-  _isAddingRecurringEvent = true;
-  _setLoading(true);
-  
-  DateTime? firstEventDate;
-  final result = await eventService.addEvent(startDay, event);
-  result.fold(
-    (failure) {
-      print('🔍 DEBUG: _addRecurringEvent failed: ${failure.message}');
-      _setError(failure.message);
-      _isAddingRecurringEvent = false;
-    },
-    (event) async {
-      print('🔍 DEBUG: _addRecurringEvent succeeded, triggering UI refresh...');
-      // Clear the events cache so it gets reloaded with fresh data from database
-      // This ensures all events (including new recurring ones) are displayed
-      _events.clear();
-      firstEventDate = event.dateTime;
-      print('🔍 DEBUG: First event created on: ${firstEventDate!.toIso8601String()}');
-      
-      // Force a complete reload of the UI by notifying listeners
-      // The improved getEventsForDay will now auto-load missing events
-      notifyListeners();
+    print('🔍 DEBUG: EventNotifier._addRecurringEvent called - Title: ${event.title}, Amount: \$${event.amount}');
+    print('🔍 DEBUG: StartDay: ${startDay.toIso8601String()}, RepeatOption: ${event.repeatOption}');
+    
+    // Prevent multiple simultaneous recurring event additions
+    if (_isAddingRecurringEvent) {
+      print('🚫 DEBUG: Already adding a recurring event, ignoring duplicate call');
+      return null;
     }
-  );
+    
+    _isAddingRecurringEvent = true;
+    _setLoading(true);
+    
+    DateTime? firstEventDate;
+    final result = await eventService.addEvent(startDay, event);
+    result.fold(
+      (failure) {
+        print('🔍 DEBUG: _addRecurringEvent failed: ${failure.message}');
+        _setError(failure.message);
+        _isAddingRecurringEvent = false;
+      },
+      (event) async {
+        print('🔍 DEBUG: _addRecurringEvent succeeded, reloading events...');
+        firstEventDate = event.dateTime;
+        print('🔍 DEBUG: First event created on: ${firstEventDate!.toIso8601String()}');
+        
+        // Clear cache and reload events for the current year to show all events
+        _events.clear();
+        final startDate = DateTime(DateTime.now().year, 1, 1);
+        final endDate = DateTime(DateTime.now().year, 12, 31);
+        await loadEventsForRange(startDate, endDate);
+      }
+    );
 
-  _setLoading(false);
-  _isAddingRecurringEvent = false;
-  print('🔍 DEBUG: _addRecurringEvent completed');
-  return firstEventDate;
-}
+    _setLoading(false);
+    _isAddingRecurringEvent = false;
+    print('🔍 DEBUG: _addRecurringEvent completed');
+    return firstEventDate;
+  }
 
 
   void _handleEventUpdate(Event oldEvent, Event updatedEvent, DateTime newDay) {
@@ -393,9 +377,11 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
     });
   }
 
-  void clearState() {
+  Future<void> clearState() async {
     _events.clear();
     notifyListeners();
+    // Reload initial events to refresh the UI
+    await loadInitialEvents();
   }
 
   void debugState() {
