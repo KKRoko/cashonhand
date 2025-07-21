@@ -572,8 +572,12 @@ Future<int> createEvent(EventsCompanion event, {bool generateRecurring = false})
    final id = await into(events).insert(event);
    print('Event created with ID: $id');
 
-    await (update(events)..where((t) => t.id.equals(id)))
-     .write(EventsCompanion(originalEventId: Value(id)));
+   // Only set originalEventId to itself if it wasn't already provided
+   // (i.e., this is the first event in a series, not a recurring instance)
+   if (event.originalEventId == const Value.absent()) {
+     await (update(events)..where((t) => t.id.equals(id)))
+      .write(EventsCompanion(originalEventId: Value(id)));
+   }
    
    // Verify the update worked
    final updatedEvent = await getEventById(id);

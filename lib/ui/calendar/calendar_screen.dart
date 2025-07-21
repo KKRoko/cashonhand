@@ -149,8 +149,30 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
 
       print("Dialog result: ${newEvent != null ? 'event created' : 'cancelled'}");
       if (newEvent != null) {
-        await eventNotifier.addEvent(_selectedDay!, newEvent);
+        final firstEventDate = await eventNotifier.addEvent(_selectedDay!, newEvent);
         print("Event added successfully");
+        
+        // Navigate to the month where the first event was created
+        if (firstEventDate != null && mounted) {
+          setState(() {
+            _focusedDay = firstEventDate;
+            _selectedDay = firstEventDate;
+          });
+          
+          // Show feedback about where events were created
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                newEvent.isRecurring 
+                  ? 'Recurring events created! First event on ${firstEventDate.day}/${firstEventDate.month}/${firstEventDate.year}'
+                  : 'Event created successfully!'
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } catch (e, stackTrace) {
       print("Error in _showAddEventDialog: $e");

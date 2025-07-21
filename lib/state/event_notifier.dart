@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 import '../data/models/enums/delete_option.dart';
 import '../data/models/enums/edit_option.dart';
@@ -68,16 +69,19 @@ class EventNotifier extends ChangeNotifier {
     _setLoading(false);
   }
 
-  Future<void> addEvent(DateTime day, Event event) async {
+  Future<DateTime?> addEvent(DateTime day, Event event) async {
     _setLoading(true);
 
+    DateTime? firstEventDate;
     if (event.repeatOption == RepeatOption.today) {
       await _addSingleEvent(day, event);
+      firstEventDate = day;
     } else {
-      await _addRecurringEvent(day, event);
+      firstEventDate = await _addRecurringEvent(day, event);
     }
 
     _setLoading(false);
+    return firstEventDate;
   }
 
   Future<void> updateEvent(DateTime day, Event oldEvent, Event newEvent) async {
@@ -159,8 +163,19 @@ class EventNotifier extends ChangeNotifier {
 
   List<Event> getEventsForDay(DateTime day) {
     final normalizedDay = DateTime(day.year, day.month, day.day);
+    
+    // If events are not cached for this day, schedule loading after build
+    if (!_events.containsKey(normalizedDay)) {
+      print("UI requesting events for $normalizedDay: not cached, scheduling load...");
+      // Use WidgetsBinding to defer the async operation until after build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        loadEventsForDay(normalizedDay);
+      });
+      return []; // Return empty list for now, UI will refresh when loaded
+    }
+    
     final events = _events[normalizedDay] ?? [];
-    print("UI requesting events for $normalizedDay: found ${events.length} events");
+    print("UI requesting events for $normalizedDay: found ${events.length} events in cache");
     for (var event in events) {
         print("- Title: ${event.title}, Amount: ${event.amount}, ID: ${event.id}, OriginalID: ${event.originalEventId}");
     }
@@ -248,19 +263,20 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
     );
   }
 
-  Future<void> _addRecurringEvent(DateTime startDay, Event event) async {
+  Future<DateTime?> _addRecurringEvent(DateTime startDay, Event event) async {
   print('🔍 DEBUG: EventNotifier._addRecurringEvent called - Title: ${event.title}, Amount: \$${event.amount}');
   print('🔍 DEBUG: StartDay: ${startDay.toIso8601String()}, RepeatOption: ${event.repeatOption}');
   
   // Prevent multiple simultaneous recurring event additions
   if (_isAddingRecurringEvent) {
     print('🚫 DEBUG: Already adding a recurring event, ignoring duplicate call');
-    return;
+    return null;
   }
   
   _isAddingRecurringEvent = true;
   _setLoading(true);
   
+  DateTime? firstEventDate;
   final result = await eventService.addEvent(startDay, event);
   result.fold(
     (failure) {
@@ -268,17 +284,24 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
       _setError(failure.message);
       _isAddingRecurringEvent = false;
     },
-    (originalEvent) async {
-      print('🔍 DEBUG: _addRecurringEvent succeeded, clearing events...');
-      // Clear existing events - UI will reload naturally when needed
+    (event) async {
+      print('🔍 DEBUG: _addRecurringEvent succeeded, triggering UI refresh...');
+      // Clear the events cache so it gets reloaded with fresh data from database
+      // This ensures all events (including new recurring ones) are displayed
       _events.clear();
-      print('🔍 DEBUG: Events cleared, UI will refresh naturally');
+      firstEventDate = event.dateTime;
+      print('🔍 DEBUG: First event created on: ${firstEventDate!.toIso8601String()}');
+      
+      // Force a complete reload of the UI by notifying listeners
+      // The improved getEventsForDay will now auto-load missing events
+      notifyListeners();
     }
   );
 
   _setLoading(false);
   _isAddingRecurringEvent = false;
   print('🔍 DEBUG: _addRecurringEvent completed');
+  return firstEventDate;
 }
 
 
