@@ -61,3 +61,32 @@ class Achievements extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('GoalAllocationTableData')
+class GoalAllocations extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get eventId => integer().references(Events, #id, onDelete: KeyAction.cascade)();
+  IntColumn get goalId => integer().references(SavingGoalsTable, #id, onDelete: KeyAction.cascade)();
+  RealColumn get allocationAmount => real()();
+  TextColumn get allocationType => text().map(const AllocationTypeConverter())(); // manual, auto, round_up
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+@DataClassName('AutoAllocationRuleTableData')
+class AutoAllocationRules extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get goalId => integer().references(SavingGoalsTable, #id, onDelete: KeyAction.cascade)();
+  TextColumn get ruleName => text().withLength(min: 1, max: 100)();
+  TextColumn get triggerType => text().map(const TriggerTypeConverter())(); // income, expense, category
+  IntColumn get triggerCategoryId => integer().references(Categories, #id).nullable()();
+  TextColumn get allocationMethod => text().map(const AllocationMethodConverter())(); // percentage, fixed_amount, round_up
+  RealColumn get allocationValue => real()(); // percentage (0.1 = 10%) or fixed amount
+  RealColumn get minimumTriggerAmount => real().nullable()(); // minimum transaction amount to trigger
+  RealColumn get maximumAllocationAmount => real().nullable()(); // cap on allocation amount
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  TextColumn get description => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}

@@ -15,6 +15,7 @@ import '../../state/category_notifier.dart';
 import '../../state/saving_goal_notifier.dart';
 import '../../state/event_notifier.dart';
 import '../../services/achievement_service.dart';
+import '../../services/allocation_service.dart';
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -101,6 +102,13 @@ Future<void> configureDependencies() async {
   if (!getIt.isRegistered<CategoryNotifier>()) {
     getIt.registerLazySingleton<CategoryNotifier>(
       () => CategoryNotifier(getIt<CategoryService>()),
+    );
+  }
+
+  // Add Allocation Service registration
+  if (!getIt.isRegistered<AllocationService>()) {
+    getIt.registerLazySingleton<AllocationService>(
+      () => AllocationService(getIt<Database>()),
     );
   }
 

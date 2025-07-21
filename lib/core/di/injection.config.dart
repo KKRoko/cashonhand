@@ -19,6 +19,7 @@ import '../../data/repositories/event_repository.dart' as _i655;
 import '../../data/repositories/i_category_repository.dart' as _i269;
 import '../../data/repositories/i_event_repository.dart' as _i561;
 import '../../services/achievement_service.dart' as _i91;
+import '../../services/allocation_service.dart' as _i114;
 import '../../services/category_service.dart' as _i576;
 import '../../services/event_service.dart' as _i762;
 import '../../settings/settings_service.dart' as _i882;
@@ -38,6 +39,8 @@ extension GetItInjectableX on _i174.GetIt {
       environmentFilter,
     );
     gh.singleton<_i495.Database>(() => _i495.Database());
+    gh.factory<_i114.AllocationService>(
+        () => _i114.AllocationService(gh<_i495.Database>()));
     gh.factory<_i269.ICategoryRepository>(
         () => _i282.CategoryRepository(gh<_i495.Database>()));
     gh.factory<_i576.CategoryService>(

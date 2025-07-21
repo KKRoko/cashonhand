@@ -12,6 +12,9 @@ import '../models/enums/repeat_option.dart';
 import '../models/enums/category_type.dart';
 import '../models/freezed/achievement_base_implementation.dart';
 import '../models/freezed/custom_recurrence.dart';
+import '../models/enums/allocation_type.dart';
+import '../models/enums/trigger_type.dart';
+import '../models/enums/allocation_method.dart';
 import '/utils/event_date_utils.dart';
 import '../../services/recurrence_calculation_service.dart';
 import 'tables.dart';
@@ -23,13 +26,13 @@ enum UpdateType { single, allEvents, futureEvents, pastEvents }
 
 
 
-@DriftDatabase(tables: [Categories, Events, SavingGoalsTable, Achievements])
+@DriftDatabase(tables: [Categories, Events, SavingGoalsTable, Achievements, GoalAllocations, AutoAllocationRules])
 @singleton
 class Database extends _$Database {
   Database() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -49,6 +52,14 @@ class Database extends _$Database {
             ('Housing', 'expense'),
             ('Healthcare', 'expense')
         ''');
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // Migration from v1 to v2: Add allocation tables
+          await m.createTable(goalAllocations);
+          await m.createTable(autoAllocationRules);
+          print('Database migrated to v2: Added goal allocation tables');
+        }
       },
     );
   }
@@ -733,6 +744,40 @@ Future<int> deleteEventsWithOption(int eventId, DeleteOption option, DateTime cu
   print('🔍 DEBUG: Delete operation completed - $deletedCount events deleted');
   return deletedCount;
 }
+
+// Goal Allocation CRUD operations
+Future<List<GoalAllocationTableData>> getAllocationsForEvent(int eventId) =>
+    (select(goalAllocations)..where((a) => a.eventId.equals(eventId))).get();
+
+Future<List<GoalAllocationTableData>> getAllocationsForGoal(int goalId) =>
+    (select(goalAllocations)..where((a) => a.goalId.equals(goalId))).get();
+
+Future<int> createGoalAllocation(GoalAllocationsCompanion allocation) =>
+    into(goalAllocations).insert(allocation);
+
+Future<bool> updateGoalAllocation(GoalAllocationTableData allocation) =>
+    update(goalAllocations).replace(allocation);
+
+Future<int> deleteGoalAllocation(int allocationId) =>
+    (delete(goalAllocations)..where((a) => a.id.equals(allocationId))).go();
+
+// Auto Allocation Rules CRUD operations
+Future<List<AutoAllocationRuleTableData>> getActiveAllocationRules() =>
+    (select(autoAllocationRules)..where((r) => r.isActive.equals(true))).get();
+
+Future<List<AutoAllocationRuleTableData>> getAllocationRulesForGoal(int goalId) =>
+    (select(autoAllocationRules)..where((r) => r.goalId.equals(goalId))).get();
+
+Future<int> createAllocationRule(AutoAllocationRulesCompanion rule) =>
+    into(autoAllocationRules).insert(rule);
+
+Future<bool> updateAllocationRule(AutoAllocationRuleTableData rule) =>
+    update(autoAllocationRules).replace(rule);
+
+Future<int> deleteAllocationRule(int ruleId) =>
+    (delete(autoAllocationRules)..where((r) => r.id.equals(ruleId))).go();
+
+// Helper method already exists above - removed duplicate
 
 static LazyDatabase _openConnection() {  return LazyDatabase(() async {
     try {

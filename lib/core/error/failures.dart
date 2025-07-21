@@ -6,3 +6,11 @@ abstract class Failure {
 class DatabaseFailure extends Failure {
   const DatabaseFailure(super.message);
 }
+
+class GeneralFailure extends Failure {
+  const GeneralFailure(super.message);
+}
+
+class ValidationFailure extends Failure {
+  const ValidationFailure(super.message);
+}

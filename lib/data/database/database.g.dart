@@ -2115,6 +2115,1136 @@ class AchievementsCompanion extends UpdateCompanion<AchievementTableData> {
   }
 }
 
+class $GoalAllocationsTable extends GoalAllocations
+    with TableInfo<$GoalAllocationsTable, GoalAllocationTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalAllocationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _eventIdMeta =
+      const VerificationMeta('eventId');
+  @override
+  late final GeneratedColumn<int> eventId = GeneratedColumn<int>(
+      'event_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES events (id) ON DELETE CASCADE'));
+  static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
+  @override
+  late final GeneratedColumn<int> goalId = GeneratedColumn<int>(
+      'goal_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES saving_goals_table (id) ON DELETE CASCADE'));
+  static const VerificationMeta _allocationAmountMeta =
+      const VerificationMeta('allocationAmount');
+  @override
+  late final GeneratedColumn<double> allocationAmount = GeneratedColumn<double>(
+      'allocation_amount', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _allocationTypeMeta =
+      const VerificationMeta('allocationType');
+  @override
+  late final GeneratedColumnWithTypeConverter<AllocationType, String>
+      allocationType = GeneratedColumn<String>(
+              'allocation_type', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<AllocationType>(
+              $GoalAllocationsTable.$converterallocationType);
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+      'notes', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        eventId,
+        goalId,
+        allocationAmount,
+        allocationType,
+        notes,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_allocations';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<GoalAllocationTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(_eventIdMeta,
+          eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta));
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('goal_id')) {
+      context.handle(_goalIdMeta,
+          goalId.isAcceptableOrUnknown(data['goal_id']!, _goalIdMeta));
+    } else if (isInserting) {
+      context.missing(_goalIdMeta);
+    }
+    if (data.containsKey('allocation_amount')) {
+      context.handle(
+          _allocationAmountMeta,
+          allocationAmount.isAcceptableOrUnknown(
+              data['allocation_amount']!, _allocationAmountMeta));
+    } else if (isInserting) {
+      context.missing(_allocationAmountMeta);
+    }
+    context.handle(_allocationTypeMeta, const VerificationResult.success());
+    if (data.containsKey('notes')) {
+      context.handle(
+          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GoalAllocationTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalAllocationTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      eventId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}event_id'])!,
+      goalId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}goal_id'])!,
+      allocationAmount: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}allocation_amount'])!,
+      allocationType: $GoalAllocationsTable.$converterallocationType.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}allocation_type'])!),
+      notes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $GoalAllocationsTable createAlias(String alias) {
+    return $GoalAllocationsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<AllocationType, String> $converterallocationType =
+      const AllocationTypeConverter();
+}
+
+class GoalAllocationTableData extends DataClass
+    implements Insertable<GoalAllocationTableData> {
+  final int id;
+  final int eventId;
+  final int goalId;
+  final double allocationAmount;
+  final AllocationType allocationType;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const GoalAllocationTableData(
+      {required this.id,
+      required this.eventId,
+      required this.goalId,
+      required this.allocationAmount,
+      required this.allocationType,
+      this.notes,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['event_id'] = Variable<int>(eventId);
+    map['goal_id'] = Variable<int>(goalId);
+    map['allocation_amount'] = Variable<double>(allocationAmount);
+    {
+      map['allocation_type'] = Variable<String>(
+          $GoalAllocationsTable.$converterallocationType.toSql(allocationType));
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  GoalAllocationsCompanion toCompanion(bool nullToAbsent) {
+    return GoalAllocationsCompanion(
+      id: Value(id),
+      eventId: Value(eventId),
+      goalId: Value(goalId),
+      allocationAmount: Value(allocationAmount),
+      allocationType: Value(allocationType),
+      notes:
+          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory GoalAllocationTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalAllocationTableData(
+      id: serializer.fromJson<int>(json['id']),
+      eventId: serializer.fromJson<int>(json['eventId']),
+      goalId: serializer.fromJson<int>(json['goalId']),
+      allocationAmount: serializer.fromJson<double>(json['allocationAmount']),
+      allocationType:
+          serializer.fromJson<AllocationType>(json['allocationType']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'eventId': serializer.toJson<int>(eventId),
+      'goalId': serializer.toJson<int>(goalId),
+      'allocationAmount': serializer.toJson<double>(allocationAmount),
+      'allocationType': serializer.toJson<AllocationType>(allocationType),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  GoalAllocationTableData copyWith(
+          {int? id,
+          int? eventId,
+          int? goalId,
+          double? allocationAmount,
+          AllocationType? allocationType,
+          Value<String?> notes = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      GoalAllocationTableData(
+        id: id ?? this.id,
+        eventId: eventId ?? this.eventId,
+        goalId: goalId ?? this.goalId,
+        allocationAmount: allocationAmount ?? this.allocationAmount,
+        allocationType: allocationType ?? this.allocationType,
+        notes: notes.present ? notes.value : this.notes,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  GoalAllocationTableData copyWithCompanion(GoalAllocationsCompanion data) {
+    return GoalAllocationTableData(
+      id: data.id.present ? data.id.value : this.id,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      goalId: data.goalId.present ? data.goalId.value : this.goalId,
+      allocationAmount: data.allocationAmount.present
+          ? data.allocationAmount.value
+          : this.allocationAmount,
+      allocationType: data.allocationType.present
+          ? data.allocationType.value
+          : this.allocationType,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalAllocationTableData(')
+          ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
+          ..write('goalId: $goalId, ')
+          ..write('allocationAmount: $allocationAmount, ')
+          ..write('allocationType: $allocationType, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, eventId, goalId, allocationAmount,
+      allocationType, notes, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalAllocationTableData &&
+          other.id == this.id &&
+          other.eventId == this.eventId &&
+          other.goalId == this.goalId &&
+          other.allocationAmount == this.allocationAmount &&
+          other.allocationType == this.allocationType &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class GoalAllocationsCompanion
+    extends UpdateCompanion<GoalAllocationTableData> {
+  final Value<int> id;
+  final Value<int> eventId;
+  final Value<int> goalId;
+  final Value<double> allocationAmount;
+  final Value<AllocationType> allocationType;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const GoalAllocationsCompanion({
+    this.id = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.goalId = const Value.absent(),
+    this.allocationAmount = const Value.absent(),
+    this.allocationType = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  GoalAllocationsCompanion.insert({
+    this.id = const Value.absent(),
+    required int eventId,
+    required int goalId,
+    required double allocationAmount,
+    required AllocationType allocationType,
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : eventId = Value(eventId),
+        goalId = Value(goalId),
+        allocationAmount = Value(allocationAmount),
+        allocationType = Value(allocationType);
+  static Insertable<GoalAllocationTableData> custom({
+    Expression<int>? id,
+    Expression<int>? eventId,
+    Expression<int>? goalId,
+    Expression<double>? allocationAmount,
+    Expression<String>? allocationType,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eventId != null) 'event_id': eventId,
+      if (goalId != null) 'goal_id': goalId,
+      if (allocationAmount != null) 'allocation_amount': allocationAmount,
+      if (allocationType != null) 'allocation_type': allocationType,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  GoalAllocationsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? eventId,
+      Value<int>? goalId,
+      Value<double>? allocationAmount,
+      Value<AllocationType>? allocationType,
+      Value<String?>? notes,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return GoalAllocationsCompanion(
+      id: id ?? this.id,
+      eventId: eventId ?? this.eventId,
+      goalId: goalId ?? this.goalId,
+      allocationAmount: allocationAmount ?? this.allocationAmount,
+      allocationType: allocationType ?? this.allocationType,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<int>(eventId.value);
+    }
+    if (goalId.present) {
+      map['goal_id'] = Variable<int>(goalId.value);
+    }
+    if (allocationAmount.present) {
+      map['allocation_amount'] = Variable<double>(allocationAmount.value);
+    }
+    if (allocationType.present) {
+      map['allocation_type'] = Variable<String>($GoalAllocationsTable
+          .$converterallocationType
+          .toSql(allocationType.value));
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalAllocationsCompanion(')
+          ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
+          ..write('goalId: $goalId, ')
+          ..write('allocationAmount: $allocationAmount, ')
+          ..write('allocationType: $allocationType, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AutoAllocationRulesTable extends AutoAllocationRules
+    with TableInfo<$AutoAllocationRulesTable, AutoAllocationRuleTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AutoAllocationRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
+  @override
+  late final GeneratedColumn<int> goalId = GeneratedColumn<int>(
+      'goal_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES saving_goals_table (id) ON DELETE CASCADE'));
+  static const VerificationMeta _ruleNameMeta =
+      const VerificationMeta('ruleName');
+  @override
+  late final GeneratedColumn<String> ruleName = GeneratedColumn<String>(
+      'rule_name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _triggerTypeMeta =
+      const VerificationMeta('triggerType');
+  @override
+  late final GeneratedColumnWithTypeConverter<TriggerType, String> triggerType =
+      GeneratedColumn<String>('trigger_type', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<TriggerType>(
+              $AutoAllocationRulesTable.$convertertriggerType);
+  static const VerificationMeta _triggerCategoryIdMeta =
+      const VerificationMeta('triggerCategoryId');
+  @override
+  late final GeneratedColumn<int> triggerCategoryId = GeneratedColumn<int>(
+      'trigger_category_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+  static const VerificationMeta _allocationMethodMeta =
+      const VerificationMeta('allocationMethod');
+  @override
+  late final GeneratedColumnWithTypeConverter<AllocationMethod, String>
+      allocationMethod = GeneratedColumn<String>(
+              'allocation_method', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<AllocationMethod>(
+              $AutoAllocationRulesTable.$converterallocationMethod);
+  static const VerificationMeta _allocationValueMeta =
+      const VerificationMeta('allocationValue');
+  @override
+  late final GeneratedColumn<double> allocationValue = GeneratedColumn<double>(
+      'allocation_value', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _minimumTriggerAmountMeta =
+      const VerificationMeta('minimumTriggerAmount');
+  @override
+  late final GeneratedColumn<double> minimumTriggerAmount =
+      GeneratedColumn<double>('minimum_trigger_amount', aliasedName, true,
+          type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _maximumAllocationAmountMeta =
+      const VerificationMeta('maximumAllocationAmount');
+  @override
+  late final GeneratedColumn<double> maximumAllocationAmount =
+      GeneratedColumn<double>('maximum_allocation_amount', aliasedName, true,
+          type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        goalId,
+        ruleName,
+        triggerType,
+        triggerCategoryId,
+        allocationMethod,
+        allocationValue,
+        minimumTriggerAmount,
+        maximumAllocationAmount,
+        isActive,
+        description,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'auto_allocation_rules';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<AutoAllocationRuleTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('goal_id')) {
+      context.handle(_goalIdMeta,
+          goalId.isAcceptableOrUnknown(data['goal_id']!, _goalIdMeta));
+    } else if (isInserting) {
+      context.missing(_goalIdMeta);
+    }
+    if (data.containsKey('rule_name')) {
+      context.handle(_ruleNameMeta,
+          ruleName.isAcceptableOrUnknown(data['rule_name']!, _ruleNameMeta));
+    } else if (isInserting) {
+      context.missing(_ruleNameMeta);
+    }
+    context.handle(_triggerTypeMeta, const VerificationResult.success());
+    if (data.containsKey('trigger_category_id')) {
+      context.handle(
+          _triggerCategoryIdMeta,
+          triggerCategoryId.isAcceptableOrUnknown(
+              data['trigger_category_id']!, _triggerCategoryIdMeta));
+    }
+    context.handle(_allocationMethodMeta, const VerificationResult.success());
+    if (data.containsKey('allocation_value')) {
+      context.handle(
+          _allocationValueMeta,
+          allocationValue.isAcceptableOrUnknown(
+              data['allocation_value']!, _allocationValueMeta));
+    } else if (isInserting) {
+      context.missing(_allocationValueMeta);
+    }
+    if (data.containsKey('minimum_trigger_amount')) {
+      context.handle(
+          _minimumTriggerAmountMeta,
+          minimumTriggerAmount.isAcceptableOrUnknown(
+              data['minimum_trigger_amount']!, _minimumTriggerAmountMeta));
+    }
+    if (data.containsKey('maximum_allocation_amount')) {
+      context.handle(
+          _maximumAllocationAmountMeta,
+          maximumAllocationAmount.isAcceptableOrUnknown(
+              data['maximum_allocation_amount']!,
+              _maximumAllocationAmountMeta));
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AutoAllocationRuleTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AutoAllocationRuleTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      goalId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}goal_id'])!,
+      ruleName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}rule_name'])!,
+      triggerType: $AutoAllocationRulesTable.$convertertriggerType.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}trigger_type'])!),
+      triggerCategoryId: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}trigger_category_id']),
+      allocationMethod: $AutoAllocationRulesTable.$converterallocationMethod
+          .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
+              data['${effectivePrefix}allocation_method'])!),
+      allocationValue: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}allocation_value'])!,
+      minimumTriggerAmount: attachedDatabase.typeMapping.read(
+          DriftSqlType.double,
+          data['${effectivePrefix}minimum_trigger_amount']),
+      maximumAllocationAmount: attachedDatabase.typeMapping.read(
+          DriftSqlType.double,
+          data['${effectivePrefix}maximum_allocation_amount']),
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $AutoAllocationRulesTable createAlias(String alias) {
+    return $AutoAllocationRulesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<TriggerType, String> $convertertriggerType =
+      const TriggerTypeConverter();
+  static TypeConverter<AllocationMethod, String> $converterallocationMethod =
+      const AllocationMethodConverter();
+}
+
+class AutoAllocationRuleTableData extends DataClass
+    implements Insertable<AutoAllocationRuleTableData> {
+  final int id;
+  final int goalId;
+  final String ruleName;
+  final TriggerType triggerType;
+  final int? triggerCategoryId;
+  final AllocationMethod allocationMethod;
+  final double allocationValue;
+  final double? minimumTriggerAmount;
+  final double? maximumAllocationAmount;
+  final bool isActive;
+  final String? description;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const AutoAllocationRuleTableData(
+      {required this.id,
+      required this.goalId,
+      required this.ruleName,
+      required this.triggerType,
+      this.triggerCategoryId,
+      required this.allocationMethod,
+      required this.allocationValue,
+      this.minimumTriggerAmount,
+      this.maximumAllocationAmount,
+      required this.isActive,
+      this.description,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['goal_id'] = Variable<int>(goalId);
+    map['rule_name'] = Variable<String>(ruleName);
+    {
+      map['trigger_type'] = Variable<String>(
+          $AutoAllocationRulesTable.$convertertriggerType.toSql(triggerType));
+    }
+    if (!nullToAbsent || triggerCategoryId != null) {
+      map['trigger_category_id'] = Variable<int>(triggerCategoryId);
+    }
+    {
+      map['allocation_method'] = Variable<String>($AutoAllocationRulesTable
+          .$converterallocationMethod
+          .toSql(allocationMethod));
+    }
+    map['allocation_value'] = Variable<double>(allocationValue);
+    if (!nullToAbsent || minimumTriggerAmount != null) {
+      map['minimum_trigger_amount'] = Variable<double>(minimumTriggerAmount);
+    }
+    if (!nullToAbsent || maximumAllocationAmount != null) {
+      map['maximum_allocation_amount'] =
+          Variable<double>(maximumAllocationAmount);
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AutoAllocationRulesCompanion toCompanion(bool nullToAbsent) {
+    return AutoAllocationRulesCompanion(
+      id: Value(id),
+      goalId: Value(goalId),
+      ruleName: Value(ruleName),
+      triggerType: Value(triggerType),
+      triggerCategoryId: triggerCategoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(triggerCategoryId),
+      allocationMethod: Value(allocationMethod),
+      allocationValue: Value(allocationValue),
+      minimumTriggerAmount: minimumTriggerAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minimumTriggerAmount),
+      maximumAllocationAmount: maximumAllocationAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maximumAllocationAmount),
+      isActive: Value(isActive),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AutoAllocationRuleTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AutoAllocationRuleTableData(
+      id: serializer.fromJson<int>(json['id']),
+      goalId: serializer.fromJson<int>(json['goalId']),
+      ruleName: serializer.fromJson<String>(json['ruleName']),
+      triggerType: serializer.fromJson<TriggerType>(json['triggerType']),
+      triggerCategoryId: serializer.fromJson<int?>(json['triggerCategoryId']),
+      allocationMethod:
+          serializer.fromJson<AllocationMethod>(json['allocationMethod']),
+      allocationValue: serializer.fromJson<double>(json['allocationValue']),
+      minimumTriggerAmount:
+          serializer.fromJson<double?>(json['minimumTriggerAmount']),
+      maximumAllocationAmount:
+          serializer.fromJson<double?>(json['maximumAllocationAmount']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      description: serializer.fromJson<String?>(json['description']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'goalId': serializer.toJson<int>(goalId),
+      'ruleName': serializer.toJson<String>(ruleName),
+      'triggerType': serializer.toJson<TriggerType>(triggerType),
+      'triggerCategoryId': serializer.toJson<int?>(triggerCategoryId),
+      'allocationMethod': serializer.toJson<AllocationMethod>(allocationMethod),
+      'allocationValue': serializer.toJson<double>(allocationValue),
+      'minimumTriggerAmount': serializer.toJson<double?>(minimumTriggerAmount),
+      'maximumAllocationAmount':
+          serializer.toJson<double?>(maximumAllocationAmount),
+      'isActive': serializer.toJson<bool>(isActive),
+      'description': serializer.toJson<String?>(description),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AutoAllocationRuleTableData copyWith(
+          {int? id,
+          int? goalId,
+          String? ruleName,
+          TriggerType? triggerType,
+          Value<int?> triggerCategoryId = const Value.absent(),
+          AllocationMethod? allocationMethod,
+          double? allocationValue,
+          Value<double?> minimumTriggerAmount = const Value.absent(),
+          Value<double?> maximumAllocationAmount = const Value.absent(),
+          bool? isActive,
+          Value<String?> description = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      AutoAllocationRuleTableData(
+        id: id ?? this.id,
+        goalId: goalId ?? this.goalId,
+        ruleName: ruleName ?? this.ruleName,
+        triggerType: triggerType ?? this.triggerType,
+        triggerCategoryId: triggerCategoryId.present
+            ? triggerCategoryId.value
+            : this.triggerCategoryId,
+        allocationMethod: allocationMethod ?? this.allocationMethod,
+        allocationValue: allocationValue ?? this.allocationValue,
+        minimumTriggerAmount: minimumTriggerAmount.present
+            ? minimumTriggerAmount.value
+            : this.minimumTriggerAmount,
+        maximumAllocationAmount: maximumAllocationAmount.present
+            ? maximumAllocationAmount.value
+            : this.maximumAllocationAmount,
+        isActive: isActive ?? this.isActive,
+        description: description.present ? description.value : this.description,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  AutoAllocationRuleTableData copyWithCompanion(
+      AutoAllocationRulesCompanion data) {
+    return AutoAllocationRuleTableData(
+      id: data.id.present ? data.id.value : this.id,
+      goalId: data.goalId.present ? data.goalId.value : this.goalId,
+      ruleName: data.ruleName.present ? data.ruleName.value : this.ruleName,
+      triggerType:
+          data.triggerType.present ? data.triggerType.value : this.triggerType,
+      triggerCategoryId: data.triggerCategoryId.present
+          ? data.triggerCategoryId.value
+          : this.triggerCategoryId,
+      allocationMethod: data.allocationMethod.present
+          ? data.allocationMethod.value
+          : this.allocationMethod,
+      allocationValue: data.allocationValue.present
+          ? data.allocationValue.value
+          : this.allocationValue,
+      minimumTriggerAmount: data.minimumTriggerAmount.present
+          ? data.minimumTriggerAmount.value
+          : this.minimumTriggerAmount,
+      maximumAllocationAmount: data.maximumAllocationAmount.present
+          ? data.maximumAllocationAmount.value
+          : this.maximumAllocationAmount,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      description:
+          data.description.present ? data.description.value : this.description,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AutoAllocationRuleTableData(')
+          ..write('id: $id, ')
+          ..write('goalId: $goalId, ')
+          ..write('ruleName: $ruleName, ')
+          ..write('triggerType: $triggerType, ')
+          ..write('triggerCategoryId: $triggerCategoryId, ')
+          ..write('allocationMethod: $allocationMethod, ')
+          ..write('allocationValue: $allocationValue, ')
+          ..write('minimumTriggerAmount: $minimumTriggerAmount, ')
+          ..write('maximumAllocationAmount: $maximumAllocationAmount, ')
+          ..write('isActive: $isActive, ')
+          ..write('description: $description, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      goalId,
+      ruleName,
+      triggerType,
+      triggerCategoryId,
+      allocationMethod,
+      allocationValue,
+      minimumTriggerAmount,
+      maximumAllocationAmount,
+      isActive,
+      description,
+      createdAt,
+      updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AutoAllocationRuleTableData &&
+          other.id == this.id &&
+          other.goalId == this.goalId &&
+          other.ruleName == this.ruleName &&
+          other.triggerType == this.triggerType &&
+          other.triggerCategoryId == this.triggerCategoryId &&
+          other.allocationMethod == this.allocationMethod &&
+          other.allocationValue == this.allocationValue &&
+          other.minimumTriggerAmount == this.minimumTriggerAmount &&
+          other.maximumAllocationAmount == this.maximumAllocationAmount &&
+          other.isActive == this.isActive &&
+          other.description == this.description &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AutoAllocationRulesCompanion
+    extends UpdateCompanion<AutoAllocationRuleTableData> {
+  final Value<int> id;
+  final Value<int> goalId;
+  final Value<String> ruleName;
+  final Value<TriggerType> triggerType;
+  final Value<int?> triggerCategoryId;
+  final Value<AllocationMethod> allocationMethod;
+  final Value<double> allocationValue;
+  final Value<double?> minimumTriggerAmount;
+  final Value<double?> maximumAllocationAmount;
+  final Value<bool> isActive;
+  final Value<String?> description;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const AutoAllocationRulesCompanion({
+    this.id = const Value.absent(),
+    this.goalId = const Value.absent(),
+    this.ruleName = const Value.absent(),
+    this.triggerType = const Value.absent(),
+    this.triggerCategoryId = const Value.absent(),
+    this.allocationMethod = const Value.absent(),
+    this.allocationValue = const Value.absent(),
+    this.minimumTriggerAmount = const Value.absent(),
+    this.maximumAllocationAmount = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.description = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AutoAllocationRulesCompanion.insert({
+    this.id = const Value.absent(),
+    required int goalId,
+    required String ruleName,
+    required TriggerType triggerType,
+    this.triggerCategoryId = const Value.absent(),
+    required AllocationMethod allocationMethod,
+    required double allocationValue,
+    this.minimumTriggerAmount = const Value.absent(),
+    this.maximumAllocationAmount = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.description = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : goalId = Value(goalId),
+        ruleName = Value(ruleName),
+        triggerType = Value(triggerType),
+        allocationMethod = Value(allocationMethod),
+        allocationValue = Value(allocationValue);
+  static Insertable<AutoAllocationRuleTableData> custom({
+    Expression<int>? id,
+    Expression<int>? goalId,
+    Expression<String>? ruleName,
+    Expression<String>? triggerType,
+    Expression<int>? triggerCategoryId,
+    Expression<String>? allocationMethod,
+    Expression<double>? allocationValue,
+    Expression<double>? minimumTriggerAmount,
+    Expression<double>? maximumAllocationAmount,
+    Expression<bool>? isActive,
+    Expression<String>? description,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (goalId != null) 'goal_id': goalId,
+      if (ruleName != null) 'rule_name': ruleName,
+      if (triggerType != null) 'trigger_type': triggerType,
+      if (triggerCategoryId != null) 'trigger_category_id': triggerCategoryId,
+      if (allocationMethod != null) 'allocation_method': allocationMethod,
+      if (allocationValue != null) 'allocation_value': allocationValue,
+      if (minimumTriggerAmount != null)
+        'minimum_trigger_amount': minimumTriggerAmount,
+      if (maximumAllocationAmount != null)
+        'maximum_allocation_amount': maximumAllocationAmount,
+      if (isActive != null) 'is_active': isActive,
+      if (description != null) 'description': description,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AutoAllocationRulesCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? goalId,
+      Value<String>? ruleName,
+      Value<TriggerType>? triggerType,
+      Value<int?>? triggerCategoryId,
+      Value<AllocationMethod>? allocationMethod,
+      Value<double>? allocationValue,
+      Value<double?>? minimumTriggerAmount,
+      Value<double?>? maximumAllocationAmount,
+      Value<bool>? isActive,
+      Value<String?>? description,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return AutoAllocationRulesCompanion(
+      id: id ?? this.id,
+      goalId: goalId ?? this.goalId,
+      ruleName: ruleName ?? this.ruleName,
+      triggerType: triggerType ?? this.triggerType,
+      triggerCategoryId: triggerCategoryId ?? this.triggerCategoryId,
+      allocationMethod: allocationMethod ?? this.allocationMethod,
+      allocationValue: allocationValue ?? this.allocationValue,
+      minimumTriggerAmount: minimumTriggerAmount ?? this.minimumTriggerAmount,
+      maximumAllocationAmount:
+          maximumAllocationAmount ?? this.maximumAllocationAmount,
+      isActive: isActive ?? this.isActive,
+      description: description ?? this.description,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (goalId.present) {
+      map['goal_id'] = Variable<int>(goalId.value);
+    }
+    if (ruleName.present) {
+      map['rule_name'] = Variable<String>(ruleName.value);
+    }
+    if (triggerType.present) {
+      map['trigger_type'] = Variable<String>($AutoAllocationRulesTable
+          .$convertertriggerType
+          .toSql(triggerType.value));
+    }
+    if (triggerCategoryId.present) {
+      map['trigger_category_id'] = Variable<int>(triggerCategoryId.value);
+    }
+    if (allocationMethod.present) {
+      map['allocation_method'] = Variable<String>($AutoAllocationRulesTable
+          .$converterallocationMethod
+          .toSql(allocationMethod.value));
+    }
+    if (allocationValue.present) {
+      map['allocation_value'] = Variable<double>(allocationValue.value);
+    }
+    if (minimumTriggerAmount.present) {
+      map['minimum_trigger_amount'] =
+          Variable<double>(minimumTriggerAmount.value);
+    }
+    if (maximumAllocationAmount.present) {
+      map['maximum_allocation_amount'] =
+          Variable<double>(maximumAllocationAmount.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AutoAllocationRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('goalId: $goalId, ')
+          ..write('ruleName: $ruleName, ')
+          ..write('triggerType: $triggerType, ')
+          ..write('triggerCategoryId: $triggerCategoryId, ')
+          ..write('allocationMethod: $allocationMethod, ')
+          ..write('allocationValue: $allocationValue, ')
+          ..write('minimumTriggerAmount: $minimumTriggerAmount, ')
+          ..write('maximumAllocationAmount: $maximumAllocationAmount, ')
+          ..write('isActive: $isActive, ')
+          ..write('description: $description, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
@@ -2123,12 +3253,48 @@ abstract class _$Database extends GeneratedDatabase {
   late final $SavingGoalsTableTable savingGoalsTable =
       $SavingGoalsTableTable(this);
   late final $AchievementsTable achievements = $AchievementsTable(this);
+  late final $GoalAllocationsTable goalAllocations =
+      $GoalAllocationsTable(this);
+  late final $AutoAllocationRulesTable autoAllocationRules =
+      $AutoAllocationRulesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [categories, events, savingGoalsTable, achievements];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        categories,
+        events,
+        savingGoalsTable,
+        achievements,
+        goalAllocations,
+        autoAllocationRules
+      ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('events',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('goal_allocations', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('saving_goals_table',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('goal_allocations', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('saving_goals_table',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('auto_allocation_rules', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
 }
 
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
@@ -2161,6 +3327,24 @@ final class $$CategoriesTableReferences
         .filter((f) => f.categoryId.id($_item.id));
 
     final cache = $_typedResult.readTableOrNull(_eventsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$AutoAllocationRulesTable,
+      List<AutoAllocationRuleTableData>> _autoAllocationRulesRefsTable(
+          _$Database db) =>
+      MultiTypedResultKey.fromTable(db.autoAllocationRules,
+          aliasName: $_aliasNameGenerator(
+              db.categories.id, db.autoAllocationRules.triggerCategoryId));
+
+  $$AutoAllocationRulesTableProcessedTableManager get autoAllocationRulesRefs {
+    final manager =
+        $$AutoAllocationRulesTableTableManager($_db, $_db.autoAllocationRules)
+            .filter((f) => f.triggerCategoryId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_autoAllocationRulesRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -2205,6 +3389,27 @@ class $$CategoriesTableFilterComposer
             $$EventsTableFilterComposer(
               $db: $db,
               $table: $db.events,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> autoAllocationRulesRefs(
+      Expression<bool> Function($$AutoAllocationRulesTableFilterComposer f) f) {
+    final $$AutoAllocationRulesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.autoAllocationRules,
+        getReferencedColumn: (t) => t.triggerCategoryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AutoAllocationRulesTableFilterComposer(
+              $db: $db,
+              $table: $db.autoAllocationRules,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -2283,6 +3488,29 @@ class $$CategoriesTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> autoAllocationRulesRefs<T extends Object>(
+      Expression<T> Function($$AutoAllocationRulesTableAnnotationComposer a)
+          f) {
+    final $$AutoAllocationRulesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.autoAllocationRules,
+            getReferencedColumn: (t) => t.triggerCategoryId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AutoAllocationRulesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.autoAllocationRules,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager extends RootTableManager<
@@ -2296,7 +3524,7 @@ class $$CategoriesTableTableManager extends RootTableManager<
     $$CategoriesTableUpdateCompanionBuilder,
     (CategoryTableData, $$CategoriesTableReferences),
     CategoryTableData,
-    PrefetchHooks Function({bool eventsRefs})> {
+    PrefetchHooks Function({bool eventsRefs, bool autoAllocationRulesRefs})> {
   $$CategoriesTableTableManager(_$Database db, $CategoriesTable table)
       : super(TableManagerState(
           db: db,
@@ -2341,10 +3569,14 @@ class $$CategoriesTableTableManager extends RootTableManager<
                     $$CategoriesTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({eventsRefs = false}) {
+          prefetchHooksCallback: (
+              {eventsRefs = false, autoAllocationRulesRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (eventsRefs) db.events],
+              explicitlyWatchedTables: [
+                if (eventsRefs) db.events,
+                if (autoAllocationRulesRefs) db.autoAllocationRules
+              ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
@@ -2359,6 +3591,18 @@ class $$CategoriesTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.categoryId == item.id),
+                        typedResults: items),
+                  if (autoAllocationRulesRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$CategoriesTableReferences
+                            ._autoAllocationRulesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CategoriesTableReferences(db, table, p0)
+                                .autoAllocationRulesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.triggerCategoryId == item.id),
                         typedResults: items)
                 ];
               },
@@ -2378,7 +3622,7 @@ typedef $$CategoriesTableProcessedTableManager = ProcessedTableManager<
     $$CategoriesTableUpdateCompanionBuilder,
     (CategoryTableData, $$CategoriesTableReferences),
     CategoryTableData,
-    PrefetchHooks Function({bool eventsRefs})>;
+    PrefetchHooks Function({bool eventsRefs, bool autoAllocationRulesRefs})>;
 typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<int> id,
   Value<int?> originalEventId,
@@ -2424,6 +3668,24 @@ final class $$EventsTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$GoalAllocationsTable,
+      List<GoalAllocationTableData>> _goalAllocationsRefsTable(
+          _$Database db) =>
+      MultiTypedResultKey.fromTable(db.goalAllocations,
+          aliasName:
+              $_aliasNameGenerator(db.events.id, db.goalAllocations.eventId));
+
+  $$GoalAllocationsTableProcessedTableManager get goalAllocationsRefs {
+    final manager =
+        $$GoalAllocationsTableTableManager($_db, $_db.goalAllocations)
+            .filter((f) => f.eventId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_goalAllocationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
   }
 }
 
@@ -2491,6 +3753,27 @@ class $$EventsTableFilterComposer extends Composer<_$Database, $EventsTable> {
                   $removeJoinBuilderFromRootComposer,
             ));
     return composer;
+  }
+
+  Expression<bool> goalAllocationsRefs(
+      Expression<bool> Function($$GoalAllocationsTableFilterComposer f) f) {
+    final $$GoalAllocationsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalAllocations,
+        getReferencedColumn: (t) => t.eventId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalAllocationsTableFilterComposer(
+              $db: $db,
+              $table: $db.goalAllocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
   }
 }
 
@@ -2622,6 +3905,27 @@ class $$EventsTableAnnotationComposer
             ));
     return composer;
   }
+
+  Expression<T> goalAllocationsRefs<T extends Object>(
+      Expression<T> Function($$GoalAllocationsTableAnnotationComposer a) f) {
+    final $$GoalAllocationsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalAllocations,
+        getReferencedColumn: (t) => t.eventId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalAllocationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.goalAllocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$EventsTableTableManager extends RootTableManager<
@@ -2635,7 +3939,7 @@ class $$EventsTableTableManager extends RootTableManager<
     $$EventsTableUpdateCompanionBuilder,
     (EventTableData, $$EventsTableReferences),
     EventTableData,
-    PrefetchHooks Function({bool categoryId})> {
+    PrefetchHooks Function({bool categoryId, bool goalAllocationsRefs})> {
   $$EventsTableTableManager(_$Database db, $EventsTable table)
       : super(TableManagerState(
           db: db,
@@ -2706,10 +4010,13 @@ class $$EventsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$EventsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({categoryId = false}) {
+          prefetchHooksCallback: (
+              {categoryId = false, goalAllocationsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [],
+              explicitlyWatchedTables: [
+                if (goalAllocationsRefs) db.goalAllocations
+              ],
               addJoins: <
                   T extends TableManagerState<
                       dynamic,
@@ -2737,7 +4044,20 @@ class $$EventsTableTableManager extends RootTableManager<
                 return state;
               },
               getPrefetchedDataCallback: (items) async {
-                return [];
+                return [
+                  if (goalAllocationsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$EventsTableReferences
+                            ._goalAllocationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$EventsTableReferences(db, table, p0)
+                                .goalAllocationsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.eventId == item.id),
+                        typedResults: items)
+                ];
               },
             );
           },
@@ -2755,7 +4075,7 @@ typedef $$EventsTableProcessedTableManager = ProcessedTableManager<
     $$EventsTableUpdateCompanionBuilder,
     (EventTableData, $$EventsTableReferences),
     EventTableData,
-    PrefetchHooks Function({bool categoryId})>;
+    PrefetchHooks Function({bool categoryId, bool goalAllocationsRefs})>;
 typedef $$SavingGoalsTableTableCreateCompanionBuilder
     = SavingGoalsTableCompanion Function({
   Value<int> id,
@@ -2788,6 +4108,48 @@ typedef $$SavingGoalsTableTableUpdateCompanionBuilder
   Value<double?> recurringTargetAmount,
   Value<String?> checkpoints,
 });
+
+final class $$SavingGoalsTableTableReferences extends BaseReferences<_$Database,
+    $SavingGoalsTableTable, SavingGoalTableData> {
+  $$SavingGoalsTableTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$GoalAllocationsTable,
+      List<GoalAllocationTableData>> _goalAllocationsRefsTable(
+          _$Database db) =>
+      MultiTypedResultKey.fromTable(db.goalAllocations,
+          aliasName: $_aliasNameGenerator(
+              db.savingGoalsTable.id, db.goalAllocations.goalId));
+
+  $$GoalAllocationsTableProcessedTableManager get goalAllocationsRefs {
+    final manager =
+        $$GoalAllocationsTableTableManager($_db, $_db.goalAllocations)
+            .filter((f) => f.goalId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_goalAllocationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$AutoAllocationRulesTable,
+      List<AutoAllocationRuleTableData>> _autoAllocationRulesRefsTable(
+          _$Database db) =>
+      MultiTypedResultKey.fromTable(db.autoAllocationRules,
+          aliasName: $_aliasNameGenerator(
+              db.savingGoalsTable.id, db.autoAllocationRules.goalId));
+
+  $$AutoAllocationRulesTableProcessedTableManager get autoAllocationRulesRefs {
+    final manager =
+        $$AutoAllocationRulesTableTableManager($_db, $_db.autoAllocationRules)
+            .filter((f) => f.goalId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_autoAllocationRulesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$SavingGoalsTableTableFilterComposer
     extends Composer<_$Database, $SavingGoalsTableTable> {
@@ -2841,6 +4203,48 @@ class $$SavingGoalsTableTableFilterComposer
 
   ColumnFilters<String> get checkpoints => $composableBuilder(
       column: $table.checkpoints, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> goalAllocationsRefs(
+      Expression<bool> Function($$GoalAllocationsTableFilterComposer f) f) {
+    final $$GoalAllocationsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalAllocations,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalAllocationsTableFilterComposer(
+              $db: $db,
+              $table: $db.goalAllocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> autoAllocationRulesRefs(
+      Expression<bool> Function($$AutoAllocationRulesTableFilterComposer f) f) {
+    final $$AutoAllocationRulesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.autoAllocationRules,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AutoAllocationRulesTableFilterComposer(
+              $db: $db,
+              $table: $db.autoAllocationRules,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$SavingGoalsTableTableOrderingComposer
@@ -2945,6 +4349,50 @@ class $$SavingGoalsTableTableAnnotationComposer
 
   GeneratedColumn<String> get checkpoints => $composableBuilder(
       column: $table.checkpoints, builder: (column) => column);
+
+  Expression<T> goalAllocationsRefs<T extends Object>(
+      Expression<T> Function($$GoalAllocationsTableAnnotationComposer a) f) {
+    final $$GoalAllocationsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalAllocations,
+        getReferencedColumn: (t) => t.goalId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalAllocationsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.goalAllocations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> autoAllocationRulesRefs<T extends Object>(
+      Expression<T> Function($$AutoAllocationRulesTableAnnotationComposer a)
+          f) {
+    final $$AutoAllocationRulesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.autoAllocationRules,
+            getReferencedColumn: (t) => t.goalId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AutoAllocationRulesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.autoAllocationRules,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$SavingGoalsTableTableTableManager extends RootTableManager<
@@ -2956,12 +4404,10 @@ class $$SavingGoalsTableTableTableManager extends RootTableManager<
     $$SavingGoalsTableTableAnnotationComposer,
     $$SavingGoalsTableTableCreateCompanionBuilder,
     $$SavingGoalsTableTableUpdateCompanionBuilder,
-    (
-      SavingGoalTableData,
-      BaseReferences<_$Database, $SavingGoalsTableTable, SavingGoalTableData>
-    ),
+    (SavingGoalTableData, $$SavingGoalsTableTableReferences),
     SavingGoalTableData,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function(
+        {bool goalAllocationsRefs, bool autoAllocationRulesRefs})> {
   $$SavingGoalsTableTableTableManager(
       _$Database db, $SavingGoalsTableTable table)
       : super(TableManagerState(
@@ -3034,9 +4480,50 @@ class $$SavingGoalsTableTableTableManager extends RootTableManager<
             checkpoints: checkpoints,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$SavingGoalsTableTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: (
+              {goalAllocationsRefs = false, autoAllocationRulesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (goalAllocationsRefs) db.goalAllocations,
+                if (autoAllocationRulesRefs) db.autoAllocationRules
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (goalAllocationsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$SavingGoalsTableTableReferences
+                            ._goalAllocationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SavingGoalsTableTableReferences(db, table, p0)
+                                .goalAllocationsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.goalId == item.id),
+                        typedResults: items),
+                  if (autoAllocationRulesRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$SavingGoalsTableTableReferences
+                            ._autoAllocationRulesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SavingGoalsTableTableReferences(db, table, p0)
+                                .autoAllocationRulesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.goalId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -3049,12 +4536,10 @@ typedef $$SavingGoalsTableTableProcessedTableManager = ProcessedTableManager<
     $$SavingGoalsTableTableAnnotationComposer,
     $$SavingGoalsTableTableCreateCompanionBuilder,
     $$SavingGoalsTableTableUpdateCompanionBuilder,
-    (
-      SavingGoalTableData,
-      BaseReferences<_$Database, $SavingGoalsTableTable, SavingGoalTableData>
-    ),
+    (SavingGoalTableData, $$SavingGoalsTableTableReferences),
     SavingGoalTableData,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function(
+        {bool goalAllocationsRefs, bool autoAllocationRulesRefs})>;
 typedef $$AchievementsTableCreateCompanionBuilder = AchievementsCompanion
     Function({
   required String id,
@@ -3306,6 +4791,884 @@ typedef $$AchievementsTableProcessedTableManager = ProcessedTableManager<
     ),
     AchievementTableData,
     PrefetchHooks Function()>;
+typedef $$GoalAllocationsTableCreateCompanionBuilder = GoalAllocationsCompanion
+    Function({
+  Value<int> id,
+  required int eventId,
+  required int goalId,
+  required double allocationAmount,
+  required AllocationType allocationType,
+  Value<String?> notes,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$GoalAllocationsTableUpdateCompanionBuilder = GoalAllocationsCompanion
+    Function({
+  Value<int> id,
+  Value<int> eventId,
+  Value<int> goalId,
+  Value<double> allocationAmount,
+  Value<AllocationType> allocationType,
+  Value<String?> notes,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+final class $$GoalAllocationsTableReferences extends BaseReferences<_$Database,
+    $GoalAllocationsTable, GoalAllocationTableData> {
+  $$GoalAllocationsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $EventsTable _eventIdTable(_$Database db) => db.events.createAlias(
+      $_aliasNameGenerator(db.goalAllocations.eventId, db.events.id));
+
+  $$EventsTableProcessedTableManager? get eventId {
+    if ($_item.eventId == null) return null;
+    final manager = $$EventsTableTableManager($_db, $_db.events)
+        .filter((f) => f.id($_item.eventId!));
+    final item = $_typedResult.readTableOrNull(_eventIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $SavingGoalsTableTable _goalIdTable(_$Database db) =>
+      db.savingGoalsTable.createAlias($_aliasNameGenerator(
+          db.goalAllocations.goalId, db.savingGoalsTable.id));
+
+  $$SavingGoalsTableTableProcessedTableManager? get goalId {
+    if ($_item.goalId == null) return null;
+    final manager =
+        $$SavingGoalsTableTableTableManager($_db, $_db.savingGoalsTable)
+            .filter((f) => f.id($_item.goalId!));
+    final item = $_typedResult.readTableOrNull(_goalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$GoalAllocationsTableFilterComposer
+    extends Composer<_$Database, $GoalAllocationsTable> {
+  $$GoalAllocationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get allocationAmount => $composableBuilder(
+      column: $table.allocationAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<AllocationType, AllocationType, String>
+      get allocationType => $composableBuilder(
+          column: $table.allocationType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$EventsTableFilterComposer get eventId {
+    final $$EventsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.eventId,
+        referencedTable: $db.events,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$EventsTableFilterComposer(
+              $db: $db,
+              $table: $db.events,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$SavingGoalsTableTableFilterComposer get goalId {
+    final $$SavingGoalsTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.savingGoalsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SavingGoalsTableTableFilterComposer(
+              $db: $db,
+              $table: $db.savingGoalsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalAllocationsTableOrderingComposer
+    extends Composer<_$Database, $GoalAllocationsTable> {
+  $$GoalAllocationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get allocationAmount => $composableBuilder(
+      column: $table.allocationAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get allocationType => $composableBuilder(
+      column: $table.allocationType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$EventsTableOrderingComposer get eventId {
+    final $$EventsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.eventId,
+        referencedTable: $db.events,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$EventsTableOrderingComposer(
+              $db: $db,
+              $table: $db.events,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$SavingGoalsTableTableOrderingComposer get goalId {
+    final $$SavingGoalsTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.savingGoalsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SavingGoalsTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.savingGoalsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalAllocationsTableAnnotationComposer
+    extends Composer<_$Database, $GoalAllocationsTable> {
+  $$GoalAllocationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get allocationAmount => $composableBuilder(
+      column: $table.allocationAmount, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AllocationType, String> get allocationType =>
+      $composableBuilder(
+          column: $table.allocationType, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$EventsTableAnnotationComposer get eventId {
+    final $$EventsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.eventId,
+        referencedTable: $db.events,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$EventsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.events,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$SavingGoalsTableTableAnnotationComposer get goalId {
+    final $$SavingGoalsTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.savingGoalsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SavingGoalsTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.savingGoalsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$GoalAllocationsTableTableManager extends RootTableManager<
+    _$Database,
+    $GoalAllocationsTable,
+    GoalAllocationTableData,
+    $$GoalAllocationsTableFilterComposer,
+    $$GoalAllocationsTableOrderingComposer,
+    $$GoalAllocationsTableAnnotationComposer,
+    $$GoalAllocationsTableCreateCompanionBuilder,
+    $$GoalAllocationsTableUpdateCompanionBuilder,
+    (GoalAllocationTableData, $$GoalAllocationsTableReferences),
+    GoalAllocationTableData,
+    PrefetchHooks Function({bool eventId, bool goalId})> {
+  $$GoalAllocationsTableTableManager(_$Database db, $GoalAllocationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalAllocationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalAllocationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalAllocationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> eventId = const Value.absent(),
+            Value<int> goalId = const Value.absent(),
+            Value<double> allocationAmount = const Value.absent(),
+            Value<AllocationType> allocationType = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              GoalAllocationsCompanion(
+            id: id,
+            eventId: eventId,
+            goalId: goalId,
+            allocationAmount: allocationAmount,
+            allocationType: allocationType,
+            notes: notes,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int eventId,
+            required int goalId,
+            required double allocationAmount,
+            required AllocationType allocationType,
+            Value<String?> notes = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              GoalAllocationsCompanion.insert(
+            id: id,
+            eventId: eventId,
+            goalId: goalId,
+            allocationAmount: allocationAmount,
+            allocationType: allocationType,
+            notes: notes,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$GoalAllocationsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({eventId = false, goalId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (eventId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.eventId,
+                    referencedTable:
+                        $$GoalAllocationsTableReferences._eventIdTable(db),
+                    referencedColumn:
+                        $$GoalAllocationsTableReferences._eventIdTable(db).id,
+                  ) as T;
+                }
+                if (goalId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.goalId,
+                    referencedTable:
+                        $$GoalAllocationsTableReferences._goalIdTable(db),
+                    referencedColumn:
+                        $$GoalAllocationsTableReferences._goalIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$GoalAllocationsTableProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    $GoalAllocationsTable,
+    GoalAllocationTableData,
+    $$GoalAllocationsTableFilterComposer,
+    $$GoalAllocationsTableOrderingComposer,
+    $$GoalAllocationsTableAnnotationComposer,
+    $$GoalAllocationsTableCreateCompanionBuilder,
+    $$GoalAllocationsTableUpdateCompanionBuilder,
+    (GoalAllocationTableData, $$GoalAllocationsTableReferences),
+    GoalAllocationTableData,
+    PrefetchHooks Function({bool eventId, bool goalId})>;
+typedef $$AutoAllocationRulesTableCreateCompanionBuilder
+    = AutoAllocationRulesCompanion Function({
+  Value<int> id,
+  required int goalId,
+  required String ruleName,
+  required TriggerType triggerType,
+  Value<int?> triggerCategoryId,
+  required AllocationMethod allocationMethod,
+  required double allocationValue,
+  Value<double?> minimumTriggerAmount,
+  Value<double?> maximumAllocationAmount,
+  Value<bool> isActive,
+  Value<String?> description,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$AutoAllocationRulesTableUpdateCompanionBuilder
+    = AutoAllocationRulesCompanion Function({
+  Value<int> id,
+  Value<int> goalId,
+  Value<String> ruleName,
+  Value<TriggerType> triggerType,
+  Value<int?> triggerCategoryId,
+  Value<AllocationMethod> allocationMethod,
+  Value<double> allocationValue,
+  Value<double?> minimumTriggerAmount,
+  Value<double?> maximumAllocationAmount,
+  Value<bool> isActive,
+  Value<String?> description,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+final class $$AutoAllocationRulesTableReferences extends BaseReferences<
+    _$Database, $AutoAllocationRulesTable, AutoAllocationRuleTableData> {
+  $$AutoAllocationRulesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SavingGoalsTableTable _goalIdTable(_$Database db) =>
+      db.savingGoalsTable.createAlias($_aliasNameGenerator(
+          db.autoAllocationRules.goalId, db.savingGoalsTable.id));
+
+  $$SavingGoalsTableTableProcessedTableManager? get goalId {
+    if ($_item.goalId == null) return null;
+    final manager =
+        $$SavingGoalsTableTableTableManager($_db, $_db.savingGoalsTable)
+            .filter((f) => f.id($_item.goalId!));
+    final item = $_typedResult.readTableOrNull(_goalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $CategoriesTable _triggerCategoryIdTable(_$Database db) =>
+      db.categories.createAlias($_aliasNameGenerator(
+          db.autoAllocationRules.triggerCategoryId, db.categories.id));
+
+  $$CategoriesTableProcessedTableManager? get triggerCategoryId {
+    if ($_item.triggerCategoryId == null) return null;
+    final manager = $$CategoriesTableTableManager($_db, $_db.categories)
+        .filter((f) => f.id($_item.triggerCategoryId!));
+    final item = $_typedResult.readTableOrNull(_triggerCategoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$AutoAllocationRulesTableFilterComposer
+    extends Composer<_$Database, $AutoAllocationRulesTable> {
+  $$AutoAllocationRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get ruleName => $composableBuilder(
+      column: $table.ruleName, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<TriggerType, TriggerType, String>
+      get triggerType => $composableBuilder(
+          column: $table.triggerType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<AllocationMethod, AllocationMethod, String>
+      get allocationMethod => $composableBuilder(
+          column: $table.allocationMethod,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<double> get allocationValue => $composableBuilder(
+      column: $table.allocationValue,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get minimumTriggerAmount => $composableBuilder(
+      column: $table.minimumTriggerAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get maximumAllocationAmount => $composableBuilder(
+      column: $table.maximumAllocationAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$SavingGoalsTableTableFilterComposer get goalId {
+    final $$SavingGoalsTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.savingGoalsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SavingGoalsTableTableFilterComposer(
+              $db: $db,
+              $table: $db.savingGoalsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CategoriesTableFilterComposer get triggerCategoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.triggerCategoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableFilterComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AutoAllocationRulesTableOrderingComposer
+    extends Composer<_$Database, $AutoAllocationRulesTable> {
+  $$AutoAllocationRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get ruleName => $composableBuilder(
+      column: $table.ruleName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get triggerType => $composableBuilder(
+      column: $table.triggerType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get allocationMethod => $composableBuilder(
+      column: $table.allocationMethod,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get allocationValue => $composableBuilder(
+      column: $table.allocationValue,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get minimumTriggerAmount => $composableBuilder(
+      column: $table.minimumTriggerAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get maximumAllocationAmount => $composableBuilder(
+      column: $table.maximumAllocationAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$SavingGoalsTableTableOrderingComposer get goalId {
+    final $$SavingGoalsTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.savingGoalsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SavingGoalsTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.savingGoalsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CategoriesTableOrderingComposer get triggerCategoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.triggerCategoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableOrderingComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AutoAllocationRulesTableAnnotationComposer
+    extends Composer<_$Database, $AutoAllocationRulesTable> {
+  $$AutoAllocationRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ruleName =>
+      $composableBuilder(column: $table.ruleName, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TriggerType, String> get triggerType =>
+      $composableBuilder(
+          column: $table.triggerType, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AllocationMethod, String>
+      get allocationMethod => $composableBuilder(
+          column: $table.allocationMethod, builder: (column) => column);
+
+  GeneratedColumn<double> get allocationValue => $composableBuilder(
+      column: $table.allocationValue, builder: (column) => column);
+
+  GeneratedColumn<double> get minimumTriggerAmount => $composableBuilder(
+      column: $table.minimumTriggerAmount, builder: (column) => column);
+
+  GeneratedColumn<double> get maximumAllocationAmount => $composableBuilder(
+      column: $table.maximumAllocationAmount, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$SavingGoalsTableTableAnnotationComposer get goalId {
+    final $$SavingGoalsTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.goalId,
+        referencedTable: $db.savingGoalsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SavingGoalsTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.savingGoalsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CategoriesTableAnnotationComposer get triggerCategoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.triggerCategoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AutoAllocationRulesTableTableManager extends RootTableManager<
+    _$Database,
+    $AutoAllocationRulesTable,
+    AutoAllocationRuleTableData,
+    $$AutoAllocationRulesTableFilterComposer,
+    $$AutoAllocationRulesTableOrderingComposer,
+    $$AutoAllocationRulesTableAnnotationComposer,
+    $$AutoAllocationRulesTableCreateCompanionBuilder,
+    $$AutoAllocationRulesTableUpdateCompanionBuilder,
+    (AutoAllocationRuleTableData, $$AutoAllocationRulesTableReferences),
+    AutoAllocationRuleTableData,
+    PrefetchHooks Function({bool goalId, bool triggerCategoryId})> {
+  $$AutoAllocationRulesTableTableManager(
+      _$Database db, $AutoAllocationRulesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AutoAllocationRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AutoAllocationRulesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AutoAllocationRulesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> goalId = const Value.absent(),
+            Value<String> ruleName = const Value.absent(),
+            Value<TriggerType> triggerType = const Value.absent(),
+            Value<int?> triggerCategoryId = const Value.absent(),
+            Value<AllocationMethod> allocationMethod = const Value.absent(),
+            Value<double> allocationValue = const Value.absent(),
+            Value<double?> minimumTriggerAmount = const Value.absent(),
+            Value<double?> maximumAllocationAmount = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              AutoAllocationRulesCompanion(
+            id: id,
+            goalId: goalId,
+            ruleName: ruleName,
+            triggerType: triggerType,
+            triggerCategoryId: triggerCategoryId,
+            allocationMethod: allocationMethod,
+            allocationValue: allocationValue,
+            minimumTriggerAmount: minimumTriggerAmount,
+            maximumAllocationAmount: maximumAllocationAmount,
+            isActive: isActive,
+            description: description,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int goalId,
+            required String ruleName,
+            required TriggerType triggerType,
+            Value<int?> triggerCategoryId = const Value.absent(),
+            required AllocationMethod allocationMethod,
+            required double allocationValue,
+            Value<double?> minimumTriggerAmount = const Value.absent(),
+            Value<double?> maximumAllocationAmount = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              AutoAllocationRulesCompanion.insert(
+            id: id,
+            goalId: goalId,
+            ruleName: ruleName,
+            triggerType: triggerType,
+            triggerCategoryId: triggerCategoryId,
+            allocationMethod: allocationMethod,
+            allocationValue: allocationValue,
+            minimumTriggerAmount: minimumTriggerAmount,
+            maximumAllocationAmount: maximumAllocationAmount,
+            isActive: isActive,
+            description: description,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$AutoAllocationRulesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({goalId = false, triggerCategoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (goalId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.goalId,
+                    referencedTable:
+                        $$AutoAllocationRulesTableReferences._goalIdTable(db),
+                    referencedColumn: $$AutoAllocationRulesTableReferences
+                        ._goalIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (triggerCategoryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.triggerCategoryId,
+                    referencedTable: $$AutoAllocationRulesTableReferences
+                        ._triggerCategoryIdTable(db),
+                    referencedColumn: $$AutoAllocationRulesTableReferences
+                        ._triggerCategoryIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$AutoAllocationRulesTableProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    $AutoAllocationRulesTable,
+    AutoAllocationRuleTableData,
+    $$AutoAllocationRulesTableFilterComposer,
+    $$AutoAllocationRulesTableOrderingComposer,
+    $$AutoAllocationRulesTableAnnotationComposer,
+    $$AutoAllocationRulesTableCreateCompanionBuilder,
+    $$AutoAllocationRulesTableUpdateCompanionBuilder,
+    (AutoAllocationRuleTableData, $$AutoAllocationRulesTableReferences),
+    AutoAllocationRuleTableData,
+    PrefetchHooks Function({bool goalId, bool triggerCategoryId})>;
 
 class $DatabaseManager {
   final _$Database _db;
@@ -3318,4 +5681,8 @@ class $DatabaseManager {
       $$SavingGoalsTableTableTableManager(_db, _db.savingGoalsTable);
   $$AchievementsTableTableManager get achievements =>
       $$AchievementsTableTableManager(_db, _db.achievements);
+  $$GoalAllocationsTableTableManager get goalAllocations =>
+      $$GoalAllocationsTableTableManager(_db, _db.goalAllocations);
+  $$AutoAllocationRulesTableTableManager get autoAllocationRules =>
+      $$AutoAllocationRulesTableTableManager(_db, _db.autoAllocationRules);
 }

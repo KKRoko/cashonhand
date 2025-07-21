@@ -6,6 +6,9 @@ import '../models/freezed/achievement_base_implementation.dart';
 import '../models/freezed/custom_recurrence.dart';
 import '../models/enums/repeat_option.dart';
 import '../models/enums/category_type.dart';
+import '../models/enums/allocation_type.dart';
+import '../models/enums/trigger_type.dart';
+import '../models/enums/allocation_method.dart';
 import 'dart:convert';
 
 class CustomRecurrenceConverter
@@ -100,6 +103,54 @@ class AchievementTypeConverter extends TypeConverter<AchievementType, String> {
 
   @override
   String toSql(AchievementType value) {
+    return value.toString().split('.').last;
+  }
+}
+
+class AllocationTypeConverter extends TypeConverter<AllocationType, String> {
+  const AllocationTypeConverter();
+
+  @override
+  AllocationType fromSql(String fromDb) {
+    return AllocationType.values.firstWhere(
+      (e) => e.toString().split('.').last == fromDb,
+    );
+  }
+
+  @override
+  String toSql(AllocationType value) {
+    return value.toString().split('.').last;
+  }
+}
+
+class TriggerTypeConverter extends TypeConverter<TriggerType, String> {
+  const TriggerTypeConverter();
+
+  @override
+  TriggerType fromSql(String fromDb) {
+    return TriggerType.values.firstWhere(
+      (e) => e.toString().split('.').last == fromDb,
+    );
+  }
+
+  @override
+  String toSql(TriggerType value) {
+    return value.toString().split('.').last;
+  }
+}
+
+class AllocationMethodConverter extends TypeConverter<AllocationMethod, String> {
+  const AllocationMethodConverter();
+
+  @override
+  AllocationMethod fromSql(String fromDb) {
+    return AllocationMethod.values.firstWhere(
+      (e) => e.toString().split('.').last == fromDb,
+    );
+  }
+
+  @override
+  String toSql(AllocationMethod value) {
     return value.toString().split('.').last;
   }
 }
