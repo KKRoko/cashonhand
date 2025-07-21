@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../core/error/failures.dart';
 import '../models/enums/delete_option.dart';
 import '../models/freezed/event.dart';
+import '../models/freezed/goal_allocation.dart';
 import 'base_repository.dart';
 
 abstract class IEventRepository extends BaseRepository<Event> {
@@ -21,4 +22,6 @@ abstract class IEventRepository extends BaseRepository<Event> {
   Future<Either<Failure, int>> getTotalEvents();
   Future<Either<Failure, List<Event>>> getEventSeries(
       int originalEventId); // New
+  Future<Either<Failure, Event>> addEventWithAllocations(
+      DateTime day, Event event, List<GoalAllocation> allocations); // New
 }

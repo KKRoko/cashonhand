@@ -10,7 +10,10 @@ import '../models/enums/delete_option.dart';
 import '../models/enums/edit_option.dart';
 import '../models/freezed/custom_recurrence.dart';
 import '../models/freezed/event.dart';
+import '../models/freezed/goal_allocation.dart';
 import '../models/enums/repeat_option.dart';
+import '../models/enums/allocation_type.dart';
+import '../models/event_creation_result.dart';
 import 'base_repository.dart';
 import 'i_event_repository.dart';
 
@@ -431,30 +434,105 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
       return deletedCount > 0;
     });
   }
-}
 
-// Helper method to convert database events to domain events
-Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
-  return Future.wait(
-    eventData.map((e) async {
-      return Event(
-        id: e.id,
-        originalEventId: e.originalEventId, 
-        title: e.title,
-        categoryId: e.categoryId,
-        amount: e.amount,
-        dateTime: e.date,
-        repeatOption: e.repeatOption,
-        isRecurring: e.isRecurring,
-        notes: e.notes,
-        customRecurrence: e.customRecurrence, 
-        createdAt: e.createdAt,
-        updatedAt: e.updatedAt,
-        isYearEndSummary: false, // Add this as well
-      );
-    }).toList(), // Add .toList() here
-  );
-}
+  @override
+  Future<Either<Failure, Event>> addEventWithAllocations(DateTime day, Event event, List<GoalAllocation> allocations) {
+    return catchError(() async {
+      // Start a database transaction to ensure atomicity
+      return await _database.transaction(() async {
+        // First create the event
+        final eventCompanion = EventsCompanion.insert(
+          title: event.title,
+          categoryId: event.categoryId,
+          amount: event.amount,
+          date: event.dateTime,
+          repeatOption: event.repeatOption,
+          isRecurring: Value(event.isRecurring),
+          notes: Value(event.notes),
+          customRecurrence: Value(event.customRecurrence),
+          createdAt: Value(DateTime.now()),
+          updatedAt: Value(DateTime.now()),
+        );
+
+        final createdEvent = await _database.createEvent(eventCompanion, generateRecurring: event.isRecurring);
+        print('Created event - ID: ${createdEvent.id}, OriginalID: ${createdEvent.originalEventId}');
+        
+        // Then create the allocations if any
+        if (allocations.isNotEmpty) {
+          for (final allocation in allocations) {
+            final allocationCompanion = GoalAllocationsCompanion.insert(
+              eventId: createdEvent.id,
+              goalId: allocation.goalId,
+              allocationAmount: allocation.allocationAmount,
+              allocationType: allocation.allocationType,
+              notes: Value(allocation.notes),
+              createdAt: Value(DateTime.now()),
+              updatedAt: Value(DateTime.now()),
+            );
+            
+            await _database.createGoalAllocation(allocationCompanion);
+            print('Created allocation: ${allocation.goalTitle} - \$${allocation.allocationAmount}');
+            
+            // Update the savings goal's current amount
+            await _updateGoalProgress(allocation.goalId, allocation.allocationAmount);
+          }
+        }
+        
+        // Convert database event back to domain event
+        return event.copyWith(
+          id: createdEvent.id,
+          originalEventId: createdEvent.originalEventId,
+          dateTime: createdEvent.date,
+        );
+      });
+    });
+  }
+
+  Future<void> _updateGoalProgress(int goalId, double allocationAmount) async {
+    try {
+      // Get current goal
+      final currentGoal = await _database.getSavingGoalById(goalId);
+      
+      if (currentGoal != null) {
+        // Update current amount
+        final updatedGoal = currentGoal.copyWith(
+          currentAmount: currentGoal.currentAmount + allocationAmount,
+          updatedAt: DateTime.now(),
+        );
+        
+        await _database.updateSavingGoal(updatedGoal);
+        print('Updated goal $goalId: +\$${allocationAmount} (total: \$${updatedGoal.currentAmount})');
+      } else {
+        print('Warning: Goal $goalId not found during progress update');
+      }
+    } catch (e) {
+      print('Error updating goal progress: $e');
+      // Don't throw - allocation was successful, goal update is secondary
+    }
+  }
+
+  // Helper method to convert database events to domain events
+  Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
+    return Future.wait(
+      eventData.map((e) async {
+        return Event(
+          id: e.id,
+          originalEventId: e.originalEventId, 
+          title: e.title,
+          categoryId: e.categoryId,
+          amount: e.amount,
+          dateTime: e.date,
+          repeatOption: e.repeatOption,
+          isRecurring: e.isRecurring,
+          notes: e.notes,
+          customRecurrence: e.customRecurrence, 
+          createdAt: e.createdAt,
+          updatedAt: e.updatedAt,
+          isYearEndSummary: false, // Add this as well
+        );
+      }).toList(), // Add .toList() here
+    );
+  }
 
   Future<Event> _convertToEvent(EventTableData e) async {
     return Event(
@@ -472,3 +550,4 @@ Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
       isYearEndSummary: false,
     );
   }
+}

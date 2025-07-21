@@ -5,14 +5,18 @@ import '../../data/database/database.dart';
 import '../../data/models/enums/repeat_option.dart';
 import '../../data/models/freezed/event.dart';
 import '../../data/models/freezed/custom_recurrence.dart';
+import '../../data/models/freezed/goal_allocation.dart';
+import '../../data/models/event_creation_result.dart';
 import '../../utils/event_date_utils.dart';
 import '../../utils/formatters.dart';
+import '../widgets/goal_allocation_widget.dart';
 
 class AddEditEventDialog extends StatefulWidget {
   final DateTime selectedDay;
   final Event? event;
   final bool isPositiveCashflow;
   final List<CategoryTableData> categories;
+  final List<SavingGoalTableData> availableGoals;
 
   const AddEditEventDialog({
     super.key,
@@ -20,6 +24,7 @@ class AddEditEventDialog extends StatefulWidget {
     this.event,
     required this.isPositiveCashflow,
     required this.categories,
+    required this.availableGoals,
   });
 
   @override
@@ -46,6 +51,9 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   String _firstOccurrenceText = '';
   bool _isBasicExpanded = false;
   bool _isRecurrenceExpanded = false;
+  
+  // Goal allocation state
+  List<GoalAllocation> _goalAllocations = [];
 
   @override
   void initState() {
@@ -369,7 +377,12 @@ if (_customRecurrence != null) {
           notes: null,
         );
 
-  Navigator.of(context).pop(event);
+  final result = EventCreationResult(
+    event: event,
+    allocations: _goalAllocations,
+  );
+  
+  Navigator.of(context).pop(result);
 }
 
   Widget _buildAmountCard() {
@@ -871,7 +884,27 @@ if (_customRecurrence != null) {
         ),
       ],
     );
-  } 
+  }
+
+  Widget _buildGoalAllocationSection() {
+    // Only show goal allocation for meaningful amounts and if goals are available
+    final amount = double.tryParse(_amountController.text) ?? 0.0;
+    if (widget.availableGoals.isEmpty || amount <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return GoalAllocationWidget(
+      availableGoals: widget.availableGoals,
+      currentAllocations: _goalAllocations,
+      transactionAmount: amount.abs(),
+      isIncome: _isPositiveCashflow,
+      onAllocationsChanged: (allocations) {
+        setState(() {
+          _goalAllocations = allocations;
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -893,6 +926,8 @@ if (_customRecurrence != null) {
               _buildBasicDetailsSection(),
               const SizedBox(height: 8),
               _buildRecurrenceSection(),
+              const SizedBox(height: 8),
+              _buildGoalAllocationSection(),
               const SizedBox(height: 16),
               _buildActions(),
             ],

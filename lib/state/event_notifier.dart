@@ -5,6 +5,7 @@ import '../data/models/enums/delete_option.dart';
 import '../data/models/enums/edit_option.dart';
 import '../data/models/enums/repeat_option.dart';
 import '../data/models/freezed/event.dart';
+import '../data/models/freezed/goal_allocation.dart';
 import '../services/event_service.dart';
 import '../core/error/failures.dart';
 import 'package:dartz/dartz.dart';
@@ -79,6 +80,29 @@ class EventNotifier extends ChangeNotifier {
     } else {
       firstEventDate = await _addRecurringEvent(day, event);
     }
+
+    _setLoading(false);
+    return firstEventDate;
+  }
+
+  Future<DateTime?> addEventWithAllocations(DateTime day, Event event, List<GoalAllocation> allocations) async {
+    _setLoading(true);
+
+    DateTime? firstEventDate;
+    final result = await eventService.addEventWithAllocations(day, event, allocations);
+    result.fold(
+      (failure) => _setError(failure.message),
+      (newEvent) async {
+        print('🔍 DEBUG: EventNotifier - Event with allocations created successfully');
+        firstEventDate = newEvent.dateTime;
+        
+        // Clear cache and reload events for the current year to show all events
+        _events.clear();
+        final startDate = DateTime(DateTime.now().year, 1, 1);
+        final endDate = DateTime(DateTime.now().year, 12, 31);
+        await loadEventsForRange(startDate, endDate);
+      }
+    );
 
     _setLoading(false);
     return firstEventDate;

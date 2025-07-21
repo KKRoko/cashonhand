@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import '../core/error/failures.dart';
 import '../data/models/freezed/event.dart';
+import '../data/models/freezed/goal_allocation.dart';
 import '../data/models/enums/delete_option.dart';
 import '../data/models/enums/edit_option.dart';
 import '../data/repositories/i_event_repository.dart';
@@ -47,6 +48,12 @@ class EventService {
     
     print('🔍 DEBUG: Non-recurring event, calling regular addEvent...');
     return _repository.addEvent(day, event);
+  }
+
+  /// Adds a new event with goal allocations
+  Future<Either<Failure, Event>> addEventWithAllocations(DateTime day, Event event, List<GoalAllocation> allocations) {
+    print('🔍 DEBUG: EventService.addEventWithAllocations called - Title: ${event.title}, Allocations: ${allocations.length}');
+    return _repository.addEventWithAllocations(day, event, allocations);
   }
 
   /// Updates an existing event

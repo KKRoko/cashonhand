@@ -6,6 +6,7 @@ import '../../data/database/database.dart';
 import '../../data/models/enums/category_type.dart';
 import '../../data/models/enums/edit_option.dart';
 import '../../data/models/freezed/event.dart';
+import '../../data/models/event_creation_result.dart';
 import '../dialogs/add_edit_event_dialog.dart';
 import '../dialogs/delete_event_dialog.dart' show showDeleteEventDialog;
 import '../dialogs/edit_scope_dialog.dart';
@@ -166,8 +167,12 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
         return;
       }
 
+      // Get available goals for allocation
+      final database = getIt<Database>();
+      final availableGoals = await database.getActiveGoals();
+      
       print("About to show AddEditEventDialog");
-      final newEvent = await showDialog<Event>(
+      final result = await showDialog<EventCreationResult>(
         context: context,
         barrierDismissible: true,
         builder: (BuildContext context) {
@@ -175,20 +180,30 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
             selectedDay: _selectedDay!,
             isPositiveCashflow: isPositiveCashflow,
             categories: categories,
+            availableGoals: availableGoals,
           );
         },
       );
 
-      print("Dialog result: ${newEvent != null ? 'event created' : 'cancelled'}");
-      if (newEvent != null) {
-        final firstEventDate = await eventNotifier.addEvent(_selectedDay!, newEvent);
+      print("Dialog result: ${result != null ? 'event created with ${result.allocations.length} allocations' : 'cancelled'}");
+      if (result != null) {
+        DateTime? firstEventDate;
+        
+        if (result.allocations.isNotEmpty) {
+          // Use the new method that handles allocations
+          firstEventDate = await eventNotifier.addEventWithAllocations(_selectedDay!, result.event, result.allocations);
+          print("Event and allocations saved: ${result.allocations.length} allocations");
+        } else {
+          // Use the regular method for events without allocations
+          firstEventDate = await eventNotifier.addEvent(_selectedDay!, result.event);
+        }
         print("Event added successfully");
         
         // Navigate to the month where the first event was created
         if (firstEventDate != null && mounted) {
           setState(() {
-            _focusedDay = firstEventDate;
-            _selectedDay = firstEventDate;
+            _focusedDay = firstEventDate!;
+            _selectedDay = firstEventDate!;
           });
           
           // Show feedback about where events were created
@@ -196,7 +211,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                newEvent.isRecurring 
+                result.event.isRecurring 
                   ? 'Recurring events created! First event on ${firstEventDate.day}/${firstEventDate.month}/${firstEventDate.year}'
                   : 'Event created successfully!'
               ),
@@ -243,7 +258,11 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       return;
     }
 
-    final editedEvent = await showDialog<Event>(
+    // Get available goals for allocation
+    final database = getIt<Database>();
+    final availableGoals = await database.getActiveGoals();
+    
+    final result = await showDialog<EventCreationResult>(
       context: context,
       builder: (BuildContext context) {
         return AddEditEventDialog(
@@ -251,11 +270,15 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
           event: event,
           isPositiveCashflow: event.isPositiveCashflow,
           categories: categories,
+          availableGoals: availableGoals,
         );
       },
     );
 
-    if (editedEvent != null) {
+    if (result != null) {
+      final editedEvent = result.event;
+      
+      // TODO: Handle allocation updates in edit scenario
       // Always show scope dialog for all events (both single and recurring)
       await _handleEventEdit(event, editedEvent);
     }
