@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../settings/settings_view.dart';
 import '../../state/event_notifier.dart';
+import '../../state/saving_goal_notifier.dart';
+import '../../core/di/injection.dart';
+import '../../data/database/database.dart';
 import '../achievements/achievement_screen.dart';
 import '../../utils/formatters.dart';
 
@@ -39,12 +42,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     _endOfWeek = _getEndOfWeek(_now);
     _endOfMonth = _getEndOfMonth(_now);
 
-    // Initialize totals
+    // Initialize totals with goal-aware metrics
     _totals = {
-      'day': {'positive': 0, 'negative': 0},
-      'week': {'positive': 0, 'negative': 0},
-      'month': {'positive': 0, 'negative': 0},
-      'year': {'positive': 0, 'negative': 0},
+      'day': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+      'week': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+      'month': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+      'year': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
     };
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,16 +102,20 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         _endOfYear,
       );
 
-      // Reset totals
+      // Get database instance to fetch goal allocations
+      final database = getIt<Database>();
+
+      // Reset totals with goal-aware metrics
       _totals = {
-        'day': {'positive': 0, 'negative': 0},
-        'week': {'positive': 0, 'negative': 0},
-        'month': {'positive': 0, 'negative': 0},
-        'year': {'positive': 0, 'negative': 0},
+        'day': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+        'week': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+        'month': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+        'year': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
       };
 
       final nowDate = DateTime(_now.year, _now.month, _now.day);
 
+      // Calculate traditional cash flows
       for (var event in events) {
         final amount = event.amount;
         final eventDate = DateTime(
@@ -127,6 +134,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           _updateTotals('year', amount.abs(), amount >= 0);
         }
       }
+
+      // Calculate goal allocations for each period
+      await _calculateGoalAllocations(database, nowDate);
+
+      // Calculate "Available After Goals" metrics
+      _calculateAvailableAfterGoals();
 
       if (mounted) {
         setState(() {});
@@ -153,6 +166,54 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     } else {
       _totals[period]!['negative'] =
           (_totals[period]!['negative'] ?? 0) + amount;
+    }
+  }
+
+  Future<void> _calculateGoalAllocations(Database database, DateTime nowDate) async {
+    try {
+      // Get all goal allocations from database
+      final allocations = await database.select(database.goalAllocations).get();
+      
+      for (var allocation in allocations) {
+        // Get the event associated with this allocation to check its date
+        final event = await (database.select(database.events)
+          ..where((t) => t.id.equals(allocation.eventId))).getSingleOrNull();
+        
+        if (event != null) {
+          final eventDate = DateTime(event.date.year, event.date.month, event.date.day);
+          final allocationAmount = allocation.allocationAmount;
+          
+          // Add to goal allocations for appropriate periods
+          if (!eventDate.isAfter(nowDate)) {
+            _totals['day']!['goalAllocations'] = (_totals['day']!['goalAllocations'] ?? 0) + allocationAmount;
+          }
+          if (!eventDate.isAfter(_endOfWeek)) {
+            _totals['week']!['goalAllocations'] = (_totals['week']!['goalAllocations'] ?? 0) + allocationAmount;
+          }
+          if (!eventDate.isAfter(_endOfMonth)) {
+            _totals['month']!['goalAllocations'] = (_totals['month']!['goalAllocations'] ?? 0) + allocationAmount;
+          }
+          if (!eventDate.isAfter(_endOfYear)) {
+            _totals['year']!['goalAllocations'] = (_totals['year']!['goalAllocations'] ?? 0) + allocationAmount;
+          }
+        }
+      }
+    } catch (e) {
+      print('Debug: Error calculating goal allocations: $e');
+    }
+  }
+
+  void _calculateAvailableAfterGoals() {
+    for (String period in ['day', 'week', 'month', 'year']) {
+      final positive = _totals[period]!['positive'] ?? 0;
+      final negative = _totals[period]!['negative'] ?? 0;
+      final goalAllocations = _totals[period]!['goalAllocations'] ?? 0;
+      
+      // Available after goals = (Income - Expenses) - Goal Allocations
+      final netCashFlow = positive - negative;
+      final availableAfterGoals = netCashFlow - goalAllocations;
+      
+      _totals[period]!['availableAfterGoals'] = availableAfterGoals;
     }
   }
 
@@ -206,6 +267,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   }) {
     final positiveAmount = amounts['positive'] ?? 0;
     final negativeAmount = amounts['negative'] ?? 0;
+    final goalAllocations = amounts['goalAllocations'] ?? 0;
+    final availableAfterGoals = amounts['availableAfterGoals'] ?? 0;
     final totalAmount = positiveAmount - negativeAmount;
     final isExpanded = _expandedTileId == period;
 
@@ -259,12 +322,25 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         ],
                       ),
                     ),
-                    Text(
-                      FormatUtils.formatCurrency(totalAmount),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: totalAmount >= 0 ? Colors.green : Colors.red,
-                            fontWeight: FontWeight.bold,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          FormatUtils.formatCurrency(totalAmount),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: totalAmount >= 0 ? Colors.green : Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        if (goalAllocations > 0)
+                          Text(
+                            'After goals: ${FormatUtils.formatCurrency(availableAfterGoals)}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: availableAfterGoals >= 0 ? Colors.green.shade600 : Colors.red.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
+                      ],
                     ),
                     const SizedBox(width: 8),
                     AnimatedRotation(
@@ -297,10 +373,86 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       ),
                     ],
                   ),
+                  if (goalAllocations > 0) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.savings, size: 16, color: Colors.blue.shade600),
+                            const SizedBox(width: 4),
+                            const Text('Goal Allocations'),
+                          ],
+                        ),
+                        Text(
+                          FormatUtils.formatCurrency(goalAllocations),
+                          style: TextStyle(color: Colors.blue.shade600, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.account_balance_wallet, size: 16, color: Colors.green.shade700),
+                            const SizedBox(width: 4),
+                            const Text('Available After Goals'),
+                          ],
+                        ),
+                        Text(
+                          FormatUtils.formatCurrency(availableAfterGoals),
+                          style: TextStyle(
+                            color: availableAfterGoals >= 0 ? Colors.green.shade700 : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (goalAllocations > 0 && totalAmount > 0) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Goal Impact',
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            Text('${((goalAllocations / totalAmount.abs()) * 100).toInt()}% of cash flow'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.grey.shade200,
+                          ),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                flex: ((goalAllocations / totalAmount.abs()) * 100).toInt(),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: Colors.blue.shade500,
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                flex: 100 - ((goalAllocations / totalAmount.abs()) * 100).toInt(),
+                                child: Container(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
