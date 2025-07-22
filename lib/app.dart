@@ -12,6 +12,7 @@ import 'ui/calendar/calendar_screen.dart';
 import 'ui/saving_goals/saving_goals_screen.dart';  // Add this
 import 'ui/settings/round_up_settings_screen.dart';
 import 'ui/round_up/round_up_history_screen.dart';
+import 'ui/allocation_rules/allocation_rules_screen.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -90,6 +91,8 @@ class MyApp extends StatelessWidget {
                     return const RoundUpSettingsScreen();
                   case RoundUpHistoryScreen.routeName:
                     return const RoundUpHistoryScreen();
+                  case AllocationRulesScreen.routeName:
+                    return const AllocationRulesScreen();
                   default:
                     return const MainNavigationScreen();
                 }

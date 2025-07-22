@@ -784,6 +784,9 @@ Future<int> deleteGoalAllocation(int allocationId) =>
 Future<List<AutoAllocationRuleTableData>> getActiveAllocationRules() =>
     (select(autoAllocationRules)..where((r) => r.isActive.equals(true))).get();
 
+Future<List<AutoAllocationRuleTableData>> getAllAllocationRules() =>
+    select(autoAllocationRules).get();
+
 Future<List<AutoAllocationRuleTableData>> getAllocationRulesForGoal(int goalId) =>
     (select(autoAllocationRules)..where((r) => r.goalId.equals(goalId))).get();
 

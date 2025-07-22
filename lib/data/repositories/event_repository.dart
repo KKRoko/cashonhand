@@ -7,6 +7,7 @@ import '../../utils/event_date_utils.dart';
 import '../../services/recurrence_calculation_service.dart';
 import '../../services/round_up_service.dart';
 import '../../services/settings_service.dart';
+import '../../services/auto_allocation_rules_engine.dart';
 import '../database/database.dart';
 import '../models/enums/delete_option.dart';
 import '../models/enums/edit_option.dart';
@@ -26,11 +27,13 @@ class EventRepository extends BaseRepository<Event>
   final Database _database;
   final RoundUpService _roundUpService;
   final SettingsService _settingsService;
+  final AutoAllocationRulesEngine _rulesEngine;
 
   EventRepository(
     this._database,
     this._roundUpService,
     this._settingsService,
+    this._rulesEngine,
   );
 
 @override
@@ -102,10 +105,21 @@ bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
   @override
 Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
   return catchError(() async {
-    // Check if round-up is enabled and calculate automatic round-up
-    final roundUpPrefs = _settingsService.roundUpPreferences;
     List<GoalAllocation> automaticAllocations = [];
     
+    // 1. Check for auto-allocation rules
+    print('🔧 EventRepository: Checking auto-allocation rules for transaction');
+    final rulesResult = await _rulesEngine.evaluateRulesForTransaction(event);
+    rulesResult.fold(
+      (failure) => print('Warning: Failed to evaluate allocation rules: ${failure.message}'),
+      (ruleAllocations) {
+        automaticAllocations.addAll(ruleAllocations);
+        print('🔧 EventRepository: Added ${ruleAllocations.length} rule-based allocations');
+      },
+    );
+    
+    // 2. Check if round-up is enabled and calculate automatic round-up
+    final roundUpPrefs = _settingsService.roundUpPreferences;
     if (roundUpPrefs.isEnabled) {
       final roundUpCalc = _roundUpService.calculateRoundUp(
         event.amount,
@@ -114,7 +128,7 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
       );
       
       if (roundUpCalc.isApplicable && roundUpCalc.roundUpAmount > 0) {
-        print('Automatic round-up calculated: \$${roundUpCalc.roundUpAmount.toStringAsFixed(2)} for \$${event.amount.toStringAsFixed(2)}');
+        print('💰 EventRepository: Automatic round-up calculated: \$${roundUpCalc.roundUpAmount.toStringAsFixed(2)} for \$${event.amount.toStringAsFixed(2)}');
         
         // Create round-up allocation (we'll get the event ID from the creation process)
         final allocationResult = await _roundUpService.createRoundUpAllocation(
@@ -128,14 +142,16 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
           (allocation) {
             if (allocation != null) {
               automaticAllocations.add(allocation);
+              print('💰 EventRepository: Added round-up allocation');
             }
           },
         );
       }
     }
     
-    // If we have automatic allocations, use addEventWithAllocations
+    // 3. If we have automatic allocations, use addEventWithAllocations
     if (automaticAllocations.isNotEmpty) {
+      print('🎯 EventRepository: Creating event with ${automaticAllocations.length} automatic allocations');
       final result = await addEventWithAllocations(day, event, automaticAllocations);
       return result.fold(
         (failure) => throw Exception(failure.message),

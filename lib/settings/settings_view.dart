@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'settings_controller.dart';
 import '../ui/settings/round_up_settings_screen.dart';
+import '../ui/allocation_rules/allocation_rules_screen.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({
@@ -102,6 +103,18 @@ class SettingsView extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(context).pushNamed(RoundUpSettingsScreen.routeName);
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.rule, color: Colors.purple),
+              title: const Text('Auto-Allocation Rules'),
+              subtitle: const Text('Create rules to automatically allocate money to goals'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).pushNamed(AllocationRulesScreen.routeName);
               },
             ),
           ),

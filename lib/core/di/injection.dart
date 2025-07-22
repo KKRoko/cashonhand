@@ -18,6 +18,7 @@ import '../../services/achievement_service.dart';
 import '../../services/allocation_service.dart';
 import '../../services/round_up_service.dart';
 import '../../services/settings_service.dart' as app_settings;
+import '../../services/auto_allocation_rules_engine.dart';
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -51,6 +52,7 @@ Future<void> configureDependencies() async {
         getIt<Database>(),
         getIt<RoundUpService>(),
         getIt<app_settings.SettingsService>(),
+        getIt<AutoAllocationRulesEngine>(),
       ),
     );
   }
@@ -122,6 +124,16 @@ Future<void> configureDependencies() async {
   if (!getIt.isRegistered<RoundUpService>()) {
     getIt.registerLazySingleton<RoundUpService>(
       () => RoundUpService(getIt<ISavingGoalRepository>()),
+    );
+  }
+
+  // Add Auto-Allocation Rules Engine registration
+  if (!getIt.isRegistered<AutoAllocationRulesEngine>()) {
+    getIt.registerLazySingleton<AutoAllocationRulesEngine>(
+      () => AutoAllocationRulesEngine(
+        getIt<Database>(),
+        getIt<ISavingGoalRepository>(),
+      ),
     );
   }
 
