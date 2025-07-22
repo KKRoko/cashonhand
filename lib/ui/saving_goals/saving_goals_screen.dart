@@ -15,13 +15,61 @@ class SavingGoalsScreen extends StatefulWidget {
   _SavingGoalsScreenState createState() => _SavingGoalsScreenState();
 }
 
-class _SavingGoalsScreenState extends State<SavingGoalsScreen> {
+class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   int? _expandedGoalId;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {  
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadGoals();
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _loadGoals() {
+    print("Debug: Loading goals for Goals screen");
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<SavingGoalNotifier>().loadGoals();
+      }
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed && mounted) {
+      print("Debug: App resumed, refreshing goals");
+      _loadGoals();
+    }
+  }
+
+  // Track if this is the first build
+  bool _isFirstBuild = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Only refresh on subsequent builds (when returning to screen)
+    if (!_isFirstBuild) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          print("Debug: Goals screen became visible (returning), refreshing goals");
+          context.read<SavingGoalNotifier>().loadGoals();
+        }
+      });
+    }
+    _isFirstBuild = false;
+  }
+
 
   Future<void> _showAddEditGoalDialog([SavingGoal? goal]) async {
     await showDialog(
@@ -63,11 +111,19 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Scaffold(
       appBar: AppBar(
         title: const Text('Saving Goals'),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              print("Debug: Manual refresh triggered");
+              context.read<SavingGoalNotifier>().loadGoals();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () {
@@ -81,8 +137,12 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> {
           builder: (context, goalNotifier, child) {
             final goals = goalNotifier.goals;
             
-            return ListView(
-              padding: const EdgeInsets.all(16),
+            return RefreshIndicator(
+              onRefresh: () async {
+                await context.read<SavingGoalNotifier>().loadGoals();
+              },
+              child: ListView(
+                padding: const EdgeInsets.all(16),
               children: [
                 _buildOverallProgress(),
                 const SizedBox(height: 24),
@@ -141,6 +201,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> {
                     ),
                   ),
               ],
+              ),
             );
           },
         ),

@@ -85,7 +85,20 @@ class SavingGoalService {
     );
   }
 
-  getGoals() {}
+  Future<List<SavingGoal>> getGoals() async {
+    print("Debug Service: getGoals called");
+    final result = await getAllGoals();
+    return result.fold(
+      (failure) {
+        print("Debug Service: getGoals failed - ${failure.message}");
+        throw Exception(failure.message);
+      },
+      (goals) {
+        print("Debug Service: getGoals succeeded - ${goals.length} goals found");
+        return goals;
+      }
+    );
+  }
 
   Future<Either<Failure, int>> addGoal(SavingGoal goal) async {
     print("Debug Service: addGoal called with title: ${goal.title}");

@@ -27,11 +27,29 @@ class GoalAllocationWidget extends StatefulWidget {
 class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
   late List<GoalAllocation> _allocations;
   bool _isExpanded = false;
+  final Map<int, TextEditingController> _controllers = {};
 
   @override
   void initState() {
     super.initState();
     _allocations = List.from(widget.currentAllocations);
+    _initializeControllers();
+  }
+
+  @override
+  void dispose() {
+    _controllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
+
+  void _initializeControllers() {
+    for (int i = 0; i < _allocations.length; i++) {
+      if (!_controllers.containsKey(i)) {
+        _controllers[i] = TextEditingController(
+          text: _allocations[i].allocationAmount.toStringAsFixed(2)
+        );
+      }
+    }
   }
 
   double get _totalAllocated {
@@ -55,6 +73,11 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
     
     setState(() {
       _allocations.add(allocation);
+      // Create controller for new allocation
+      final newIndex = _allocations.length - 1;
+      _controllers[newIndex] = TextEditingController(
+        text: suggestedAmount.toStringAsFixed(2)
+      );
     });
     widget.onAllocationsChanged(_allocations);
   }
@@ -71,6 +94,19 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
   void _removeAllocation(int index) {
     setState(() {
       _allocations.removeAt(index);
+      // Dispose and remove controller
+      _controllers[index]?.dispose();
+      _controllers.remove(index);
+      
+      // Re-index remaining controllers
+      final remainingControllers = <int, TextEditingController>{};
+      for (int i = 0; i < _allocations.length; i++) {
+        if (_controllers.containsKey(i < index ? i : i + 1)) {
+          remainingControllers[i] = _controllers[i < index ? i : i + 1]!;
+        }
+      }
+      _controllers.clear();
+      _controllers.addAll(remainingControllers);
     });
     widget.onAllocationsChanged(_allocations);
   }
@@ -282,9 +318,13 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
   }
 
   Widget _buildAllocationItem(GoalAllocation allocation, int index) {
-    final controller = TextEditingController(
-      text: allocation.allocationAmount.toStringAsFixed(2)
-    );
+    // Get or create controller for this index
+    if (!_controllers.containsKey(index)) {
+      _controllers[index] = TextEditingController(
+        text: allocation.allocationAmount.toStringAsFixed(2)
+      );
+    }
+    final controller = _controllers[index]!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

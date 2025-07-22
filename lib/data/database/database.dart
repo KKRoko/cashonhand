@@ -634,13 +634,17 @@ Future<void> _generateAndInsertFutureInstances(EventsCompanion event, int origin
       (delete(events)..where((t) => t.id.equalsNullable(id))).go();
 
   // SavingGoals CRUD operations
-  Future<List<SavingGoalTableData>>
-      getAllSavingGoals() => (select(savingGoalsTable)
+  Future<List<SavingGoalTableData>> getAllSavingGoals() async {
+    print("Debug Database: getAllSavingGoals called");
+    final goals = await (select(savingGoalsTable)
             ..orderBy([
               (t) =>
                   OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)
             ]))
           .get();
+    print("Debug Database: getAllSavingGoals found ${goals.length} goals");
+    return goals;
+  }
 
   Future<SavingGoalTableData?> getSavingGoalById(int id) =>
       (select(savingGoalsTable)..where((t) => t.id.equalsNullable(id)))

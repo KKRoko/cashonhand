@@ -118,9 +118,14 @@ class SavingGoalRepository implements ISavingGoalRepository {
    @override
   Future<Either<Failure, List<SavingGoal>>> getAllGoals() async {
     try {
+      print("Debug Repository: getAllGoals called");
       final goals = await _db.getAllSavingGoals();
-      return Right(goals.map(_convertToModel).toList());
+      print("Debug Repository: Database returned ${goals.length} goal records");
+      final convertedGoals = goals.map(_convertToModel).toList();
+      print("Debug Repository: Converted to ${convertedGoals.length} SavingGoal models");
+      return Right(convertedGoals);
     } catch (e) {
+      print("Debug Repository: getAllGoals failed - $e");
       return Left(DatabaseFailure('Failed to fetch saving goals: $e'));
     }
   }

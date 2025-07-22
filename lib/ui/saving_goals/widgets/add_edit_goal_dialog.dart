@@ -65,7 +65,7 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
     }
   }
 
-  void _saveGoal() {
+  Future<void> _saveGoal() async {
     if (_formKey.currentState!.validate()) {
       final notifier = Provider.of<SavingGoalNotifier>(context, listen: false);
 
@@ -81,10 +81,13 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
       );
 
       if (widget.goal != null) {
-        notifier.updateGoal(goal);
+        await notifier.updateGoal(goal);
       } else {
-        notifier.addGoal(goal);
+        await notifier.addGoal(goal);
       }
+      
+      // Immediately refresh the goals list to show the new/updated goal
+      await notifier.loadGoals();
 
       Navigator.of(context).pop();
     }
