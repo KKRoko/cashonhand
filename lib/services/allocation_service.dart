@@ -125,17 +125,17 @@ class AllocationService {
     try {
       // Check if allocation amount is valid
       if (allocation.allocationAmount <= 0) {
-        return Left(ValidationFailure('Allocation amount must be greater than zero'));
+        return const Left(ValidationFailure('Allocation amount must be greater than zero'));
       }
       
       // Check if allocation amount doesn't exceed transaction amount for expenses
       if (!event.isPositiveCashflow && allocation.allocationAmount > event.amount.abs()) {
-        return Left(ValidationFailure('Allocation cannot exceed transaction amount'));
+        return const Left(ValidationFailure('Allocation cannot exceed transaction amount'));
       }
       
       // For income, allow allocations up to 100% of the income
       if (event.isPositiveCashflow && allocation.allocationAmount > event.amount) {
-        return Left(ValidationFailure('Allocation cannot exceed income amount'));
+        return const Left(ValidationFailure('Allocation cannot exceed income amount'));
       }
       
       return const Right(true);

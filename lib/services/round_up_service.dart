@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import '../core/error/failures.dart';
 import '../data/models/freezed/event.dart';
-import '../data/models/freezed/saving_goal.dart';
 import '../data/models/freezed/goal_allocation.dart';
 import '../data/models/freezed/round_up_preferences.dart';
 import '../data/models/freezed/round_up_calculation.dart';

@@ -204,7 +204,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
         if (firstEventDate != null && mounted) {
           setState(() {
             _focusedDay = firstEventDate!;
-            _selectedDay = firstEventDate!;
+            _selectedDay = firstEventDate;
           });
           
           // Show feedback about where events were created

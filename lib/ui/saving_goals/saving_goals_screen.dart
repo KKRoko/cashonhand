@@ -199,7 +199,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                     onEdit: () => _showAddEditGoalDialog(goal),
                     onViewDetails: () => _navigateToGoalDetail(goal),
                   ),
-                )).toList(),
+                )),
                 
                 if (goals.isEmpty)
                   Center(

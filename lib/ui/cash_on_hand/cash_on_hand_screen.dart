@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../settings/settings_view.dart';
 import '../../state/event_notifier.dart';
-import '../../state/saving_goal_notifier.dart';
 import '../../core/di/injection.dart';
 import '../../data/database/database.dart';
 import '../achievements/achievement_screen.dart';

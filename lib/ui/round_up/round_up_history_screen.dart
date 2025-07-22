@@ -65,7 +65,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
         final event = await _database.getEventById(allocation.eventId);
         final goal = await _database.getSavingGoalById(allocation.goalId);
         
-        if (event != null && goal != null) {
+        if (goal != null) {
           final originalAmount = event.amount;
           final roundUpAmount = allocation.allocationAmount;
           
@@ -75,7 +75,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
             originalAmount: originalAmount,
             roundUpAmount: roundUpAmount,
             goalTitle: goal.title,
-            goalId: goal.id!,
+            goalId: goal.id,
             date: event.date,
           ));
           

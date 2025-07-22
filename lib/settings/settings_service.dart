@@ -48,7 +48,7 @@ class SettingsService {
       
       // Step 3: Run WAL checkpoint after transaction is complete
       print("Running WAL checkpoint...");
-      await Future.delayed(Duration(milliseconds: 100)); // Give time for transaction to fully close
+      await Future.delayed(const Duration(milliseconds: 100)); // Give time for transaction to fully close
       await _database.customStatement('PRAGMA busy_timeout = 5000');
       await _database.customStatement('PRAGMA wal_checkpoint(RESTART)');
       
@@ -60,7 +60,7 @@ class SettingsService {
       
       // Step 5: Final checkpoint after all operations
       print("Running final checkpoint...");
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
       await _database.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
       
       // Step 6: Verify database state

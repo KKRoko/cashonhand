@@ -326,10 +326,10 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
         TextFormField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             prefixText: '\$',
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             isDense: true,
           ),
           onFieldSubmitted: (value) {

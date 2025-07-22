@@ -53,7 +53,7 @@ class CategoryRepository extends BaseRepository<Category> implements ICategoryRe
       if (success) {
         return category;
       } else {
-        throw DatabaseException('Failed to update category');
+        throw const DatabaseException('Failed to update category');
       }
     });
   }

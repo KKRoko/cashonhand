@@ -831,6 +831,94 @@ Future<List<GoalAllocationTableData>> getRoundUpAllocations({
   return await query.get();
 }
 
+// Analytics methods for achievements and advanced analytics
+Future<List<GoalAllocationTableData>> getAllocationsInRange(DateTime start, DateTime end) =>
+    (select(goalAllocations)
+      ..where((a) => a.createdAt.isBetweenValues(start, end))
+      ..orderBy([(a) => OrderingTerm.desc(a.createdAt)]))
+    .get();
+
+Future<List<GoalAllocationTableData>> getRoundUpAllocationsInRange(DateTime start, DateTime end) =>
+    (select(goalAllocations)
+      ..where((a) => 
+        a.createdAt.isBetweenValues(start, end) &
+        a.allocationType.equals(AllocationType.roundUp.toString().split('.').last))
+      ..orderBy([(a) => OrderingTerm.desc(a.createdAt)]))
+    .get();
+
+Future<List<AutoAllocationRuleTableData>> getAllAllocationRules() =>
+    select(autoAllocationRules).get();
+
+Future<Map<String, double>> getSpendingByCategory(DateTime start, DateTime end) async {
+  final query = '''
+    SELECT c.name, SUM(ABS(e.amount)) as total
+    FROM events e
+    JOIN categories c ON e.category_id = c.id
+    WHERE e.date BETWEEN ? AND ?
+      AND e.amount < 0
+    GROUP BY c.name
+    ORDER BY total DESC
+  ''';
+  
+  final results = await customSelect(
+    query,
+    variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
+  ).get();
+  
+  return Map.fromEntries(
+    results.map((row) => MapEntry(
+      row.data['name'] as String,
+      row.data['total'] as double,
+    )),
+  );
+}
+
+Future<Map<String, double>> getAllocationsByType(DateTime start, DateTime end) async {
+  final query = '''
+    SELECT allocation_type, SUM(amount) as total
+    FROM goal_allocations
+    WHERE created_at BETWEEN ? AND ?
+    GROUP BY allocation_type
+    ORDER BY total DESC
+  ''';
+  
+  final results = await customSelect(
+    query,
+    variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
+  ).get();
+  
+  return Map.fromEntries(
+    results.map((row) => MapEntry(
+      row.data['allocation_type'] as String,
+      row.data['total'] as double,
+    )),
+  );
+}
+
+Future<List<Map<String, dynamic>>> getVelocityData(DateTime start, DateTime end) async {
+  final query = '''
+    SELECT 
+      DATE(ga.created_at) as date,
+      SUM(ga.amount) as daily_total,
+      COUNT(ga.id) as allocation_count
+    FROM goal_allocations ga
+    WHERE ga.created_at BETWEEN ? AND ?
+    GROUP BY DATE(ga.created_at)
+    ORDER BY DATE(ga.created_at) ASC
+  ''';
+  
+  final results = await customSelect(
+    query,
+    variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
+  ).get();
+  
+  return results.map((row) => {
+    'date': row.data['date'] as String,
+    'daily_total': row.data['daily_total'] as double,
+    'allocation_count': row.data['allocation_count'] as int,
+  }).toList();
+}
+
 
 static LazyDatabase _openConnection() {  return LazyDatabase(() async {
     try {

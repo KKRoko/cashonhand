@@ -82,7 +82,7 @@ class FinancialSuggestionsEngine {
     final patterns = <SpendingPattern>[];
     final categoriesResult = await _categoryService.getCategories();
     
-    await categoriesResult.fold(
+    categoriesResult.fold(
       (failure) => print('Error loading categories: ${failure.message}'),
       (categories) async {
         for (final category in categories) {
@@ -284,15 +284,13 @@ class FinancialSuggestionsEngine {
     final goalsResult = await _goalRepository.getAllGoals();
     final insights = <GoalInsight>[];
 
-    await goalsResult.fold(
+    goalsResult.fold(
       (failure) => print('Error loading goals: ${failure.message}'),
       (goals) async {
         for (final goal in goals) {
-          if (goal.id != null) {
-            final insight = await _calculateGoalInsight(goal);
-            insights.add(insight);
-          }
-        }
+          final insight = await _calculateGoalInsight(goal);
+          insights.add(insight);
+                }
       },
     );
 
@@ -309,7 +307,7 @@ class FinancialSuggestionsEngine {
 
     // Calculate average monthly contribution (last 3 months)
     final threeMonthsAgo = now.subtract(const Duration(days: 90));
-    final allocationsResult = await _goalRepository.getGoalAllocationHistory(goal.id!);
+    final allocationsResult = await _goalRepository.getGoalAllocationHistory(goal.id);
     
     final recentAllocations = allocationsResult.fold(
       (failure) => <GoalAllocationHistory>[],
@@ -338,7 +336,7 @@ class FinancialSuggestionsEngine {
     }
 
     return GoalInsight(
-      goalId: goal.id!,
+      goalId: goal.id,
       goalTitle: goal.title,
       currentAmount: goal.currentAmount,
       targetAmount: goal.targetAmount,

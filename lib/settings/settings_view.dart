@@ -14,7 +14,7 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> _showResetConfirmation() async {
+    Future<void> showResetConfirmation() async {
       return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -126,7 +126,7 @@ class SettingsView extends StatelessWidget {
                 'Delete all transactions, categories, and savings goals'
               ),
               trailing: const Icon(Icons.warning, color: Colors.red),
-              onTap: _showResetConfirmation,
+              onTap: showResetConfirmation,
             ),
           ),
         ],

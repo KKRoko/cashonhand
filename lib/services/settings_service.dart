@@ -125,5 +125,5 @@ class SettingsService {
 
 /// Settings-related failure
 class SettingsFailure extends Failure {
-  const SettingsFailure(String message) : super(message);
+  const SettingsFailure(super.message);
 }

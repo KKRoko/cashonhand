@@ -48,7 +48,7 @@ void main() {
       ];
       
       final cutoffDate = DateTime(2024, 8, 10);
-      final targetEventIndex = 3; // Deleting the Aug 10 event
+      const targetEventIndex = 3; // Deleting the Aug 10 event
       
       // Simulate thisDay deletion
       var remainingEvents = List<DateTime>.from(events);

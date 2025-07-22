@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../core/di/injection.dart';
 import '../../data/models/freezed/financial_suggestion.dart';
 import '../../services/financial_suggestions_engine.dart';
 import '../../services/notification_service.dart';
-import '../../state/saving_goal_notifier.dart';
 import '../dialogs/suggestion_detail_dialog.dart';
 import 'widgets/suggestion_card.dart';
 import 'widgets/suggestions_filter_bar.dart';

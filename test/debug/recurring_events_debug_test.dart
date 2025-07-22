@@ -9,7 +9,7 @@ void main() {
       final startDate = DateTime(2024, 7, 20); // July 20, 2024 (Saturday)
       final endDate = DateTime(2024, 8, 31); // End of August
       
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.weekly,
         frequency: 2, // Biweekly
       );
@@ -41,7 +41,7 @@ void main() {
       final endDate = DateTime(2024, 8, 10);
       
       // Let's say the user wants it to occur on Saturdays only
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.weekly,
         frequency: 1,
         selectedDays: [false, false, false, false, false, false, true], // Saturday only

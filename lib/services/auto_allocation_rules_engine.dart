@@ -7,7 +7,6 @@ import '../data/models/freezed/goal_allocation.dart';
 import '../data/models/enums/trigger_type.dart';
 import '../data/models/enums/allocation_method.dart';
 import '../data/models/enums/allocation_type.dart';
-import '../data/models/enums/category_type.dart';
 import '../data/models/enums/repeat_option.dart';
 import '../data/repositories/saving_goal_repository.dart';
 

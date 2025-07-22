@@ -48,10 +48,8 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
       final goalNotifier = context.read<SavingGoalNotifier>();
       final goalTitles = <int, String>{};
       for (final goal in goalNotifier.goals) {
-        if (goal.id != null) {
-          goalTitles[goal.id!] = goal.title;
-        }
-      }
+        goalTitles[goal.id!] = goal.title;
+            }
       
       // Load category names
       final categoriesResult = await _categoryService.getCategories();
@@ -60,7 +58,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
         (failure) => print('Error loading categories: ${failure.message}'),
         (categories) {
           for (final category in categories) {
-            categoryNames[category.id!] = category.name;
+            categoryNames[category.id] = category.name;
           }
         },
       );

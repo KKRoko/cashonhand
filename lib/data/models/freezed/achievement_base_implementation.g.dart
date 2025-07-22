@@ -18,6 +18,16 @@ _$AchievementImpl _$$AchievementImplFromJson(Map<String, dynamic> json) =>
       unlockedAt: json['unlockedAt'] == null
           ? null
           : DateTime.parse(json['unlockedAt'] as String),
+      emoji: json['emoji'] as String? ?? '🏆',
+      badgeColor: json['badgeColor'] as String? ?? 'gold',
+      points: (json['points'] as num?)?.toInt() ?? 100,
+      tier: (json['tier'] as num?)?.toInt() ?? 1,
+      celebrationMessages: (json['celebrationMessages'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      shareText: json['shareText'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$AchievementImplToJson(_$AchievementImpl instance) =>
@@ -30,6 +40,13 @@ Map<String, dynamic> _$$AchievementImplToJson(_$AchievementImpl instance) =>
       'isUnlocked': instance.isUnlocked,
       'progress': instance.progress,
       'unlockedAt': instance.unlockedAt?.toIso8601String(),
+      'emoji': instance.emoji,
+      'badgeColor': instance.badgeColor,
+      'points': instance.points,
+      'tier': instance.tier,
+      'celebrationMessages': instance.celebrationMessages,
+      'shareText': instance.shareText,
+      'metadata': instance.metadata,
     };
 
 const _$AchievementTypeEnumMap = {
@@ -37,4 +54,12 @@ const _$AchievementTypeEnumMap = {
   AchievementType.streak: 'streak',
   AchievementType.yearEndTarget: 'yearEndTarget',
   AchievementType.customGoal: 'customGoal',
+  AchievementType.allocationConsistency: 'allocationConsistency',
+  AchievementType.multiGoalSaver: 'multiGoalSaver',
+  AchievementType.roundUpMaster: 'roundUpMaster',
+  AchievementType.smartAllocator: 'smartAllocator',
+  AchievementType.goalCompleter: 'goalCompleter',
+  AchievementType.savingsStreak: 'savingsStreak',
+  AchievementType.weeklyHabit: 'weeklyHabit',
+  AchievementType.monthlyChampion: 'monthlyChampion',
 };

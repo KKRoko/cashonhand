@@ -1,5 +1,4 @@
 // lib/navigation/routes.dart (create if it doesn't exist)
-import 'package:flutter/material.dart';
 
 import '../ui/achievements/achievement_screen.dart';
 import '../ui/calendar/calendar_screen.dart';

@@ -77,7 +77,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     });
 
     final notifier = Provider.of<SavingGoalNotifier>(context, listen: false);
-    await notifier.syncGoalProgress(_currentGoal.id!);
+    await notifier.syncGoalProgress(_currentGoal.id);
     await _refreshGoal();
   }
 
@@ -310,7 +310,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               
               // Allocation History
               GoalAllocationHistoryWidget(
-                goalId: _currentGoal.id!,
+                goalId: _currentGoal.id,
                 goalTitle: _currentGoal.title,
               ),
               

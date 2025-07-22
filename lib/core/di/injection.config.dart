@@ -24,7 +24,10 @@ import '../../services/allocation_service.dart' as _i114;
 import '../../services/auto_allocation_rules_engine.dart' as _i294;
 import '../../services/category_service.dart' as _i576;
 import '../../services/event_service.dart' as _i762;
+import '../../services/financial_suggestions_engine.dart' as _i991;
+import '../../services/notification_service.dart' as _i85;
 import '../../services/round_up_service.dart' as _i78;
+import '../../services/savings_opportunity_detector.dart' as _i685;
 import '../../services/settings_service.dart' as _i583;
 import '../../settings/settings_service.dart' as _i882;
 import '../../state/achievement_state.dart' as _i682;
@@ -63,6 +66,22 @@ extension GetItInjectableX on _i174.GetIt {
               gh<_i495.Database>(),
               gh<_i38.ISavingGoalRepository>(),
             ));
+    gh.factory<_i991.FinancialSuggestionsEngine>(
+        () => _i991.FinancialSuggestionsEngine(
+              gh<_i495.Database>(),
+              gh<_i38.ISavingGoalRepository>(),
+              gh<_i576.CategoryService>(),
+            ));
+    gh.factory<_i685.SavingsOpportunityDetector>(
+        () => _i685.SavingsOpportunityDetector(
+              gh<_i495.Database>(),
+              gh<_i38.ISavingGoalRepository>(),
+              gh<_i576.CategoryService>(),
+            ));
+    gh.factory<_i85.NotificationService>(() => _i85.NotificationService(
+          gh<_i38.ISavingGoalRepository>(),
+          gh<_i991.FinancialSuggestionsEngine>(),
+        ));
     gh.factory<_i78.RoundUpService>(
         () => _i78.RoundUpService(gh<_i38.ISavingGoalRepository>()));
     gh.factory<_i561.IEventRepository>(() => _i655.EventRepository(
@@ -79,6 +98,8 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i812.BaseAchievementRepository>(),
           gh<_i762.EventService>(),
           gh<_i682.AchievementNotifier>(),
+          gh<_i38.ISavingGoalRepository>(),
+          gh<_i495.Database>(),
         ));
     gh.factory<_i882.SettingsService>(() => _i882.SettingsService(
           gh<_i495.Database>(),

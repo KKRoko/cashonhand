@@ -62,8 +62,8 @@ void main() {
       ];
       
       final cutoffDate = DateTime(2024, 8, 10);
-      final targetEventIndex = 3; // Editing the Aug 10 event
-      final newAmount = 150;
+      const targetEventIndex = 3; // Editing the Aug 10 event
+      const newAmount = 150;
       
       // Simulate thisInstance edit
       var editedEvents = List<Map<String, dynamic>>.from(events);
@@ -110,7 +110,7 @@ void main() {
       
       // All edit options on single event should affect only that event
       for (var option in EditOption.values) {
-        final affectedCount = 1; // Always 1 for single event
+        const affectedCount = 1; // Always 1 for single event
         expect(affectedCount, 1, reason: 'Single event should always affect 1 event for $option');
       }
     });

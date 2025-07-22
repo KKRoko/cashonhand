@@ -10,7 +10,7 @@ void main() {
       final startDate = DateTime(2024, 7, 20); // July 20, 2024
       final endDate = DateTime(2024, 9, 1);    // Through September
       
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.weekly,
         frequency: 2, // Biweekly
       );

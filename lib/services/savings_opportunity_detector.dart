@@ -217,7 +217,7 @@ class SavingsOpportunityDetector {
     }
 
     final categoriesResult = await _categoryService.getCategories();
-    await categoriesResult.fold(
+    categoriesResult.fold(
       (failure) => print('Error loading categories: ${failure.message}'),
       (categories) async {
         for (final category in categories) {
@@ -396,7 +396,7 @@ class SavingsOpportunityDetector {
     }
 
     final categoriesResult = await _categoryService.getCategories();
-    await categoriesResult.fold(
+    categoriesResult.fold(
       (failure) => print('Error loading categories: ${failure.message}'),
       (categories) async {
         for (final category in categories) {
@@ -462,7 +462,7 @@ class SavingsOpportunityDetector {
     final opportunities = <SavingsOpportunityAnalysis>[];
     final goalsResult = await _goalRepository.getAllGoals();
     
-    await goalsResult.fold(
+    goalsResult.fold(
       (failure) => print('Error loading goals: ${failure.message}'),
       (goals) async {
         // Look for overfunded goals that could redirect to underfunded ones

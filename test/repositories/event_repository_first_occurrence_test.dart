@@ -102,7 +102,7 @@ void main() {
         dateTime: startDate,
         repeatOption: RepeatOption.weekly,
         isRecurring: true,
-        customRecurrence: CustomRecurrence(
+        customRecurrence: const CustomRecurrence(
           interval: RepeatOption.weekly,
           frequency: 1,
           selectedDays: [false, false, false, true, false, false, false], // Wednesday only

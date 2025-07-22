@@ -138,8 +138,8 @@ class GoalStatisticsWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Flexible(
-                child: const Text('Projected Completion'),
+               const Flexible(
+                child: Text('Projected Completion'),
               ),
               Flexible(
                 child: Text(FormatUtils.formatDate(projectedCompletion)),)

@@ -152,10 +152,8 @@ class NotificationService {
         (failure) async => print('Error loading goals: ${failure.message}'),
         (goals) async {
           for (final goal in goals) {
-            if (goal.id != null) {
-              await _checkIndividualGoalAlerts(goal);
-            }
-          }
+            await _checkIndividualGoalAlerts(goal);
+                    }
         },
       );
 

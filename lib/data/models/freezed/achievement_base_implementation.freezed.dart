@@ -27,7 +27,16 @@ mixin _$Achievement {
   double get targetAmount => throw _privateConstructorUsedError;
   bool get isUnlocked => throw _privateConstructorUsedError;
   double get progress => throw _privateConstructorUsedError;
-  DateTime? get unlockedAt => throw _privateConstructorUsedError;
+  DateTime? get unlockedAt =>
+      throw _privateConstructorUsedError; // Enhanced fields for gamification
+  String get emoji => throw _privateConstructorUsedError;
+  String get badgeColor => throw _privateConstructorUsedError;
+  int get points => throw _privateConstructorUsedError;
+  int get tier =>
+      throw _privateConstructorUsedError; // 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
+  List<String> get celebrationMessages => throw _privateConstructorUsedError;
+  String? get shareText => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
 
   /// Serializes this Achievement to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -53,7 +62,14 @@ abstract class $AchievementCopyWith<$Res> {
       double targetAmount,
       bool isUnlocked,
       double progress,
-      DateTime? unlockedAt});
+      DateTime? unlockedAt,
+      String emoji,
+      String badgeColor,
+      int points,
+      int tier,
+      List<String> celebrationMessages,
+      String? shareText,
+      Map<String, dynamic>? metadata});
 }
 
 /// @nodoc
@@ -79,6 +95,13 @@ class _$AchievementCopyWithImpl<$Res, $Val extends Achievement>
     Object? isUnlocked = null,
     Object? progress = null,
     Object? unlockedAt = freezed,
+    Object? emoji = null,
+    Object? badgeColor = null,
+    Object? points = null,
+    Object? tier = null,
+    Object? celebrationMessages = null,
+    Object? shareText = freezed,
+    Object? metadata = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -113,6 +136,34 @@ class _$AchievementCopyWithImpl<$Res, $Val extends Achievement>
           ? _value.unlockedAt
           : unlockedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      emoji: null == emoji
+          ? _value.emoji
+          : emoji // ignore: cast_nullable_to_non_nullable
+              as String,
+      badgeColor: null == badgeColor
+          ? _value.badgeColor
+          : badgeColor // ignore: cast_nullable_to_non_nullable
+              as String,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
+      tier: null == tier
+          ? _value.tier
+          : tier // ignore: cast_nullable_to_non_nullable
+              as int,
+      celebrationMessages: null == celebrationMessages
+          ? _value.celebrationMessages
+          : celebrationMessages // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      shareText: freezed == shareText
+          ? _value.shareText
+          : shareText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      metadata: freezed == metadata
+          ? _value.metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ) as $Val);
   }
 }
@@ -133,7 +184,14 @@ abstract class _$$AchievementImplCopyWith<$Res>
       double targetAmount,
       bool isUnlocked,
       double progress,
-      DateTime? unlockedAt});
+      DateTime? unlockedAt,
+      String emoji,
+      String badgeColor,
+      int points,
+      int tier,
+      List<String> celebrationMessages,
+      String? shareText,
+      Map<String, dynamic>? metadata});
 }
 
 /// @nodoc
@@ -157,6 +215,13 @@ class __$$AchievementImplCopyWithImpl<$Res>
     Object? isUnlocked = null,
     Object? progress = null,
     Object? unlockedAt = freezed,
+    Object? emoji = null,
+    Object? badgeColor = null,
+    Object? points = null,
+    Object? tier = null,
+    Object? celebrationMessages = null,
+    Object? shareText = freezed,
+    Object? metadata = freezed,
   }) {
     return _then(_$AchievementImpl(
       id: null == id
@@ -191,13 +256,41 @@ class __$$AchievementImplCopyWithImpl<$Res>
           ? _value.unlockedAt
           : unlockedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      emoji: null == emoji
+          ? _value.emoji
+          : emoji // ignore: cast_nullable_to_non_nullable
+              as String,
+      badgeColor: null == badgeColor
+          ? _value.badgeColor
+          : badgeColor // ignore: cast_nullable_to_non_nullable
+              as String,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
+      tier: null == tier
+          ? _value.tier
+          : tier // ignore: cast_nullable_to_non_nullable
+              as int,
+      celebrationMessages: null == celebrationMessages
+          ? _value._celebrationMessages
+          : celebrationMessages // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      shareText: freezed == shareText
+          ? _value.shareText
+          : shareText // ignore: cast_nullable_to_non_nullable
+              as String?,
+      metadata: freezed == metadata
+          ? _value._metadata
+          : metadata // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$AchievementImpl implements _Achievement {
+class _$AchievementImpl extends _Achievement {
   const _$AchievementImpl(
       {required this.id,
       required this.title,
@@ -206,7 +299,17 @@ class _$AchievementImpl implements _Achievement {
       required this.targetAmount,
       this.isUnlocked = false,
       this.progress = 0.0,
-      this.unlockedAt});
+      this.unlockedAt,
+      this.emoji = '🏆',
+      this.badgeColor = 'gold',
+      this.points = 100,
+      this.tier = 1,
+      final List<String> celebrationMessages = const [],
+      this.shareText,
+      final Map<String, dynamic>? metadata})
+      : _celebrationMessages = celebrationMessages,
+        _metadata = metadata,
+        super._();
 
   factory _$AchievementImpl.fromJson(Map<String, dynamic> json) =>
       _$$AchievementImplFromJson(json);
@@ -229,10 +332,46 @@ class _$AchievementImpl implements _Achievement {
   final double progress;
   @override
   final DateTime? unlockedAt;
+// Enhanced fields for gamification
+  @override
+  @JsonKey()
+  final String emoji;
+  @override
+  @JsonKey()
+  final String badgeColor;
+  @override
+  @JsonKey()
+  final int points;
+  @override
+  @JsonKey()
+  final int tier;
+// 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
+  final List<String> _celebrationMessages;
+// 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
+  @override
+  @JsonKey()
+  List<String> get celebrationMessages {
+    if (_celebrationMessages is EqualUnmodifiableListView)
+      return _celebrationMessages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_celebrationMessages);
+  }
+
+  @override
+  final String? shareText;
+  final Map<String, dynamic>? _metadata;
+  @override
+  Map<String, dynamic>? get metadata {
+    final value = _metadata;
+    if (value == null) return null;
+    if (_metadata is EqualUnmodifiableMapView) return _metadata;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'Achievement(id: $id, title: $title, description: $description, type: $type, targetAmount: $targetAmount, isUnlocked: $isUnlocked, progress: $progress, unlockedAt: $unlockedAt)';
+    return 'Achievement(id: $id, title: $title, description: $description, type: $type, targetAmount: $targetAmount, isUnlocked: $isUnlocked, progress: $progress, unlockedAt: $unlockedAt, emoji: $emoji, badgeColor: $badgeColor, points: $points, tier: $tier, celebrationMessages: $celebrationMessages, shareText: $shareText, metadata: $metadata)';
   }
 
   @override
@@ -252,13 +391,38 @@ class _$AchievementImpl implements _Achievement {
             (identical(other.progress, progress) ||
                 other.progress == progress) &&
             (identical(other.unlockedAt, unlockedAt) ||
-                other.unlockedAt == unlockedAt));
+                other.unlockedAt == unlockedAt) &&
+            (identical(other.emoji, emoji) || other.emoji == emoji) &&
+            (identical(other.badgeColor, badgeColor) ||
+                other.badgeColor == badgeColor) &&
+            (identical(other.points, points) || other.points == points) &&
+            (identical(other.tier, tier) || other.tier == tier) &&
+            const DeepCollectionEquality()
+                .equals(other._celebrationMessages, _celebrationMessages) &&
+            (identical(other.shareText, shareText) ||
+                other.shareText == shareText) &&
+            const DeepCollectionEquality().equals(other._metadata, _metadata));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title, description, type,
-      targetAmount, isUnlocked, progress, unlockedAt);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      title,
+      description,
+      type,
+      targetAmount,
+      isUnlocked,
+      progress,
+      unlockedAt,
+      emoji,
+      badgeColor,
+      points,
+      tier,
+      const DeepCollectionEquality().hash(_celebrationMessages),
+      shareText,
+      const DeepCollectionEquality().hash(_metadata));
 
   /// Create a copy of Achievement
   /// with the given fields replaced by the non-null parameter values.
@@ -276,7 +440,7 @@ class _$AchievementImpl implements _Achievement {
   }
 }
 
-abstract class _Achievement implements Achievement {
+abstract class _Achievement extends Achievement {
   const factory _Achievement(
       {required final String id,
       required final String title,
@@ -285,7 +449,15 @@ abstract class _Achievement implements Achievement {
       required final double targetAmount,
       final bool isUnlocked,
       final double progress,
-      final DateTime? unlockedAt}) = _$AchievementImpl;
+      final DateTime? unlockedAt,
+      final String emoji,
+      final String badgeColor,
+      final int points,
+      final int tier,
+      final List<String> celebrationMessages,
+      final String? shareText,
+      final Map<String, dynamic>? metadata}) = _$AchievementImpl;
+  const _Achievement._() : super._();
 
   factory _Achievement.fromJson(Map<String, dynamic> json) =
       _$AchievementImpl.fromJson;
@@ -305,7 +477,21 @@ abstract class _Achievement implements Achievement {
   @override
   double get progress;
   @override
-  DateTime? get unlockedAt;
+  DateTime? get unlockedAt; // Enhanced fields for gamification
+  @override
+  String get emoji;
+  @override
+  String get badgeColor;
+  @override
+  int get points;
+  @override
+  int get tier; // 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
+  @override
+  List<String> get celebrationMessages;
+  @override
+  String? get shareText;
+  @override
+  Map<String, dynamic>? get metadata;
 
   /// Create a copy of Achievement
   /// with the given fields replaced by the non-null parameter values.

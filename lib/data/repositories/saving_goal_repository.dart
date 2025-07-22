@@ -202,7 +202,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
           final event = await _db.getEventById(allocation.eventId);
           
           history.add(GoalAllocationHistory(
-            allocationId: allocation.id!,
+            allocationId: allocation.id,
             eventId: allocation.eventId,
             amount: allocation.allocationAmount,
             date: event.date,
@@ -213,7 +213,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
           print('Warning: Could not load event ${allocation.eventId} for allocation ${allocation.id}: $e');
           // Add allocation without event details
           history.add(GoalAllocationHistory(
-            allocationId: allocation.id!,
+            allocationId: allocation.id,
             eventId: allocation.eventId,
             amount: allocation.allocationAmount,
             date: DateTime.now(), // Fallback date

@@ -212,7 +212,7 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
       if (success) {
         return newEvent;
       } else {
-        throw DatabaseException('Failed to update event');
+        throw const DatabaseException('Failed to update event');
       }
     });
   }
@@ -227,7 +227,7 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
     return catchError(() async {
       if (oldEvent.id == null) {
         print('❌ ERROR: Repository - Cannot update event without id');
-        throw DatabaseException('Cannot update event without id');
+        throw const DatabaseException('Cannot update event without id');
       }
 
       final eventData = EventTableData(
@@ -263,7 +263,7 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
       Event event, DateTime cutoffDate) {
     return catchError(() async {
       if (event.id == null) {
-        throw DatabaseException('Cannot get impact counts for event without id');
+        throw const DatabaseException('Cannot get impact counts for event without id');
       }
       
       return await _database.getEditImpactCounts(event.id!, cutoffDate);
@@ -279,7 +279,7 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
     return catchError(() async {
       if (event.id == null) {
         print('❌ ERROR: Repository - Cannot delete event without id');
-        throw DatabaseException('Cannot delete event without id');
+        throw const DatabaseException('Cannot delete event without id');
       }
       
       print('🔍 DEBUG: Repository - Calling database.deleteEventsWithOption with eventId: ${event.id}');
@@ -338,7 +338,7 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
       amount: event.amount,
       date: currentDate,
       repeatOption: event.repeatOption,
-      isRecurring: Value(true),
+      isRecurring: const Value(true),
       notes: Value(event.notes),
       customRecurrence: Value(event.customRecurrence),
       createdAt: Value(DateTime.now()),
@@ -370,7 +370,7 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
           amount: event.amount,
           date: currentDate,
           repeatOption: event.repeatOption,
-          isRecurring: Value(true),
+          isRecurring: const Value(true),
           notes: Value(event.notes),
           customRecurrence: Value(event.customRecurrence),
           originalEventId: Value(originalId),
@@ -494,7 +494,7 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
   Future<Either<Failure, bool>> deleteEventSeries(Event event) {
     return catchError(() async {
       if (event.originalEventId == null) {
-        throw DatabaseException('Cannot delete series without originalEventId');
+        throw const DatabaseException('Cannot delete series without originalEventId');
       }
       final deletedCount =
           await _database.deleteEventSeries(event.originalEventId!);

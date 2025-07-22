@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:cash_on_hand/data/repositories/event_repository.dart';
 import 'package:cash_on_hand/data/models/freezed/event.dart';
 import 'package:cash_on_hand/data/models/freezed/custom_recurrence.dart';
 import 'package:cash_on_hand/data/models/enums/repeat_option.dart';

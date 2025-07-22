@@ -393,7 +393,9 @@ void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
     print("Current events in state: ${_events.length}");
     _events.forEach((date, events) {
       print("Date: $date, Events: ${events.length}");
-      events.forEach((event) => print("  - ${event.title}"));
+      for (var event in events) {
+        print("  - ${event.title}");
+      }
     });
   }
 }

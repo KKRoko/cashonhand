@@ -16,8 +16,8 @@ void main() {
       ];
       
       final cutoffDate = DateTime(2024, 8, 10); // Aug 10, 2024
-      final seriesId = 1; // Original event ID
-      final newAmount = 150;
+      const seriesId = 1; // Original event ID
+      const newAmount = 150;
       
       print('🔍 Test: Simulating edit scope operations');
       print('Events in series: ${events.length}');

@@ -13,6 +13,8 @@ import 'ui/saving_goals/saving_goals_screen.dart';  // Add this
 import 'ui/settings/round_up_settings_screen.dart';
 import 'ui/round_up/round_up_history_screen.dart';
 import 'ui/allocation_rules/allocation_rules_screen.dart';
+import 'ui/suggestions/suggestions_screen.dart';
+import 'ui/onboarding/goal_integration_onboarding.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -93,6 +95,8 @@ class MyApp extends StatelessWidget {
                     return const RoundUpHistoryScreen();
                   case AllocationRulesScreen.routeName:
                     return const AllocationRulesScreen();
+                  case SuggestionsScreen.routeName:
+                    return const SuggestionsScreen();
                   default:
                     return const MainNavigationScreen();
                 }
@@ -122,6 +126,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     CashOnHandScreen(),
     SavingGoalsScreen(),
     CalendarScreen(),
+    SuggestionsScreen(),
   ];
 
   final List<NavigationDestination> _destinations = const [
@@ -140,7 +145,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       selectedIcon: Icon(Icons.calendar_today),
       label: 'Calendar',
     ),
+    NavigationDestination(
+      icon: Icon(Icons.lightbulb_outline),
+      selectedIcon: Icon(Icons.lightbulb),
+      label: 'Insights',
+    ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Show onboarding after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      OnboardingManager.checkAndShowOnboarding(context);
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {

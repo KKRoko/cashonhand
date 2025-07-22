@@ -139,7 +139,7 @@ class SavingGoalService {
         final updatedGoals = <SavingGoal>[];
         
         for (final goal in goals) {
-          final realTimeResult = await getGoalWithRealTimeProgress(goal.id!);
+          final realTimeResult = await getGoalWithRealTimeProgress(goal.id);
           realTimeResult.fold(
             (failure) => updatedGoals.add(goal), // Add original goal if update fails
             (updatedGoal) => updatedGoals.add(updatedGoal),

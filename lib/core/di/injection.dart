@@ -19,6 +19,9 @@ import '../../services/allocation_service.dart';
 import '../../services/round_up_service.dart';
 import '../../services/settings_service.dart' as app_settings;
 import '../../services/auto_allocation_rules_engine.dart';
+import '../../services/financial_suggestions_engine.dart';
+import '../../services/notification_service.dart';
+import '../../services/savings_opportunity_detector.dart';
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -158,6 +161,38 @@ Future<void> configureDependencies() async {
   if (!getIt.isRegistered<SettingsController>()) {
     getIt.registerLazySingleton<SettingsController>(
       () => SettingsController(getIt<SettingsService>()),
+    );
+  }
+
+  // Add Financial Suggestions Engine registration
+  if (!getIt.isRegistered<FinancialSuggestionsEngine>()) {
+    getIt.registerLazySingleton<FinancialSuggestionsEngine>(
+      () => FinancialSuggestionsEngine(
+        getIt<Database>(),
+        getIt<ISavingGoalRepository>(),
+        getIt<CategoryService>(),
+      ),
+    );
+  }
+
+  // Add Savings Opportunity Detector registration
+  if (!getIt.isRegistered<SavingsOpportunityDetector>()) {
+    getIt.registerLazySingleton<SavingsOpportunityDetector>(
+      () => SavingsOpportunityDetector(
+        getIt<Database>(),
+        getIt<ISavingGoalRepository>(),
+        getIt<CategoryService>(),
+      ),
+    );
+  }
+
+  // Add Notification Service registration
+  if (!getIt.isRegistered<NotificationService>()) {
+    getIt.registerLazySingleton<NotificationService>(
+      () => NotificationService(
+        getIt<ISavingGoalRepository>(),
+        getIt<FinancialSuggestionsEngine>(),
+      ),
     );
   }
 }

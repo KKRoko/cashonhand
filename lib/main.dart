@@ -7,6 +7,7 @@ import 'services/settings_service.dart' as app_settings;
 import 'package:cash_on_hand/state/event_notifier.dart';
 import 'package:cash_on_hand/state/achievement_state.dart';
 import 'package:cash_on_hand/state/saving_goal_notifier.dart';
+import 'package:cash_on_hand/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,10 @@ void main() async {
   // Initialize app settings service
   final appSettingsService = getIt<app_settings.SettingsService>();
   await appSettingsService.initialize();
+
+  // Initialize notification service with periodic checks
+  final notificationService = getIt<NotificationService>();
+  notificationService.startPeriodicChecks();
 
   // Run the app
   runApp(

@@ -77,8 +77,8 @@ void main() {
     
     test('should validate delete operation coverage', () {
       // Ensure all delete operations target the correct events
-      final seriesId = 5;
-      final eventId = 10;
+      const seriesId = 5;
+      const eventId = 10;
       
       // Events that should be matched by series queries
       final eventsInSeries = [

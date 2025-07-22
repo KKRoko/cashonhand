@@ -53,7 +53,7 @@ void main() {
 
     test('should handle weekly with selected days - next day in same week', () {
       final startDate = DateTime(2024, 1, 1); // Monday (weekday % 7 = 1)
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.weekly,
         frequency: 1,
         selectedDays: [false, true, false, true, false, false, false], // Monday and Wednesday
@@ -70,7 +70,7 @@ void main() {
 
     test('should handle weekly with selected days - next week cycle', () {
       final startDate = DateTime(2024, 1, 3); // Wednesday (weekday % 7 = 3)
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.weekly,
         frequency: 1,
         selectedDays: [false, true, false, false, false, false, false], // Only Monday
@@ -111,7 +111,7 @@ void main() {
 
     test('should handle repeatAtEndOfMonth flag', () {
       final startDate = DateTime(2024, 1, 15);
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.monthly,
         frequency: 1,
         repeatAtEndOfMonth: true,
@@ -128,7 +128,7 @@ void main() {
 
     test('should handle useLastDayOfMonth flag', () {
       final startDate = DateTime(2024, 1, 15);
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.monthly,
         frequency: 1,
         useLastDayOfMonth: true,
@@ -145,7 +145,7 @@ void main() {
 
     test('should handle specific dayOfMonth', () {
       final startDate = DateTime(2024, 1, 15);
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.monthly,
         frequency: 1,
         dayOfMonth: 5,
@@ -162,7 +162,7 @@ void main() {
 
     test('should handle dayOfMonth exceeding month length', () {
       final startDate = DateTime(2024, 1, 15);
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.monthly,
         frequency: 1,
         dayOfMonth: 31, // February doesn't have 31 days
@@ -355,7 +355,7 @@ void main() {
 
     test('should handle empty selected days list', () {
       final startDate = DateTime(2024, 1, 1);
-      final customRecurrence = CustomRecurrence(
+      final customRecurrence = const CustomRecurrence(
         interval: RepeatOption.weekly,
         frequency: 1,
         selectedDays: [], // Empty list
