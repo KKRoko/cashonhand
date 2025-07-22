@@ -166,11 +166,11 @@ class NotificationService {
   /// Check alerts for a specific goal
   Future<void> _checkIndividualGoalAlerts(SavingGoal goal) async {
     final now = DateTime.now();
-    final daysRemaining = goal.targetDate.difference(now).inDays;
+    final daysRemaining = goal.deadlineDate?.difference(now).inDays;
     final progress = goal.currentAmount / goal.targetAmount;
     
     // Goal deadline approaching (7 days warning)
-    if (daysRemaining <= 7 && daysRemaining > 0 && progress < 0.9) {
+    if (daysRemaining != null && daysRemaining <= 7 && daysRemaining > 0 && progress < 0.9) {
       final notificationId = 'goal_deadline_${goal.id}';
       if (!_hasNotification(notificationId)) {
         _addNotification(AppNotification(
@@ -181,14 +181,14 @@ class NotificationService {
           body: 'Your "${goal.title}" goal is due in $daysRemaining days. You\'re ${(progress * 100).toStringAsFixed(0)}% complete.',
           data: {'goalId': goal.id},
           createdAt: now,
-          expiresAt: goal.targetDate,
+          expiresAt: goal.deadlineDate,
           actionRoute: '/goals/${goal.id}',
         ));
       }
     }
 
     // Goal overdue
-    if (daysRemaining < 0 && progress < 1.0) {
+    if (daysRemaining != null && daysRemaining < 0 && progress < 1.0) {
       final notificationId = 'goal_overdue_${goal.id}';
       if (!_hasNotification(notificationId)) {
         _addNotification(AppNotification(

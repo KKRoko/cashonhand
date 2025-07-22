@@ -280,7 +280,7 @@ class SavingsOpportunityDetector {
       double totalRoundUpPotential = 0;
       for (final transaction in transactions) {
         final amount = transaction.amount.abs();
-        final roundUp = math.ceil(amount) - amount;
+        final roundUp = amount.ceilToDouble() - amount;
         totalRoundUpPotential += roundUp;
       }
       
@@ -471,7 +471,7 @@ class SavingsOpportunityDetector {
         
         for (final goal in goals) {
           final progress = goal.currentAmount / goal.targetAmount;
-          final daysRemaining = goal.targetDate.difference(DateTime.now()).inDays;
+          final daysRemaining = goal.deadlineDate?.difference(DateTime.now()).inDays ?? 365;
           
           if (progress > 0.8 && daysRemaining > 90) {
             overfundedGoals.add(goal);

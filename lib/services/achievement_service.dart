@@ -462,8 +462,8 @@ class AchievementService {
     final monthlyTotals = <int, double>{};
     
     for (final allocation in allocations) {
-      final month = allocation.date.month;
-      monthlyTotals[month] = (monthlyTotals[month] ?? 0) + allocation.amount;
+      final month = allocation.createdAt.month;
+      monthlyTotals[month] = (monthlyTotals[month] ?? 0) + allocation.allocationAmount;
     }
     
     return monthlyTotals;

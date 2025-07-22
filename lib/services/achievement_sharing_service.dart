@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -275,8 +276,8 @@ class AchievementSharingService {
     paint.color = _getTierColor(achievement.tier).withOpacity(0.3);
     for (int i = 0; i < 8; i++) {
       final angle = (i * 45) * (3.14159 / 180);
-      final x = 200 + 80 * (angle.cos());
-      final y = 200 + 80 * (angle.sin());
+      final x = 200 + 80 * math.cos(angle);
+      final y = 200 + 80 * math.sin(angle);
       canvas.drawCircle(Offset(x, y), 3, paint);
     }
   }

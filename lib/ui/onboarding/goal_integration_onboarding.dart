@@ -16,7 +16,7 @@ class GoalIntegrationOnboarding extends StatefulWidget {
   /// Check if the user has already seen the onboarding
   static Future<bool> shouldShowOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
-    return !prefs.getBool(_onboardingKey, defaultValue: false);
+    return !(prefs.getBool(_onboardingKey) ?? false);
   }
 
   /// Mark onboarding as completed

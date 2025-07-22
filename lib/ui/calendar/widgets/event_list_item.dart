@@ -50,7 +50,7 @@ class _EventListItemState extends State<EventListItem> {
       final goalTitles = <int, String>{};
       for (final allocation in allocations) {
         if (!goalTitles.containsKey(allocation.goalId)) {
-          final goalResult = await goalRepository.getGoal(allocation.goalId);
+          final goalResult = await goalRepository.getGoalById(allocation.goalId);
           goalResult.fold(
             (failure) => null,
             (goal) => goalTitles[allocation.goalId] = goal?.title ?? 'Unknown Goal',
@@ -58,9 +58,20 @@ class _EventListItemState extends State<EventListItem> {
         }
       }
       
+      // Convert GoalAllocationTableData to GoalAllocationHistory
+      final allocationHistories = allocations.map((alloc) => GoalAllocationHistory(
+        allocationId: alloc.id,
+        eventId: alloc.eventId,
+        goalId: alloc.goalId,
+        amount: alloc.allocationAmount,
+        date: alloc.createdAt,
+        eventTitle: widget.event.title,
+        allocationType: alloc.allocationType.toString().split('.').last,
+      )).toList();
+      
       if (mounted) {
         setState(() {
-          _allocations = allocations;
+          _allocations = allocationHistories;
           _goalTitles = goalTitles;
           _isLoadingAllocations = false;
         });

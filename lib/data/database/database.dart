@@ -846,9 +846,6 @@ Future<List<GoalAllocationTableData>> getRoundUpAllocationsInRange(DateTime star
       ..orderBy([(a) => OrderingTerm.desc(a.createdAt)]))
     .get();
 
-Future<List<AutoAllocationRuleTableData>> getAllAllocationRules() =>
-    select(autoAllocationRules).get();
-
 Future<Map<String, double>> getSpendingByCategory(DateTime start, DateTime end) async {
   final query = '''
     SELECT c.name, SUM(ABS(e.amount)) as total
@@ -919,6 +916,9 @@ Future<List<Map<String, dynamic>>> getVelocityData(DateTime start, DateTime end)
   }).toList();
 }
 
+// Add missing method for events in date range
+Future<List<EventTableData>> getEventsForRange(DateTime start, DateTime end) =>
+  (select(events)..where((e) => e.date.isBetweenValues(start, end))).get();
 
 static LazyDatabase _openConnection() {  return LazyDatabase(() async {
     try {

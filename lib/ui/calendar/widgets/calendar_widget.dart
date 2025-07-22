@@ -130,12 +130,14 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     for (final milestone in milestonePercentages) {
       if (progress >= milestone && progress < milestone + 0.05) { // 5% tolerance
         // Estimate when this milestone was reached (could be more sophisticated)
-        final daysFromStart = goal.targetDate.difference(DateTime.now()).inDays;
-        final estimatedDate = DateTime.now().subtract(Duration(days: (daysFromStart * (1 - progress)).round()));
-        
-        if (estimatedDate.month == widget.focusedDay.month && 
-            estimatedDate.year == widget.focusedDay.year) {
-          milestones.add(DateTime(estimatedDate.year, estimatedDate.month, estimatedDate.day));
+        if (goal.deadlineDate != null) {
+          final daysFromStart = goal.deadlineDate!.difference(DateTime.now()).inDays;
+          final estimatedDate = DateTime.now().subtract(Duration(days: (daysFromStart * (1 - progress)).round()));
+          
+          if (estimatedDate.month == widget.focusedDay.month && 
+              estimatedDate.year == widget.focusedDay.year) {
+            milestones.add(DateTime(estimatedDate.year, estimatedDate.month, estimatedDate.day));
+          }
         }
       }
     }

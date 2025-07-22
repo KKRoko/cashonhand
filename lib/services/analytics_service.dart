@@ -147,7 +147,7 @@ class AnalyticsService {
     
     // Get savings data
     final allocations = await _database.getAllocationsInRange(startDate, endDate);
-    final totalSavings = allocations.fold<double>(0, (sum, alloc) => sum + alloc.amount);
+    final totalSavings = allocations.fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     
     // Calculate balance metrics
     final savingsRate = totalSpending > 0 ? totalSavings / totalSpending : 0.0;
@@ -196,7 +196,7 @@ class AnalyticsService {
     }
 
     // Basic metrics
-    final totalAmount = allocations.fold<double>(0, (sum, alloc) => sum + alloc.amount);
+    final totalAmount = allocations.fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     final averageAmount = totalAmount / allocations.length;
     final allocationFrequency = allocations.length / period.inDays;
     
@@ -351,7 +351,7 @@ class AnalyticsService {
     
     if (totalDays <= 0) return 0.0;
     
-    final totalAmount = allocations.fold<double>(0, (sum, alloc) => sum + alloc.amount);
+    final totalAmount = allocations.fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     return totalAmount / totalDays;
   }
 
@@ -372,7 +372,7 @@ class AnalyticsService {
         (alloc) => alloc.createdAt.isAfter(weekStart) && alloc.createdAt.isBefore(weekEnd)
       );
       
-      final weekTotal = weekAllocations.fold<double>(0, (sum, alloc) => sum + alloc.amount);
+      final weekTotal = weekAllocations.fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
       weeklyAverages.add(weekTotal);
     }
     
@@ -420,16 +420,18 @@ class AnalyticsService {
     }
     
     // Time constraint
-    final timeRemaining = goal.targetDate.difference(DateTime.now());
-    final progress = goal.currentAmount / goal.targetAmount;
-    final timeProgress = 1.0 - (timeRemaining.inDays / goal.targetDate.difference(goal.createdAt).inDays);
-    
-    if (timeProgress > progress + 0.2) {
-      risks.add(RiskFactor(
-        type: RiskType.timeConstraint,
-        severity: RiskSeverity.high,
-        description: 'Behind schedule - time progress exceeds savings progress',
-      ));
+    if (goal.deadlineDate != null) {
+      final timeRemaining = goal.deadlineDate!.difference(DateTime.now());
+      final progress = goal.currentAmount / goal.targetAmount;
+      final timeProgress = 1.0 - (timeRemaining.inDays / goal.deadlineDate!.difference(goal.createdAt).inDays);
+      
+      if (timeProgress > progress + 0.2) {
+        risks.add(RiskFactor(
+          type: RiskType.timeConstraint,
+          severity: RiskSeverity.high,
+          description: 'Behind schedule - time progress exceeds savings progress',
+        ));
+      }
     }
     
     return risks;
@@ -512,7 +514,7 @@ class AnalyticsService {
       final weekAllocations = await _database.getAllocationsInRange(weekStart, weekEnd);
       
       final totalSpending = weekSpending.values.fold<double>(0, (a, b) => a + b);
-      final totalSavings = weekAllocations.fold<double>(0, (sum, alloc) => sum + alloc.amount);
+      final totalSavings = weekAllocations.fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
       
       trendData.add({
         'week_start': weekStart.toIso8601String(),
@@ -597,7 +599,7 @@ class AnalyticsService {
     final distribution = <int, double>{};
     
     for (final allocation in allocations) {
-      distribution[allocation.goalId] = (distribution[allocation.goalId] ?? 0) + allocation.amount;
+      distribution[allocation.goalId] = (distribution[allocation.goalId] ?? 0) + allocation.allocationAmount;
     }
     
     // Convert to percentage
@@ -632,11 +634,11 @@ class AnalyticsService {
     
     final ruleBasedAmount = allocations
         .where((a) => a.ruleId != null)
-        .fold<double>(0, (sum, alloc) => sum + alloc.amount);
+        .fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     
     final manualAmount = allocations
         .where((a) => a.ruleId == null)
-        .fold<double>(0, (sum, alloc) => sum + alloc.amount);
+        .fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     
     return {
       'total_rules': rules.length,
@@ -682,7 +684,7 @@ class AnalyticsService {
   ) {
     return {
       'average_amount': allocations.isEmpty ? 0.0 : 
-          allocations.fold<double>(0, (sum, alloc) => sum + alloc.amount) / allocations.length,
+          allocations.fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount) / allocations.length,
       'automation_efficiency': rulePerformance['automation_rate'] as double,
       'frequency_score': allocations.length / 30.0, // allocations per day
       'consistency_score': _calculateAllocationConsistency(allocations),

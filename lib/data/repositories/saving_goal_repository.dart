@@ -10,6 +10,7 @@ import '../models/freezed/saving_goal.dart';
 class GoalAllocationHistory {
   final int allocationId;
   final int eventId;
+  final int goalId;
   final double amount;
   final DateTime date;
   final String eventTitle;
@@ -18,6 +19,7 @@ class GoalAllocationHistory {
   GoalAllocationHistory({
     required this.allocationId,
     required this.eventId,
+    required this.goalId,
     required this.amount,
     required this.date,
     required this.eventTitle,
@@ -204,6 +206,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
           history.add(GoalAllocationHistory(
             allocationId: allocation.id,
             eventId: allocation.eventId,
+            goalId: goalId,
             amount: allocation.allocationAmount,
             date: event.date,
             eventTitle: event.title,
@@ -215,6 +218,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
           history.add(GoalAllocationHistory(
             allocationId: allocation.id,
             eventId: allocation.eventId,
+            goalId: goalId,
             amount: allocation.allocationAmount,
             date: DateTime.now(), // Fallback date
             eventTitle: 'Unknown Event',

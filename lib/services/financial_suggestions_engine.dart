@@ -299,8 +299,8 @@ class FinancialSuggestionsEngine {
 
   Future<GoalInsight> _calculateGoalInsight(SavingGoal goal) async {
     final now = DateTime.now();
-    final daysRemaining = goal.targetDate.difference(now).inDays;
-    final monthsRemaining = daysRemaining / 30.44; // Average days per month
+    final daysRemaining = goal.deadlineDate?.difference(now).inDays;
+    final monthsRemaining = daysRemaining != null ? daysRemaining / 30.44 : 0; // Average days per month
     
     final remaining = goal.targetAmount - goal.currentAmount;
     final monthlyRequired = monthsRemaining > 0 ? remaining / monthsRemaining : remaining;
@@ -340,10 +340,10 @@ class FinancialSuggestionsEngine {
       goalTitle: goal.title,
       currentAmount: goal.currentAmount,
       targetAmount: goal.targetAmount,
-      targetDate: goal.targetDate,
+      targetDate: goal.deadlineDate ?? DateTime.now().add(const Duration(days: 365)),
       monthlyRequired: monthlyRequired,
       averageMonthlyContribution: averageMonthly,
-      daysRemaining: daysRemaining,
+      daysRemaining: daysRemaining ?? 365,
       isOnTrack: isOnTrack,
       projectedShortfall: isOnTrack ? null : remaining - (averageMonthly * monthsRemaining),
       projectedCompletionDate: projectedCompletionDate,
