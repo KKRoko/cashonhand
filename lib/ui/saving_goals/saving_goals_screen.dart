@@ -6,6 +6,7 @@ import '../../services/goal_update_notifier.dart';
 import 'widgets/goal_list_item.dart';
 import 'widgets/goal_statistics_widget.dart';
 import 'widgets/add_edit_goal_dialog.dart';
+import 'goal_detail_screen.dart';
 
 class SavingGoalsScreen extends StatefulWidget {
   static const routeName = '/savingGoals';
@@ -89,6 +90,17 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
       context: context,
       builder: (context) => AddEditGoalDialog(goal: goal),
     );
+  }
+
+  void _navigateToGoalDetail(SavingGoal goal) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => GoalDetailScreen(goal: goal),
+      ),
+    ).then((_) {
+      // Refresh goals when returning from detail screen
+      _loadGoals();
+    });
   }
 
   Widget _buildOverallProgress() {
@@ -185,6 +197,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                       _expandedGoalId = _expandedGoalId == goal.id ? null : goal.id;
                     }),
                     onEdit: () => _showAddEditGoalDialog(goal),
+                    onViewDetails: () => _navigateToGoalDetail(goal),
                   ),
                 )).toList(),
                 

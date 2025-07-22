@@ -104,4 +104,80 @@ class SavingGoalService {
     print("Debug Service: addGoal called with title: ${goal.title}");
     return await createGoal(goal);
   }
+
+  // Enhanced progress tracking methods
+  Future<Either<Failure, SavingGoal>> getGoalWithRealTimeProgress(int goalId) async {
+    final goalResult = await _repository.getGoalById(goalId);
+    
+    return goalResult.fold(
+      (failure) => Left(failure),
+      (goal) async {
+        if (goal == null) return const Left(DatabaseFailure('Goal not found'));
+        
+        // Get real-time progress from allocations
+        final progressResult = await _repository.getGoalProgressFromAllocations(goalId);
+        
+        return progressResult.fold(
+          (failure) => Right(goal), // Return original goal if allocation calculation fails
+          (realTimeAmount) {
+            // Create updated goal with real-time progress
+            final updatedGoal = goal.copyWith(currentAmount: realTimeAmount);
+            print('Debug Service: Goal ${goal.title} real-time progress: \$${realTimeAmount.toStringAsFixed(2)}');
+            return Right(updatedGoal);
+          }
+        );
+      }
+    );
+  }
+
+  Future<Either<Failure, List<SavingGoal>>> getGoalsWithRealTimeProgress() async {
+    final goalsResult = await getAllGoals();
+    
+    return goalsResult.fold(
+      (failure) => Left(failure),
+      (goals) async {
+        final updatedGoals = <SavingGoal>[];
+        
+        for (final goal in goals) {
+          final realTimeResult = await getGoalWithRealTimeProgress(goal.id!);
+          realTimeResult.fold(
+            (failure) => updatedGoals.add(goal), // Add original goal if update fails
+            (updatedGoal) => updatedGoals.add(updatedGoal),
+          );
+        }
+        
+        return Right(updatedGoals);
+      }
+    );
+  }
+
+  Future<Either<Failure, List<GoalAllocationHistory>>> getGoalAllocationHistory(int goalId) {
+    return _repository.getGoalAllocationHistory(goalId);
+  }
+
+  // Sync goal progress with allocations - useful for maintenance/sync operations
+  Future<Either<Failure, bool>> syncGoalProgressWithAllocations(int goalId) async {
+    final progressResult = await _repository.getGoalProgressFromAllocations(goalId);
+    
+    return progressResult.fold(
+      (failure) => Left(failure),
+      (realTimeAmount) async {
+        final goalResult = await _repository.getGoalById(goalId);
+        
+        return goalResult.fold(
+          (failure) => Left(failure),
+          (goal) async {
+            if (goal == null) return const Left(DatabaseFailure('Goal not found'));
+            
+            // Update goal with real allocation-based amount
+            final syncedGoal = goal.copyWith(
+              currentAmount: realTimeAmount,
+            );
+            
+            return await _repository.updateGoal(syncedGoal);
+          }
+        );
+      }
+    );
+  }
 }

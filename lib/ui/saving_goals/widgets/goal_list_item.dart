@@ -7,6 +7,7 @@ class GoalListItem extends StatelessWidget {
   final bool isExpanded;
   final VoidCallback onTap;
   final VoidCallback onEdit;
+  final VoidCallback? onViewDetails;
 
   const GoalListItem({
     super.key,
@@ -14,6 +15,7 @@ class GoalListItem extends StatelessWidget {
     required this.isExpanded,
     required this.onTap,
     required this.onEdit,
+    this.onViewDetails,
   });
 
   @override
@@ -127,6 +129,23 @@ class GoalListItem extends StatelessWidget {
                     'Months Left',
                     '${monthsLeft.round()} months',
                   ),
+                  if (onViewDetails != null) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: onViewDetails,
+                        icon: const Icon(Icons.visibility, size: 18),
+                        label: const Text('View Details & History'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade50,
+                          foregroundColor: Colors.blue.shade700,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),

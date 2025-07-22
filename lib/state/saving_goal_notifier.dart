@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'dart:collection';
 import '../data/models/freezed/saving_goal.dart';
+import '../data/repositories/saving_goal_repository.dart';
 import '../services/saving_goal_service.dart';
+import '../services/goal_update_notifier.dart';
 
 class SavingGoalNotifier extends ChangeNotifier {
   final List<SavingGoal> _goals = [];
@@ -9,25 +11,57 @@ class SavingGoalNotifier extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
-  SavingGoalNotifier(this._service);
+  SavingGoalNotifier(this._service) {
+    // Listen for goal updates from transactions
+    _setupGoalUpdateListener();
+  }
+
+  void _setupGoalUpdateListener() {
+    GoalUpdateNotifier().addListener(_handleGoalUpdate);
+  }
+
+  void _handleGoalUpdate() async {
+    print('Debug Notifier: Received goal update notification - refreshing goals');
+    await loadGoals();
+  }
+
+  @override
+  void dispose() {
+    GoalUpdateNotifier().removeListener(_handleGoalUpdate);
+    super.dispose();
+  }
 
   // Getters
   UnmodifiableListView<SavingGoal> get goals => UnmodifiableListView(_goals);
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Load goals from storage
+  // Load goals from storage with real-time progress
   Future<void> loadGoals() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final loadedGoals = await _service.getGoals();
-      _goals.clear();
-      _goals.addAll(loadedGoals);
+      print('Debug Notifier: Loading goals with real-time progress');
+      final result = await _service.getGoalsWithRealTimeProgress();
+      result.fold(
+        (failure) {
+          _error = 'Failed to load saving goals: ${failure.message}';
+          print('Debug Notifier: Failed to load goals - ${failure.message}');
+        },
+        (loadedGoals) {
+          _goals.clear();
+          _goals.addAll(loadedGoals);
+          print('Debug Notifier: Loaded ${loadedGoals.length} goals with real-time progress');
+          for (final goal in loadedGoals) {
+            print('  - ${goal.title}: \$${goal.currentAmount.toStringAsFixed(2)}/\$${goal.targetAmount.toStringAsFixed(2)} (${(goal.progressPercentage * 100).toInt()}%)');
+          }
+        },
+      );
     } catch (e) {
       _error = 'Failed to load saving goals: ${e.toString()}';
+      print('Debug Notifier: Exception during goal loading - $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -167,5 +201,42 @@ DateTime getProjectedCompletion() {
         .inDays / 30;
         
     return getTotalSaved() / monthsSinceStart;
+  }
+
+  // Force refresh goals with real-time progress
+  Future<void> refreshGoalsWithRealTimeProgress() async {
+    print('Debug Notifier: Manual refresh requested');
+    await loadGoals();
+  }
+
+  // Get allocation history for a specific goal
+  Future<List<GoalAllocationHistory>> getGoalAllocationHistory(int goalId) async {
+    final result = await _service.getGoalAllocationHistory(goalId);
+    return result.fold(
+      (failure) {
+        print('Debug Notifier: Failed to load allocation history - ${failure.message}');
+        return [];
+      },
+      (history) {
+        print('Debug Notifier: Loaded ${history.length} allocation history entries for goal $goalId');
+        return history;
+      },
+    );
+  }
+
+  // Sync a specific goal's progress with its allocations
+  Future<void> syncGoalProgress(int goalId) async {
+    final result = await _service.syncGoalProgressWithAllocations(goalId);
+    result.fold(
+      (failure) {
+        print('Debug Notifier: Failed to sync goal progress - ${failure.message}');
+        _error = 'Failed to sync goal progress: ${failure.message}';
+      },
+      (success) {
+        print('Debug Notifier: Successfully synced goal $goalId progress');
+        // Refresh goals to show updated progress
+        loadGoals();
+      },
+    );
   }
 }

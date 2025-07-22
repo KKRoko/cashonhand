@@ -5,6 +5,25 @@ import '../../core/error/failures.dart';
 import '../database/database.dart';
 import '../models/freezed/saving_goal.dart';
 
+// Model for allocation history
+class GoalAllocationHistory {
+  final int allocationId;
+  final int eventId;
+  final double amount;
+  final DateTime date;
+  final String eventTitle;
+  final String allocationType;
+  
+  GoalAllocationHistory({
+    required this.allocationId,
+    required this.eventId,
+    required this.amount,
+    required this.date,
+    required this.eventTitle,
+    required this.allocationType,
+  });
+}
+
 abstract class ISavingGoalRepository {
   Future<Either<Failure, List<SavingGoal>>> getAllGoals();
   Future<Either<Failure, SavingGoal?>> getGoalById(int id);
@@ -13,6 +32,8 @@ abstract class ISavingGoalRepository {
   Future<Either<Failure, int>> deleteGoal(int id);
   Future<Either<Failure, List<SavingGoal>>> getActiveGoals();
   Future<Either<Failure, List<SavingGoal>>> getOverdueGoals();
+  Future<Either<Failure, double>> getGoalProgressFromAllocations(int goalId);
+  Future<Either<Failure, List<GoalAllocationHistory>>> getGoalAllocationHistory(int goalId);
 }
 
 class SavingGoalRepository implements ISavingGoalRepository {
@@ -147,6 +168,65 @@ class SavingGoalRepository implements ISavingGoalRepository {
       return Right(goals.map(_convertToModel).toList());
     } catch (e) {
       return Left(DatabaseFailure('Failed to fetch overdue goals: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, double>> getGoalProgressFromAllocations(int goalId) async {
+    try {
+      // Get all allocations for this goal
+      final allocations = await _db.getAllocationsForGoal(goalId);
+      
+      // Calculate total from actual allocations
+      final totalAllocated = allocations.fold(0.0, (sum, allocation) => sum + allocation.allocationAmount);
+      
+      print('Debug: Goal $goalId has ${allocations.length} allocations totaling \$${totalAllocated.toStringAsFixed(2)}');
+      return Right(totalAllocated);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to calculate goal progress: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<GoalAllocationHistory>>> getGoalAllocationHistory(int goalId) async {
+    try {
+      // Get allocations with event details
+      final allocations = await _db.getAllocationsForGoal(goalId);
+      final history = <GoalAllocationHistory>[];
+      
+      for (final allocation in allocations) {
+        try {
+          // Get the event details for each allocation
+          final event = await _db.getEventById(allocation.eventId);
+          
+          history.add(GoalAllocationHistory(
+            allocationId: allocation.id!,
+            eventId: allocation.eventId,
+            amount: allocation.allocationAmount,
+            date: event.date,
+            eventTitle: event.title,
+            allocationType: allocation.allocationType.toString(),
+          ));
+        } catch (e) {
+          print('Warning: Could not load event ${allocation.eventId} for allocation ${allocation.id}: $e');
+          // Add allocation without event details
+          history.add(GoalAllocationHistory(
+            allocationId: allocation.id!,
+            eventId: allocation.eventId,
+            amount: allocation.allocationAmount,
+            date: DateTime.now(), // Fallback date
+            eventTitle: 'Unknown Event',
+            allocationType: allocation.allocationType.toString(),
+          ));
+        }
+      }
+      
+      // Sort by date, newest first
+      history.sort((a, b) => b.date.compareTo(a.date));
+      
+      return Right(history);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to fetch allocation history: $e'));
     }
   }
 }
