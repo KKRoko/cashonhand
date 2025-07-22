@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/freezed/saving_goal.dart';
 import '../../state/saving_goal_notifier.dart';
+import '../../services/goal_update_notifier.dart';
 import 'widgets/goal_list_item.dart';
 import 'widgets/goal_statistics_widget.dart';
 import 'widgets/add_edit_goal_dialog.dart';
@@ -25,13 +26,25 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
   void initState() {  
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Listen for goal updates from other screens
+    GoalUpdateNotifier().addListener(_onGoalUpdated);
+    
     _loadGoals();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    GoalUpdateNotifier().removeListener(_onGoalUpdated);
     super.dispose();
+  }
+
+  void _onGoalUpdated() {
+    if (mounted) {
+      print("Debug: Received goal update notification, refreshing goals automatically");
+      context.read<SavingGoalNotifier>().loadGoals();
+    }
   }
 
   void _loadGoals() {

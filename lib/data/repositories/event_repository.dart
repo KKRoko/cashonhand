@@ -14,6 +14,7 @@ import '../models/freezed/goal_allocation.dart';
 import '../models/enums/repeat_option.dart';
 import '../models/enums/allocation_type.dart';
 import '../models/event_creation_result.dart';
+import '../../services/goal_update_notifier.dart';
 import 'base_repository.dart';
 import 'i_event_repository.dart';
 
@@ -502,6 +503,9 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
         
         await _database.updateSavingGoal(updatedGoal);
         print('Updated goal $goalId: +\$${allocationAmount} (total: \$${updatedGoal.currentAmount})');
+        
+        // Broadcast the goal update to any listeners
+        GoalUpdateNotifier().notifyGoalUpdated(goalId, updatedGoal.currentAmount);
       } else {
         print('Warning: Goal $goalId not found during progress update');
       }

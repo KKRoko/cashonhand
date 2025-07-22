@@ -83,11 +83,12 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
   }
 
   void _updateAllocation(int index, double amount) {
-    if (amount >= 0 && amount <= widget.transactionAmount) {
+    if (amount >= 0) { // Allow any positive amount, show negative remaining as warning
       setState(() {
         _allocations[index] = _allocations[index].copyWith(allocationAmount: amount);
       });
       widget.onAllocationsChanged(_allocations);
+      print("Debug: Updated allocation $index to \$${amount.toStringAsFixed(2)}, remaining: \$${_remainingAmount.toStringAsFixed(2)}");
     }
   }
 
@@ -350,6 +351,10 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
                 contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 isDense: true,
               ),
+              onChanged: (value) {
+                final amount = double.tryParse(value) ?? 0.0;
+                _updateAllocation(index, amount);
+              },
               onSubmitted: (value) {
                 final amount = double.tryParse(value) ?? 0.0;
                 _updateAllocation(index, amount);
