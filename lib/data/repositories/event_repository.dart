@@ -440,7 +440,7 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
   Future<Either<Failure, Event>> addEventWithAllocations(DateTime day, Event event, List<GoalAllocation> allocations) {
     return catchError(() async {
       // Start a database transaction to ensure atomicity
-      return await _database.transaction(() async {
+      final resultEvent = await _database.transaction(() async {
         // First create the event
         final eventCompanion = EventsCompanion.insert(
           title: event.title,
@@ -473,9 +473,6 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
             
             await _database.createGoalAllocation(allocationCompanion);
             print('Created allocation: ${allocation.goalTitle} - \$${allocation.allocationAmount}');
-            
-            // Update the savings goal's current amount
-            await _updateGoalProgress(allocation.goalId, allocation.allocationAmount);
           }
         }
         
@@ -486,34 +483,16 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
           dateTime: createdEvent.date,
         );
       });
+      
+      // After transaction is complete, notify goal updates
+      for (final allocation in allocations) {
+        GoalUpdateNotifier().notifyGoalUpdated(allocation.goalId, allocation.allocationAmount);
+      }
+      
+      return resultEvent;
     });
   }
 
-  Future<void> _updateGoalProgress(int goalId, double allocationAmount) async {
-    try {
-      // Get current goal
-      final currentGoal = await _database.getSavingGoalById(goalId);
-      
-      if (currentGoal != null) {
-        // Update current amount
-        final updatedGoal = currentGoal.copyWith(
-          currentAmount: currentGoal.currentAmount + allocationAmount,
-          updatedAt: DateTime.now(),
-        );
-        
-        await _database.updateSavingGoal(updatedGoal);
-        print('Updated goal $goalId: +\$${allocationAmount} (total: \$${updatedGoal.currentAmount})');
-        
-        // Broadcast the goal update to any listeners
-        GoalUpdateNotifier().notifyGoalUpdated(goalId, updatedGoal.currentAmount);
-      } else {
-        print('Warning: Goal $goalId not found during progress update');
-      }
-    } catch (e) {
-      print('Error updating goal progress: $e');
-      // Don't throw - allocation was successful, goal update is secondary
-    }
-  }
 
   // Helper method to convert database events to domain events
   Future<List<Event>> _convertToEvents(List<EventTableData> eventData) {
