@@ -26,7 +26,10 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
   @override
   void initState() {
     super.initState();
-    _loadAllocationHistory();
+    // Defer loading until after the initial build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAllocationHistory();
+    });
   }
 
   Future<void> _loadAllocationHistory() async {

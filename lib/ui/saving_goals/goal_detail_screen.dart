@@ -27,7 +27,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   void initState() {
     super.initState();
     _currentGoal = widget.goal;
-    _refreshGoal();
+    // Defer the refresh until after the initial build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshGoal();
+    });
   }
 
   Future<void> _refreshGoal() async {

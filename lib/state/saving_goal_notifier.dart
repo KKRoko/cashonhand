@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:collection';
 import '../data/models/freezed/saving_goal.dart';
 import '../data/repositories/saving_goal_repository.dart';
@@ -20,9 +21,12 @@ class SavingGoalNotifier extends ChangeNotifier {
     GoalUpdateNotifier().addListener(_handleGoalUpdate);
   }
 
-  void _handleGoalUpdate() async {
+  void _handleGoalUpdate() {
     print('Debug Notifier: Received goal update notification - refreshing goals');
-    await loadGoals();
+    // Use postFrameCallback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await loadGoals();
+    });
   }
 
   @override
