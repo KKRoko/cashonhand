@@ -16,6 +16,8 @@ import '../../state/saving_goal_notifier.dart';
 import '../../state/event_notifier.dart';
 import '../../services/achievement_service.dart';
 import '../../services/allocation_service.dart';
+import '../../services/round_up_service.dart';
+import '../../services/settings_service.dart' as app_settings;
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -45,7 +47,11 @@ Future<void> configureDependencies() async {
   // Add Event Repository registration
   if (!getIt.isRegistered<IEventRepository>()) {
     getIt.registerLazySingleton<IEventRepository>(
-      () => EventRepository(getIt<Database>()),
+      () => EventRepository(
+        getIt<Database>(),
+        getIt<RoundUpService>(),
+        getIt<app_settings.SettingsService>(),
+      ),
     );
   }
 
@@ -112,7 +118,21 @@ Future<void> configureDependencies() async {
     );
   }
 
+  // Add Round-Up Service registration
+  if (!getIt.isRegistered<RoundUpService>()) {
+    getIt.registerLazySingleton<RoundUpService>(
+      () => RoundUpService(getIt<ISavingGoalRepository>()),
+    );
+  }
+
   // Update Settings Service registration to include all dependencies
+  if (!getIt.isRegistered<app_settings.SettingsService>()) {
+    getIt.registerLazySingleton<app_settings.SettingsService>(
+      () => app_settings.SettingsService(),
+    );
+  }
+
+  // Keep the old SettingsService registration for backwards compatibility
   if (!getIt.isRegistered<SettingsService>()) {
     getIt.registerLazySingleton<SettingsService>(
       () => SettingsService(

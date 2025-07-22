@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
 import 'settings/settings_controller.dart';
+import 'services/settings_service.dart' as app_settings;
 import 'package:cash_on_hand/state/event_notifier.dart';
 import 'package:cash_on_hand/state/achievement_state.dart';
 import 'package:cash_on_hand/state/saving_goal_notifier.dart';
@@ -18,6 +19,10 @@ void main() async {
 
   // Load the user's preferred theme
   await settingsController.loadSettings();
+
+  // Initialize app settings service
+  final appSettingsService = getIt<app_settings.SettingsService>();
+  await appSettingsService.initialize();
 
   // Run the app
   runApp(

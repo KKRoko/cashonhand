@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'settings_controller.dart';
+import '../ui/settings/round_up_settings_screen.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({
@@ -90,6 +91,18 @@ class SettingsView extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.auto_awesome, color: Colors.blue),
+              title: const Text('Round-Up Savings'),
+              subtitle: const Text('Automatically round up purchases and save the difference'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).pushNamed(RoundUpSettingsScreen.routeName);
+              },
             ),
           ),
           const SizedBox(height: 16),

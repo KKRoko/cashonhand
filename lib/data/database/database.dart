@@ -798,6 +798,37 @@ Future<int> deleteAllocationRule(int ruleId) =>
 
 // Helper method already exists above - removed duplicate
 
+// Round-up specific methods
+Future<List<GoalAllocationTableData>> getRoundUpAllocations({
+  DateTime? startDate,
+  DateTime? endDate,
+}) async {
+  final query = select(goalAllocations)
+    ..where((a) => a.allocationType.equals(AllocationType.roundUp.toString()));
+    
+  if (startDate != null || endDate != null) {
+    // Join with events table to filter by event date
+    final joinQuery = select(goalAllocations)
+      .join([
+        innerJoin(events, events.id.equalsExp(goalAllocations.eventId)),
+      ])
+      ..where(goalAllocations.allocationType.equals(AllocationType.roundUp.toString()));
+      
+    if (startDate != null) {
+      joinQuery.where(events.date.isBiggerOrEqualValue(startDate));
+    }
+    if (endDate != null) {
+      joinQuery.where(events.date.isSmallerOrEqualValue(endDate));
+    }
+    
+    final results = await joinQuery.get();
+    return results.map((row) => row.readTable(goalAllocations)).toList();
+  }
+  
+  return await query.get();
+}
+
+
 static LazyDatabase _openConnection() {  return LazyDatabase(() async {
     try {
       print("Starting database connection");

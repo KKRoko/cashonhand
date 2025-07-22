@@ -5,6 +5,8 @@ import '../../core/error/failures.dart';
 import '../../core/error/exception.dart';
 import '../../utils/event_date_utils.dart';
 import '../../services/recurrence_calculation_service.dart';
+import '../../services/round_up_service.dart';
+import '../../services/settings_service.dart';
 import '../database/database.dart';
 import '../models/enums/delete_option.dart';
 import '../models/enums/edit_option.dart';
@@ -22,8 +24,14 @@ import 'i_event_repository.dart';
 class EventRepository extends BaseRepository<Event>
     implements IEventRepository {
   final Database _database;
+  final RoundUpService _roundUpService;
+  final SettingsService _settingsService;
 
-  EventRepository(this._database);
+  EventRepository(
+    this._database,
+    this._roundUpService,
+    this._settingsService,
+  );
 
 @override
 Future<Either<Failure, List<Event>>> getEvents(DateTime day) {
@@ -94,6 +102,48 @@ bool _doesEventOccurOnDay(Event event, DateTime targetDay) {
   @override
 Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
   return catchError(() async {
+    // Check if round-up is enabled and calculate automatic round-up
+    final roundUpPrefs = _settingsService.roundUpPreferences;
+    List<GoalAllocation> automaticAllocations = [];
+    
+    if (roundUpPrefs.isEnabled) {
+      final roundUpCalc = _roundUpService.calculateRoundUp(
+        event.amount,
+        roundUpPrefs,
+        categoryId: event.categoryId,
+      );
+      
+      if (roundUpCalc.isApplicable && roundUpCalc.roundUpAmount > 0) {
+        print('Automatic round-up calculated: \$${roundUpCalc.roundUpAmount.toStringAsFixed(2)} for \$${event.amount.toStringAsFixed(2)}');
+        
+        // Create round-up allocation (we'll get the event ID from the creation process)
+        final allocationResult = await _roundUpService.createRoundUpAllocation(
+          0, // Temporary ID, will be updated below
+          roundUpCalc,
+          roundUpPrefs,
+        );
+        
+        allocationResult.fold(
+          (failure) => print('Warning: Failed to create round-up allocation: ${failure.message}'),
+          (allocation) {
+            if (allocation != null) {
+              automaticAllocations.add(allocation);
+            }
+          },
+        );
+      }
+    }
+    
+    // If we have automatic allocations, use addEventWithAllocations
+    if (automaticAllocations.isNotEmpty) {
+      final result = await addEventWithAllocations(day, event, automaticAllocations);
+      return result.fold(
+        (failure) => throw Exception(failure.message),
+        (event) => event,
+      );
+    }
+    
+    // No round-up - proceed with normal event creation
     final eventCompanion = EventsCompanion.insert(
       title: event.title,
       categoryId: event.categoryId,

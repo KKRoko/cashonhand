@@ -10,6 +10,8 @@ import 'ui/achievements/achievement_screen.dart';
 import 'ui/cash_on_hand/cash_on_hand_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
 import 'ui/saving_goals/saving_goals_screen.dart';  // Add this
+import 'ui/settings/round_up_settings_screen.dart';
+import 'ui/round_up/round_up_history_screen.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -83,8 +85,12 @@ class MyApp extends StatelessWidget {
                   case AchievementsScreen.routeName:
                     return const AchievementsScreen();
                   case SavingGoalsScreen.routeName:
-                    return const SavingGoalsScreen(); 
-                                      default:
+                    return const SavingGoalsScreen();
+                  case RoundUpSettingsScreen.routeName:
+                    return const RoundUpSettingsScreen();
+                  case RoundUpHistoryScreen.routeName:
+                    return const RoundUpHistoryScreen();
+                  default:
                     return const MainNavigationScreen();
                 }
               },

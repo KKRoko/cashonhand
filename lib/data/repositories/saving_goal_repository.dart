@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:drift/drift.dart';
+import 'package:injectable/injectable.dart';
 import '../../core/error/failures.dart';
 import '../database/database.dart';
 import '../models/freezed/saving_goal.dart';
@@ -36,6 +37,7 @@ abstract class ISavingGoalRepository {
   Future<Either<Failure, List<GoalAllocationHistory>>> getGoalAllocationHistory(int goalId);
 }
 
+@Injectable(as: ISavingGoalRepository)
 class SavingGoalRepository implements ISavingGoalRepository {
   final Database _db;
 
