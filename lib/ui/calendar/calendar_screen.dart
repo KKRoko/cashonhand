@@ -155,6 +155,9 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
           id: category.id,
           name: category.name,
           type: category.type,
+          parentCategoryId: null,
+          icon: null,
+          sortOrder: 0,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ))
@@ -247,6 +250,9 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
               id: category.id,
               name: category.name,
               type: category.type,
+              parentCategoryId: null,
+              icon: null,
+              sortOrder: 0,
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),
             ))

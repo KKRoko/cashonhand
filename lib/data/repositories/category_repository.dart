@@ -45,6 +45,9 @@ class CategoryRepository extends BaseRepository<Category> implements ICategoryRe
         id: category.id,
         name: category.name,
         type: category.type,
+        parentCategoryId: null,
+        icon: null,
+        sortOrder: 0,
         createdAt: DateTime.now(), // You might want to preserve the original createdAt
         updatedAt: DateTime.now(),
       );

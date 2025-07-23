@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import '../data/database/database.dart';
 import '../data/repositories/saving_goal_repository.dart';
+import '../data/models/enums/allocation_type.dart';
 import 'dart:math' as math;
 
 /// Comprehensive analytics service for advanced savings insights
@@ -78,7 +79,7 @@ class AnalyticsService {
 
   /// Advanced goal completion prediction with risk assessment
   Future<GoalPredictionAnalytics> getGoalCompletionPrediction(int goalId) async {
-    final goalResult = await _goalRepository.getGoal(goalId);
+    final goalResult = await _goalRepository.getGoalById(goalId);
     
     return await goalResult.fold(
       (failure) async => GoalPredictionAnalytics.error('Goal not found'),
@@ -629,15 +630,15 @@ class AnalyticsService {
     final allocations = await _database.getAllocationsInRange(start, end);
     
     // Analyze rule-based vs manual allocations
-    final ruleBasedCount = allocations.where((a) => a.ruleId != null).length;
-    final manualCount = allocations.length - ruleBasedCount;
+    final ruleBasedCount = allocations.where((a) => a.allocationType != AllocationType.manual).length;
+    final manualCount = allocations.where((a) => a.allocationType == AllocationType.manual).length;
     
     final ruleBasedAmount = allocations
-        .where((a) => a.ruleId != null)
+        .where((a) => a.allocationType != AllocationType.manual)
         .fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     
     final manualAmount = allocations
-        .where((a) => a.ruleId == null)
+        .where((a) => a.allocationType == AllocationType.manual)
         .fold<double>(0, (sum, alloc) => sum + alloc.allocationAmount);
     
     return {

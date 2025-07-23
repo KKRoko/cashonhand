@@ -29,6 +29,28 @@ class $CategoriesTable extends Categories
       GeneratedColumn<String>('type', aliasedName, false,
               type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<CategoryType>($CategoriesTable.$convertertype);
+  static const VerificationMeta _parentCategoryIdMeta =
+      const VerificationMeta('parentCategoryId');
+  @override
+  late final GeneratedColumn<int> parentCategoryId = GeneratedColumn<int>(
+      'parent_category_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+      'icon', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -46,7 +68,8 @@ class $CategoriesTable extends Categories
       requiredDuringInsert: false,
       defaultValue: currentDateAndTime);
   @override
-  List<GeneratedColumn> get $columns => [id, name, type, createdAt, updatedAt];
+  List<GeneratedColumn> get $columns =>
+      [id, name, type, parentCategoryId, icon, sortOrder, createdAt, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -67,6 +90,20 @@ class $CategoriesTable extends Categories
       context.missing(_nameMeta);
     }
     context.handle(_typeMeta, const VerificationResult.success());
+    if (data.containsKey('parent_category_id')) {
+      context.handle(
+          _parentCategoryIdMeta,
+          parentCategoryId.isAcceptableOrUnknown(
+              data['parent_category_id']!, _parentCategoryIdMeta));
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+          _iconMeta, icon.isAcceptableOrUnknown(data['icon']!, _iconMeta));
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -90,6 +127,12 @@ class $CategoriesTable extends Categories
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       type: $CategoriesTable.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
+      parentCategoryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}parent_category_id']),
+      icon: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}icon']),
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -111,12 +154,18 @@ class CategoryTableData extends DataClass
   final int id;
   final String name;
   final CategoryType type;
+  final int? parentCategoryId;
+  final String? icon;
+  final int sortOrder;
   final DateTime createdAt;
   final DateTime updatedAt;
   const CategoryTableData(
       {required this.id,
       required this.name,
       required this.type,
+      this.parentCategoryId,
+      this.icon,
+      required this.sortOrder,
       required this.createdAt,
       required this.updatedAt});
   @override
@@ -128,6 +177,13 @@ class CategoryTableData extends DataClass
       map['type'] =
           Variable<String>($CategoriesTable.$convertertype.toSql(type));
     }
+    if (!nullToAbsent || parentCategoryId != null) {
+      map['parent_category_id'] = Variable<int>(parentCategoryId);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -138,6 +194,11 @@ class CategoryTableData extends DataClass
       id: Value(id),
       name: Value(name),
       type: Value(type),
+      parentCategoryId: parentCategoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentCategoryId),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      sortOrder: Value(sortOrder),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -150,6 +211,9 @@ class CategoryTableData extends DataClass
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       type: serializer.fromJson<CategoryType>(json['type']),
+      parentCategoryId: serializer.fromJson<int?>(json['parentCategoryId']),
+      icon: serializer.fromJson<String?>(json['icon']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -161,6 +225,9 @@ class CategoryTableData extends DataClass
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'type': serializer.toJson<CategoryType>(type),
+      'parentCategoryId': serializer.toJson<int?>(parentCategoryId),
+      'icon': serializer.toJson<String?>(icon),
+      'sortOrder': serializer.toJson<int>(sortOrder),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -170,12 +237,20 @@ class CategoryTableData extends DataClass
           {int? id,
           String? name,
           CategoryType? type,
+          Value<int?> parentCategoryId = const Value.absent(),
+          Value<String?> icon = const Value.absent(),
+          int? sortOrder,
           DateTime? createdAt,
           DateTime? updatedAt}) =>
       CategoryTableData(
         id: id ?? this.id,
         name: name ?? this.name,
         type: type ?? this.type,
+        parentCategoryId: parentCategoryId.present
+            ? parentCategoryId.value
+            : this.parentCategoryId,
+        icon: icon.present ? icon.value : this.icon,
+        sortOrder: sortOrder ?? this.sortOrder,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
@@ -184,6 +259,11 @@ class CategoryTableData extends DataClass
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
+      parentCategoryId: data.parentCategoryId.present
+          ? data.parentCategoryId.value
+          : this.parentCategoryId,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -195,6 +275,9 @@ class CategoryTableData extends DataClass
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('parentCategoryId: $parentCategoryId, ')
+          ..write('icon: $icon, ')
+          ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -202,7 +285,8 @@ class CategoryTableData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, name, type, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+      id, name, type, parentCategoryId, icon, sortOrder, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -210,6 +294,9 @@ class CategoryTableData extends DataClass
           other.id == this.id &&
           other.name == this.name &&
           other.type == this.type &&
+          other.parentCategoryId == this.parentCategoryId &&
+          other.icon == this.icon &&
+          other.sortOrder == this.sortOrder &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -218,12 +305,18 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
   final Value<int> id;
   final Value<String> name;
   final Value<CategoryType> type;
+  final Value<int?> parentCategoryId;
+  final Value<String?> icon;
+  final Value<int> sortOrder;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const CategoriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
+    this.parentCategoryId = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -231,6 +324,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
     this.id = const Value.absent(),
     required String name,
     required CategoryType type,
+    this.parentCategoryId = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   })  : name = Value(name),
@@ -239,6 +335,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? type,
+    Expression<int>? parentCategoryId,
+    Expression<String>? icon,
+    Expression<int>? sortOrder,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -246,6 +345,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
+      if (parentCategoryId != null) 'parent_category_id': parentCategoryId,
+      if (icon != null) 'icon': icon,
+      if (sortOrder != null) 'sort_order': sortOrder,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -255,12 +357,18 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
       {Value<int>? id,
       Value<String>? name,
       Value<CategoryType>? type,
+      Value<int?>? parentCategoryId,
+      Value<String?>? icon,
+      Value<int>? sortOrder,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt}) {
     return CategoriesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       type: type ?? this.type,
+      parentCategoryId: parentCategoryId ?? this.parentCategoryId,
+      icon: icon ?? this.icon,
+      sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -279,6 +387,15 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
       map['type'] =
           Variable<String>($CategoriesTable.$convertertype.toSql(type.value));
     }
+    if (parentCategoryId.present) {
+      map['parent_category_id'] = Variable<int>(parentCategoryId.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -294,6 +411,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryTableData> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('parentCategoryId: $parentCategoryId, ')
+          ..write('icon: $icon, ')
+          ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -3301,6 +3421,9 @@ typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   Value<int> id,
   required String name,
   required CategoryType type,
+  Value<int?> parentCategoryId,
+  Value<String?> icon,
+  Value<int> sortOrder,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
 });
@@ -3308,6 +3431,9 @@ typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
   Value<int> id,
   Value<String> name,
   Value<CategoryType> type,
+  Value<int?> parentCategoryId,
+  Value<String?> icon,
+  Value<int> sortOrder,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
 });
@@ -3315,6 +3441,20 @@ typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
 final class $$CategoriesTableReferences
     extends BaseReferences<_$Database, $CategoriesTable, CategoryTableData> {
   $$CategoriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CategoriesTable _parentCategoryIdTable(_$Database db) =>
+      db.categories.createAlias($_aliasNameGenerator(
+          db.categories.parentCategoryId, db.categories.id));
+
+  $$CategoriesTableProcessedTableManager? get parentCategoryId {
+    if ($_item.parentCategoryId == null) return null;
+    final manager = $$CategoriesTableTableManager($_db, $_db.categories)
+        .filter((f) => f.id($_item.parentCategoryId!));
+    final item = $_typedResult.readTableOrNull(_parentCategoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static MultiTypedResultKey<$EventsTable, List<EventTableData>>
       _eventsRefsTable(_$Database db) =>
@@ -3370,11 +3510,37 @@ class $$CategoriesTableFilterComposer
           column: $table.type,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
+  ColumnFilters<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$CategoriesTableFilterComposer get parentCategoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.parentCategoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableFilterComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<bool> eventsRefs(
       Expression<bool> Function($$EventsTableFilterComposer f) f) {
@@ -3437,11 +3603,37 @@ class $$CategoriesTableOrderingComposer
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get icon => $composableBuilder(
+      column: $table.icon, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$CategoriesTableOrderingComposer get parentCategoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.parentCategoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableOrderingComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$CategoriesTableAnnotationComposer
@@ -3462,11 +3654,37 @@ class $$CategoriesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<CategoryType, String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$CategoriesTableAnnotationComposer get parentCategoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.parentCategoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<T> eventsRefs<T extends Object>(
       Expression<T> Function($$EventsTableAnnotationComposer a) f) {
@@ -3524,7 +3742,10 @@ class $$CategoriesTableTableManager extends RootTableManager<
     $$CategoriesTableUpdateCompanionBuilder,
     (CategoryTableData, $$CategoriesTableReferences),
     CategoryTableData,
-    PrefetchHooks Function({bool eventsRefs, bool autoAllocationRulesRefs})> {
+    PrefetchHooks Function(
+        {bool parentCategoryId,
+        bool eventsRefs,
+        bool autoAllocationRulesRefs})> {
   $$CategoriesTableTableManager(_$Database db, $CategoriesTable table)
       : super(TableManagerState(
           db: db,
@@ -3539,6 +3760,9 @@ class $$CategoriesTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<CategoryType> type = const Value.absent(),
+            Value<int?> parentCategoryId = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
+            Value<int> sortOrder = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
@@ -3546,6 +3770,9 @@ class $$CategoriesTableTableManager extends RootTableManager<
             id: id,
             name: name,
             type: type,
+            parentCategoryId: parentCategoryId,
+            icon: icon,
+            sortOrder: sortOrder,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
@@ -3553,6 +3780,9 @@ class $$CategoriesTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required String name,
             required CategoryType type,
+            Value<int?> parentCategoryId = const Value.absent(),
+            Value<String?> icon = const Value.absent(),
+            Value<int> sortOrder = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
@@ -3560,6 +3790,9 @@ class $$CategoriesTableTableManager extends RootTableManager<
             id: id,
             name: name,
             type: type,
+            parentCategoryId: parentCategoryId,
+            icon: icon,
+            sortOrder: sortOrder,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
@@ -3570,14 +3803,42 @@ class $$CategoriesTableTableManager extends RootTableManager<
                   ))
               .toList(),
           prefetchHooksCallback: (
-              {eventsRefs = false, autoAllocationRulesRefs = false}) {
+              {parentCategoryId = false,
+              eventsRefs = false,
+              autoAllocationRulesRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (eventsRefs) db.events,
                 if (autoAllocationRulesRefs) db.autoAllocationRules
               ],
-              addJoins: null,
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (parentCategoryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.parentCategoryId,
+                    referencedTable:
+                        $$CategoriesTableReferences._parentCategoryIdTable(db),
+                    referencedColumn: $$CategoriesTableReferences
+                        ._parentCategoryIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (eventsRefs)
@@ -3622,7 +3883,10 @@ typedef $$CategoriesTableProcessedTableManager = ProcessedTableManager<
     $$CategoriesTableUpdateCompanionBuilder,
     (CategoryTableData, $$CategoriesTableReferences),
     CategoryTableData,
-    PrefetchHooks Function({bool eventsRefs, bool autoAllocationRulesRefs})>;
+    PrefetchHooks Function(
+        {bool parentCategoryId,
+        bool eventsRefs,
+        bool autoAllocationRulesRefs})>;
 typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<int> id,
   Value<int?> originalEventId,

@@ -119,10 +119,11 @@ class SavingGoalService {
         
         return progressResult.fold(
           (failure) => Right(goal), // Return original goal if allocation calculation fails
-          (realTimeAmount) {
-            // Create updated goal with real-time progress
-            final updatedGoal = goal.copyWith(currentAmount: realTimeAmount);
-            print('Debug Service: Goal ${goal.title} real-time progress: \$${realTimeAmount.toStringAsFixed(2)}');
+          (allocationTotal) {
+            // Calculate total progress: initial amount + allocations
+            final totalProgress = goal.currentAmount + allocationTotal;
+            final updatedGoal = goal.copyWith(currentAmount: totalProgress);
+            print('Debug Service: Goal ${goal.title} progress: initial \$${goal.currentAmount.toStringAsFixed(2)} + allocations \$${allocationTotal.toStringAsFixed(2)} = \$${totalProgress.toStringAsFixed(2)}');
             return Right(updatedGoal);
           }
         );

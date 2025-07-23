@@ -32,7 +32,7 @@ class Database extends _$Database {
   Database() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -59,6 +59,25 @@ class Database extends _$Database {
           await m.createTable(goalAllocations);
           await m.createTable(autoAllocationRules);
           print('Database migrated to v2: Added goal allocation tables');
+        }
+        if (from < 3) {
+          // Migration from v2 to v3: Add hierarchical categories
+          await customStatement('ALTER TABLE categories ADD COLUMN parent_category_id INTEGER REFERENCES categories(id)');
+          await customStatement('ALTER TABLE categories ADD COLUMN icon TEXT');
+          await customStatement('ALTER TABLE categories ADD COLUMN sort_order INTEGER DEFAULT 0');
+          
+          // Clear existing categories and add the new hierarchical structure
+          await customStatement('DELETE FROM categories');
+          await _addDefaultCategories();
+          
+          print('Database migrated to v3: Added hierarchical category support with new categories');
+        }
+        if (from < 4) {
+          // Migration from v3 to v4: Ensure hierarchical categories are properly populated
+          await customStatement('DELETE FROM categories');
+          await _addDefaultCategories();
+          
+          print('Database migrated to v4: Refreshed hierarchical categories');
         }
       },
     );
@@ -502,59 +521,106 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
   }
 
   Future<void> _addDefaultCategories() async {
-    print("Adding default categories");
-
-    // Default income categories
-    final defaultIncomeCategories = [
-      CategoriesCompanion.insert(
-        name: 'Salary',
-        type: CategoryType.income,
-      ),
-      CategoriesCompanion.insert(
-        name: 'Investment',
-        type: CategoryType.income,
-      ),
-      CategoriesCompanion.insert(
-        name: 'Freelance',
-        type: CategoryType.income,
-      ),
-    ];
-
-    // Default expense categories
-    final defaultExpenseCategories = [
-      CategoriesCompanion.insert(
-        name: 'Food & Dining',
-        type: CategoryType.expense,
-      ),
-      CategoriesCompanion.insert(
-        name: 'Transportation',
-        type: CategoryType.expense,
-      ),
-      CategoriesCompanion.insert(
-        name: 'Housing',
-        type: CategoryType.expense,
-      ),
-      CategoriesCompanion.insert(
-        name: 'Healthcare',
-        type: CategoryType.expense,
-      ),
-    ];
+    print("Adding comprehensive hierarchical categories");
 
     try {
-      // Insert income categories
-      for (final category in defaultIncomeCategories) {
-        await into(categories).insert(category);
+      // INCOME CATEGORIES
+      final incomeId = await into(categories).insert(CategoriesCompanion.insert(
+        name: 'Income',
+        type: CategoryType.income,
+        icon: const Value('💰'),
+        sortOrder: const Value(1),
+      ));
+
+      // Income subcategories
+      final incomeSubcategories = [
+        'Salary', 'Investment', 'Freelance', 'Side Business', 'Rental Income', 'Other Income'
+      ];
+      
+      for (int i = 0; i < incomeSubcategories.length; i++) {
+        await into(categories).insert(CategoriesCompanion.insert(
+          name: incomeSubcategories[i],
+          type: CategoryType.income,
+          parentCategoryId: Value(incomeId),
+          sortOrder: Value(i + 1),
+        ));
       }
 
-      // Insert expense categories
-      for (final category in defaultExpenseCategories) {
-        await into(categories).insert(category);
-      }
+      // MAIN EXPENSE CATEGORIES WITH SUBCATEGORIES
+      await _addExpenseCategory('Living Expenses', '🏠', 1, [
+        'Rent or mortgage', 'Internet', 'Cable', 'Water', 'Electricity',
+        'Phone service', 'Groceries', 'Cleaning supplies', 'Personal care products',
+        'Child care', 'Homeowner\'s or renter\'s insurance'
+      ]);
+
+      await _addExpenseCategory('Transportation', '🚗', 2, [
+        'Car insurance', 'Car payment', 'Gas', 'Car repairs', 'Bus pass',
+        'Uber/Lyft', 'Parking', 'Car maintenance', 'Registration & fees'
+      ]);
+
+      await _addExpenseCategory('Travel Expenses', '✈️', 3, [
+        'Airfare', 'Transportation', 'Accommodations', 'Meals',
+        'Activities', 'Travel insurance', 'Visas & documents'
+      ]);
+
+      await _addExpenseCategory('Gifts and Donations', '🎁', 4, [
+        'Birthday gifts', 'Holidays', 'Weddings or anniversaries',
+        'Charity donations', 'Religious donations', 'Tips'
+      ]);
+
+      await _addExpenseCategory('Pet Care', '🐕', 5, [
+        'Pet insurance', 'Groomer fees', 'Veterinary care', 'Food',
+        'Medications', 'Cleaning supplies', 'Toys & accessories'
+      ]);
+
+      await _addExpenseCategory('Financial Goals', '🎯', 6, [
+        'Credit card payments', 'Student loan payments', 'Personal loan payments',
+        'Payment plans on financed purchases', 'Emergency fund', 'Long-term savings', 'Investments'
+      ]);
+
+      await _addExpenseCategory('Entertainment', '🎬', 7, [
+        'Restaurants', 'Movies', 'Concerts', 'Hobby expenses',
+        'Streaming platforms', 'Magazine subscriptions', 'Gaming', 'Books'
+      ]);
+
+      await _addExpenseCategory('Clothes', '👔', 8, [
+        'Work attire', 'Leisure attire', 'Children\'s clothing',
+        'Dry cleaning fees', 'Laundromat fees', 'Shoes', 'Accessories'
+      ]);
+
+      await _addExpenseCategory('Health and Wellness', '⚕️', 9, [
+        'Prescription medications', 'Health insurance and copays',
+        'Dental insurance and copays', 'Eye insurance and copays',
+        'Gym membership', 'Therapy', 'Supplements'
+      ]);
+
+      await _addExpenseCategory('Education', '📚', 10, [
+        'Books', 'Tuition', 'Class fees', 'Online courses',
+        'Certification fees', 'School supplies', 'Conferences'
+      ]);
 
       print("Default categories added successfully");
     } catch (e) {
       print("Error adding default categories: $e");
       rethrow;
+    }
+  }
+
+  Future<void> _addExpenseCategory(String categoryName, String icon, int sortOrder, List<String> subcategories) async {
+    final categoryId = await into(categories).insert(CategoriesCompanion.insert(
+      name: categoryName,
+      type: CategoryType.expense,
+      icon: Value(icon),
+      sortOrder: Value(sortOrder),
+    ));
+
+    for (int i = 0; i < subcategories.length; i++) {
+      await into(categories).insert(CategoriesCompanion.insert(
+        name: subcategories[i],
+        type: CategoryType.expense,
+        parentCategoryId: Value(categoryId),
+        sortOrder: Value(i + 1),
+      ));
     }
   }
 
@@ -569,6 +635,23 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
 
   Future<int> deleteCategory(int id) =>
       (delete(categories)..where((t) => t.id.equalsNullable(id))).go();
+
+  // Hierarchical category methods
+  Future<List<CategoryTableData>> getMainCategories({CategoryType? type}) =>
+      (select(categories)..where((t) => 
+        t.parentCategoryId.isNull() & 
+        (type != null ? t.type.equals(type.toString().split('.').last) : const Constant(true)))
+      ..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
+
+  Future<List<CategoryTableData>> getSubcategories(int parentId) =>
+      (select(categories)..where((t) => t.parentCategoryId.equals(parentId))
+      ..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
+
+  Future<List<CategoryTableData>> getAllCategoriesHierarchical() =>
+      (select(categories)..orderBy([
+        (c) => OrderingTerm.asc(c.sortOrder),
+        (c) => OrderingTerm.asc(c.parentCategoryId),
+      ])).get();
 
   // Events CRUD operations
   Future<List<EventTableData>> getAllEvents() => select(events).get();

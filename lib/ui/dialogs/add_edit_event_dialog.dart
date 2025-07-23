@@ -9,6 +9,8 @@ import '../../data/models/event_creation_result.dart';
 import '../../utils/event_date_utils.dart';
 import '../../utils/formatters.dart';
 import '../widgets/goal_allocation_widget.dart';
+import '../widgets/hierarchical_category_selector.dart';
+import '../../data/models/enums/category_type.dart';
 
 class AddEditEventDialog extends StatefulWidget {
   final DateTime selectedDay;
@@ -39,6 +41,7 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
 
   // State variables
   late int _selectedCategoryId;
+  CategoryTableData? _selectedCategory;
   late bool _isPositiveCashflow;
   late RepeatOption _repeatOption;
   late DateTime selectedDate;
@@ -49,6 +52,7 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   bool _showTitleError = false;
   String _firstOccurrenceText = '';
   bool _isBasicExpanded = false;
+  bool _showCategorySelector = false;
   bool _isRecurrenceExpanded = false;
   
   // Goal allocation state
@@ -78,6 +82,10 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
 
   void _initializeState() {
     _selectedCategoryId = widget.event?.categoryId ?? widget.categories.first.id;
+    _selectedCategory = widget.categories.firstWhere(
+      (cat) => cat.id == _selectedCategoryId,
+      orElse: () => widget.categories.first,
+    );
     _isPositiveCashflow = widget.event?.isPositiveCashflow ?? widget.isPositiveCashflow;
     _repeatOption = widget.event?.repeatOption ?? RepeatOption.today;
     _customRecurrence = widget.event?.customRecurrence;
@@ -907,9 +915,69 @@ if (_customRecurrence != null) {
     );
   }
 
+  Widget _buildCategorySection() {
+    final categoryType = _isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+    
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: InkWell(
+        onTap: () => setState(() => _showCategorySelector = true),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(
+                _isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
+                size: 20,
+                color: _isPositiveCashflow ? Colors.green : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Category',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const Spacer(),
+              if (_selectedCategory != null) ...[
+                if (_selectedCategory!.icon?.isNotEmpty == true)
+                  Text(
+                    _selectedCategory!.icon!,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                const SizedBox(width: 4),
+                Text(
+                  _selectedCategory!.name,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ] else
+                Text(
+                  'Select category',
+                  style: TextStyle(color: Colors.grey.shade400),
+                ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.grey.shade400,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return Stack(
+      children: [
+        Dialog(
             child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.8,
@@ -926,6 +994,8 @@ if (_customRecurrence != null) {
               const SizedBox(height: 16),
               _buildBasicDetailsSection(),
               const SizedBox(height: 8),
+              _buildCategorySection(),
+              const SizedBox(height: 8),
               _buildRecurrenceSection(),
               const SizedBox(height: 8),
               _buildGoalAllocationSection(),
@@ -936,6 +1006,45 @@ if (_customRecurrence != null) {
           ),
         ),
       ),
+    ),
+        
+        // Category Selector Modal
+        if (_showCategorySelector)
+          Positioned.fill(
+            child: Material(
+              color: Colors.black54,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: HierarchicalCategorySelector(
+                    categoryType: _isPositiveCashflow ? CategoryType.income : CategoryType.expense,
+                    selectedCategory: _selectedCategory,
+                    onCategorySelected: (category) {
+                      setState(() {
+                        _selectedCategory = category;
+                        _selectedCategoryId = category.id;
+                        _showCategorySelector = false;
+                      });
+                    },
+                    onClose: () {
+                      setState(() {
+                        _showCategorySelector = false;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -81,6 +81,69 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     await _refreshGoal();
   }
 
+  Future<void> _showDeleteConfirmation() async {
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Goal'),
+        content: Text(
+          'Are you sure you want to delete "${_currentGoal.title}"?\n\n'
+          'This action cannot be undone and will remove all progress data.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      await _deleteGoal();
+    }
+  }
+
+  Future<void> _deleteGoal() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final notifier = Provider.of<SavingGoalNotifier>(context, listen: false);
+      await notifier.deleteGoal(_currentGoal.id);
+      
+      if (mounted) {
+        // Show success message and go back
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Goal "${_currentGoal.title}" deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete goal: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final progressPercentage = _currentGoal.progressPercentage;
@@ -101,6 +164,25 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             icon: const Icon(Icons.edit),
             onPressed: _showEditDialog,
             tooltip: 'Edit Goal',
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'delete') {
+                _showDeleteConfirmation();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Delete Goal', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

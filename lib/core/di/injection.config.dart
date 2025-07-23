@@ -20,7 +20,9 @@ import '../../data/repositories/i_category_repository.dart' as _i269;
 import '../../data/repositories/i_event_repository.dart' as _i561;
 import '../../data/repositories/saving_goal_repository.dart' as _i38;
 import '../../services/achievement_service.dart' as _i91;
+import '../../services/achievement_sharing_service.dart' as _i16;
 import '../../services/allocation_service.dart' as _i114;
+import '../../services/analytics_service.dart' as _i155;
 import '../../services/auto_allocation_rules_engine.dart' as _i294;
 import '../../services/category_service.dart' as _i576;
 import '../../services/event_service.dart' as _i762;
@@ -45,6 +47,8 @@ extension GetItInjectableX on _i174.GetIt {
       environment,
       environmentFilter,
     );
+    gh.factory<_i16.AchievementSharingService>(
+        () => _i16.AchievementSharingService());
     gh.singleton<_i495.Database>(() => _i495.Database());
     gh.singleton<_i583.SettingsService>(() => _i583.SettingsService());
     gh.factory<_i114.AllocationService>(
@@ -61,6 +65,10 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i930.CategoryNotifier(gh<_i576.CategoryService>()));
     gh.factory<_i682.AchievementNotifier>(
         () => _i682.AchievementNotifier(gh<_i812.BaseAchievementRepository>()));
+    gh.factory<_i155.AnalyticsService>(() => _i155.AnalyticsService(
+          gh<_i495.Database>(),
+          gh<_i38.ISavingGoalRepository>(),
+        ));
     gh.factory<_i294.AutoAllocationRulesEngine>(
         () => _i294.AutoAllocationRulesEngine(
               gh<_i495.Database>(),
