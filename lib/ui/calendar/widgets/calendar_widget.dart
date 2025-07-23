@@ -42,16 +42,30 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   Map<DateTime, bool> _savingsStreak = {};
   Set<DateTime> _goalMilestones = {};
   bool _isLoading = true;
+  
+  // Monthly Summary expansion state
+  bool _isMonthlySummaryExpanded = false;
+  Map<String, double> _monthlyIncomeByCategory = {};
+  Map<String, double> _monthlyExpenseByCategory = {};
+  double _monthlyTotalIncome = 0.0;
+  double _monthlyTotalExpenses = 0.0;
+  bool _isLoadingMonthlyData = false;
 
   @override
   void initState() {
     super.initState();
     _loadGoalData();
+    _loadMonthlyBreakdown();
   }
 
   @override
   void didUpdateWidget(EnhancedCalendarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Reload monthly data when month changes
+    if (oldWidget.focusedDay.month != widget.focusedDay.month ||
+        oldWidget.focusedDay.year != widget.focusedDay.year) {
+      _loadMonthlyBreakdown();
+    }
     if (oldWidget.focusedDay.month != widget.focusedDay.month ||
         oldWidget.focusedDay.year != widget.focusedDay.year) {
       _loadGoalData();
@@ -153,6 +167,75 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     }
   }
 
+  Future<void> _loadMonthlyBreakdown() async {
+    setState(() => _isLoadingMonthlyData = true);
+    
+    try {
+      final database = getIt<Database>();
+      final monthStart = DateTime(widget.focusedDay.year, widget.focusedDay.month, 1);
+      final monthEnd = DateTime(widget.focusedDay.year, widget.focusedDay.month + 1, 0);
+      
+      // Get all events for the month
+      final allEvents = <Event>[];
+      for (var day = monthStart; !day.isAfter(monthEnd); day = day.add(const Duration(days: 1))) {
+        final dayEvents = widget.eventLoader(day);
+        allEvents.addAll(dayEvents);
+      }
+      
+      // Initialize breakdown maps
+      final incomeByCategory = <String, double>{};
+      final expenseByCategory = <String, double>{};
+      double totalIncome = 0.0;
+      double totalExpenses = 0.0;
+      
+      // Process each event and categorize
+      for (final event in allEvents) {
+        final amount = event.amount.abs();
+        
+        // Get category name
+        String categoryName = 'Unknown';
+        try {
+          final category = await database.getCategoryById(event.categoryId);
+          if (category != null) {
+            categoryName = category.name;
+            // If it's a subcategory, show parent > child format
+            if (category.parentCategoryId != null) {
+              final parentCategory = await database.getCategoryById(category.parentCategoryId!);
+              if (parentCategory != null) {
+                categoryName = '${parentCategory.name} > ${category.name}';
+              }
+            }
+          }
+        } catch (e) {
+          print('Error loading category for event: $e');
+        }
+        
+        if (event.isPositiveCashflow) {
+          incomeByCategory[categoryName] = (incomeByCategory[categoryName] ?? 0) + amount;
+          totalIncome += amount;
+        } else {
+          expenseByCategory[categoryName] = (expenseByCategory[categoryName] ?? 0) + amount;
+          totalExpenses += amount;
+        }
+      }
+      
+      if (mounted) {
+        setState(() {
+          _monthlyIncomeByCategory = incomeByCategory;
+          _monthlyExpenseByCategory = expenseByCategory;
+          _monthlyTotalIncome = totalIncome;
+          _monthlyTotalExpenses = totalExpenses;
+          _isLoadingMonthlyData = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading monthly breakdown: $e');
+      if (mounted) {
+        setState(() => _isLoadingMonthlyData = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -182,51 +265,292 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border(
-            left: BorderSide(
-              width: 4,
-              color: currentMonthTotal >= 0 ? Colors.green : Colors.red,
+      child: InkWell(
+        onTap: () => setState(() => _isMonthlySummaryExpanded = !_isMonthlySummaryExpanded),
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border(
+              left: BorderSide(
+                width: 4,
+                color: currentMonthTotal >= 0 ? Colors.green : Colors.red,
+              ),
             ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Month Summary',
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
-                  style: theme.textTheme.titleLarge,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with expand/collapse icon
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Monthly Summary',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _isMonthlySummaryExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.expand_more,
+                      color: theme.textTheme.titleMedium?.color,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              
+              // Summary totals
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  Text(
+                    _formatAmount(currentMonthTotal),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: currentMonthTotal >= 0 ? Colors.green : Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              
+              // Progress indicator
+              LinearProgressIndicator(
+                value: _calculateProgress(currentMonthTotal),
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation(
+                  currentMonthTotal >= 0 ? Colors.green : Colors.red,
                 ),
-                Text(
-                  _formatAmount(currentMonthTotal),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: currentMonthTotal >= 0 ? Colors.green : Colors.red,
+              ),
+              
+              // Expanded content
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: _isMonthlySummaryExpanded ? null : 0,
+                child: _isMonthlySummaryExpanded 
+                  ? _buildExpandedMonthlyContent(theme)
+                  : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpandedMonthlyContent(ThemeData theme) {
+    if (_isLoadingMonthlyData) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 16),
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Income and Expense totals
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.trending_up,
+                        color: Colors.green.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Income',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '\$${_monthlyTotalIncome.toStringAsFixed(2)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.green.shade800,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.trending_down,
+                        color: Colors.red.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Expenses',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '\$${_monthlyTotalExpenses.toStringAsFixed(2)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.red.shade800,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Category breakdowns
+          if (_monthlyIncomeByCategory.isNotEmpty) ...[
+            _buildCategoryBreakdown(
+              theme,
+              'Income by Category',
+              _monthlyIncomeByCategory,
+              Colors.green,
+              Icons.trending_up,
             ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: _calculateProgress(currentMonthTotal),
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation(
-                currentMonthTotal >= 0 ? Colors.green : Colors.red,
+            const SizedBox(height: 12),
+          ],
+          
+          if (_monthlyExpenseByCategory.isNotEmpty) ...[
+            _buildCategoryBreakdown(
+              theme,
+              'Expenses by Category',
+              _monthlyExpenseByCategory,
+              Colors.red,
+              Icons.trending_down,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryBreakdown(
+    ThemeData theme,
+    String title,
+    Map<String, double> categories,
+    MaterialColor color,
+    IconData icon,
+  ) {
+    // Sort categories by amount (descending)
+    final sortedEntries = categories.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    
+    // Show top 5 categories
+    final topCategories = sortedEntries.take(5).toList();
+    final totalAmount = categories.values.fold<double>(0, (sum, amount) => sum + amount);
+    
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: color.shade700,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: color.shade800,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...topCategories.map((entry) {
+            final percentage = (entry.value / totalAmount * 100);
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      entry.key,
+                      style: theme.textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '\$${entry.value.toStringAsFixed(2)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: color.shade700,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '(${percentage.toStringAsFixed(1)}%)',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          if (sortedEntries.length > 5) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '+ ${sortedEntries.length - 5} more categories',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
