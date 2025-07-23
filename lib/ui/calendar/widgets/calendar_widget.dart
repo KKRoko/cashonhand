@@ -47,6 +47,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   bool _isMonthlySummaryExpanded = false;
   Map<String, double> _monthlyIncomeByCategory = {};
   Map<String, double> _monthlyExpenseByCategory = {};
+  List<Event> _monthlyIncomeTransactions = [];
+  List<Event> _monthlyExpenseTransactions = [];
   double _monthlyTotalIncome = 0.0;
   double _monthlyTotalExpenses = 0.0;
   bool _isLoadingMonthlyData = false;
@@ -182,9 +184,11 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         allEvents.addAll(dayEvents);
       }
       
-      // Initialize breakdown maps
+      // Initialize breakdown maps and transaction lists
       final incomeByCategory = <String, double>{};
       final expenseByCategory = <String, double>{};
+      final incomeTransactions = <Event>[];
+      final expenseTransactions = <Event>[];
       double totalIncome = 0.0;
       double totalExpenses = 0.0;
       
@@ -212,9 +216,11 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         
         if (event.isPositiveCashflow) {
           incomeByCategory[categoryName] = (incomeByCategory[categoryName] ?? 0) + amount;
+          incomeTransactions.add(event);
           totalIncome += amount;
         } else {
           expenseByCategory[categoryName] = (expenseByCategory[categoryName] ?? 0) + amount;
+          expenseTransactions.add(event);
           totalExpenses += amount;
         }
       }
@@ -223,6 +229,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         setState(() {
           _monthlyIncomeByCategory = incomeByCategory;
           _monthlyExpenseByCategory = expenseByCategory;
+          _monthlyIncomeTransactions = incomeTransactions;
+          _monthlyExpenseTransactions = expenseTransactions;
           _monthlyTotalIncome = totalIncome;
           _monthlyTotalExpenses = totalExpenses;
           _isLoadingMonthlyData = false;
@@ -458,6 +466,42 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Icons.trending_down,
             ),
           ],
+          
+          const SizedBox(height: 16),
+          
+          // Detailed transaction lists
+          Text(
+            'Transaction Details',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Income transactions column
+              Expanded(
+                child: _buildTransactionList(
+                  theme,
+                  'Income Transactions',
+                  _monthlyIncomeTransactions,
+                  Colors.green,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Expense transactions column
+              Expanded(
+                child: _buildTransactionList(
+                  theme,
+                  'Expense Transactions',
+                  _monthlyExpenseTransactions,
+                  Colors.red,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -553,6 +597,197 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildTransactionList(
+    ThemeData theme,
+    String title,
+    List<Event> transactions,
+    MaterialColor color,
+  ) {
+    if (transactions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.shade200),
+        ),
+        child: Column(
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: color.shade800,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No transactions this month',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.grey.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Sort transactions by date (most recent first)
+    final sortedTransactions = List<Event>.from(transactions)
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    return Container(
+      decoration: BoxDecoration(
+        color: color.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.shade100,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
+            ),
+            child: Text(
+              title,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: color.shade800,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          
+          // Transaction list
+          Container(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: sortedTransactions.length,
+              itemBuilder: (context, index) {
+                final transaction = sortedTransactions[index];
+                return _buildTransactionListItem(theme, transaction, color);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionListItem(
+    ThemeData theme,
+    Event transaction,
+    MaterialColor color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: color.shade200,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  transaction.title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                '\$${transaction.amount.abs().toStringAsFixed(2)}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: color.shade700,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              Expanded(
+                child: FutureBuilder<String>(
+                  future: _getTransactionCategoryName(transaction.categoryId),
+                  builder: (context, snapshot) {
+                    final categoryName = snapshot.data ?? 'Loading...';
+                    return Text(
+                      categoryName,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
+                ),
+              ),
+              Text(
+                _formatTransactionDate(transaction.dateTime),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String> _getTransactionCategoryName(int categoryId) async {
+    try {
+      final database = getIt<Database>();
+      final category = await database.getCategoryById(categoryId);
+      if (category != null) {
+        // If it's a subcategory, show parent > child format
+        if (category.parentCategoryId != null) {
+          final parentCategory = await database.getCategoryById(category.parentCategoryId!);
+          if (parentCategory != null) {
+            return '${parentCategory.name} > ${category.name}';
+          }
+        }
+        return category.name;
+      }
+      return 'Unknown';
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
+  String _formatTransactionDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) {
+      return 'Today';
+    } else if (difference == 1) {
+      return 'Yesterday';
+    } else if (difference < 7) {
+      return '${difference}d ago';
+    } else {
+      return '${date.month}/${date.day}';
+    }
   }
 
  Widget _buildCalendar(BuildContext context) {
