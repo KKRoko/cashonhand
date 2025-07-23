@@ -62,9 +62,9 @@ class Database extends _$Database {
         }
         if (from < 3) {
           // Migration from v2 to v3: Add hierarchical categories
-          await customStatement('ALTER TABLE categories ADD COLUMN parent_category_id INTEGER REFERENCES categories(id)');
-          await customStatement('ALTER TABLE categories ADD COLUMN icon TEXT');
-          await customStatement('ALTER TABLE categories ADD COLUMN sort_order INTEGER DEFAULT 0');
+          await _addColumnIfNotExists('categories', 'parent_category_id', 'INTEGER REFERENCES categories(id)');
+          await _addColumnIfNotExists('categories', 'icon', 'TEXT');
+          await _addColumnIfNotExists('categories', 'sort_order', 'INTEGER DEFAULT 0');
           
           // Clear existing categories and add the new hierarchical structure
           await customStatement('DELETE FROM categories');
@@ -83,6 +83,34 @@ class Database extends _$Database {
     );
   }
 
+  /// Helper method to safely add a column if it doesn't exist
+  Future<void> _addColumnIfNotExists(String tableName, String columnName, String columnDefinition) async {
+    try {
+      // Try to check if column exists by querying the table info
+      final result = await customSelect('PRAGMA table_info($tableName)').get();
+      final columnExists = result.any((row) => row.data['name'] == columnName);
+      
+      if (!columnExists) {
+        await customStatement('ALTER TABLE $tableName ADD COLUMN $columnName $columnDefinition');
+        print('Added column $columnName to table $tableName');
+      } else {
+        print('Column $columnName already exists in table $tableName, skipping');
+      }
+    } catch (e) {
+      print('Error checking/adding column $columnName: $e');
+      // Try to add the column anyway, in case the PRAGMA query failed
+      try {
+        await customStatement('ALTER TABLE $tableName ADD COLUMN $columnName $columnDefinition');
+        print('Successfully added column $columnName to table $tableName on retry');
+      } catch (retryError) {
+        print('Failed to add column $columnName even on retry: $retryError');
+        // If it's a duplicate column error, that's actually fine - the column exists
+        if (!retryError.toString().contains('duplicate column name')) {
+          rethrow;
+        }
+      }
+    }
+  }
 
   Future<void> updateRecurringEvents(
     EventTableData event,

@@ -11,6 +11,8 @@ import '../../utils/formatters.dart';
 import '../widgets/goal_allocation_widget.dart';
 import '../widgets/hierarchical_category_selector.dart';
 import '../../data/models/enums/category_type.dart';
+import '../../services/smart_categorization_service.dart';
+import '../../core/di/injection.dart';
 
 class AddEditEventDialog extends StatefulWidget {
   final DateTime selectedDay;
@@ -57,16 +59,24 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   
   // Goal allocation state
   List<GoalAllocation> _goalAllocations = [];
+  
+  // Smart categorization state
+  SmartCategorizationResult? _smartSuggestion;
+  bool _isSmartSuggestionActive = false;
+  bool _userHasSelectedCategory = false;
+  late SmartCategorizationService _smartCategorizationService;
 
   @override
   void initState() {
     super.initState();
+    _smartCategorizationService = getIt<SmartCategorizationService>();
     _initializeControllers();
     _initializeState();
     
     // Calculate initial first occurrence text
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateFirstOccurrenceText();
+      _suggestCategoryFromTitle(); // Initial suggestion if editing and no category selected
     });
   }
 
@@ -81,11 +91,21 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   }
 
   void _initializeState() {
-    _selectedCategoryId = widget.event?.categoryId ?? widget.categories.first.id;
-    _selectedCategory = widget.categories.firstWhere(
-      (cat) => cat.id == _selectedCategoryId,
-      orElse: () => widget.categories.first,
-    );
+    // Only set category if editing existing event
+    if (widget.event != null) {
+      _selectedCategoryId = widget.event!.categoryId;
+      _selectedCategory = widget.categories.firstWhere(
+        (cat) => cat.id == _selectedCategoryId,
+        orElse: () => widget.categories.first,
+      );
+      _userHasSelectedCategory = true; // User already has a category selected
+    } else {
+      // For new events, start with no category selected to allow smart suggestions
+      _selectedCategoryId = -1; // Invalid ID to indicate no selection
+      _selectedCategory = null;
+      _userHasSelectedCategory = false;
+    }
+    
     _isPositiveCashflow = widget.event?.isPositiveCashflow ?? widget.isPositiveCashflow;
     _repeatOption = widget.event?.repeatOption ?? RepeatOption.today;
     _customRecurrence = widget.event?.customRecurrence;
@@ -235,6 +255,55 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     }
   }
 
+  /// Smart categorization logic - suggests category based on title
+  Future<void> _suggestCategoryFromTitle() async {
+    // Only suggest if user hasn't manually selected a category
+    if (_userHasSelectedCategory || _titleController.text.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      final suggestion = await _smartCategorizationService.suggestCategory(
+        _titleController.text,
+        _isPositiveCashflow ? CategoryType.income : CategoryType.expense,
+      );
+
+      if (suggestion != null && mounted) {
+        setState(() {
+          _smartSuggestion = suggestion;
+          _selectedCategory = suggestion.suggestedCategory;
+          _selectedCategoryId = suggestion.suggestedCategory.id;
+          _isSmartSuggestionActive = true;
+        });
+
+        print('✨ Smart suggestion: ${suggestion.suggestedCategory.name} (${suggestion.confidencePercentage} confidence)');
+        print('   Reason: ${suggestion.reason}');
+      }
+    } catch (e) {
+      print('❌ Error in smart categorization: $e');
+    }
+  }
+
+  /// Called when user manually selects a category
+  void _onCategoryManuallySelected(CategoryTableData category) {
+    setState(() {
+      _selectedCategory = category;
+      _selectedCategoryId = category.id;
+      _userHasSelectedCategory = true;
+      _isSmartSuggestionActive = false;
+      _smartSuggestion = null;
+      _showCategorySelector = false;
+    });
+  }
+
+  /// Called to show smart suggestion button for re-suggesting
+  Future<void> _requestSmartSuggestion() async {
+    setState(() {
+      _userHasSelectedCategory = false;
+    });
+    await _suggestCategoryFromTitle();
+  }
+
   void _saveEvent() {
     // Validate required fields
     if (_amountController.text.isEmpty || _titleController.text.isEmpty) {
@@ -245,6 +314,17 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Validate category selection
+    if (_selectedCategoryId == -1 || _selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a category'),
           backgroundColor: Colors.red,
         ),
       );
@@ -462,6 +542,8 @@ if (_customRecurrence != null) {
                   if (_showTitleError) {
                     setState(() => _showTitleError = false);
                   }
+                  // Trigger smart categorization if no category selected
+                  _suggestCategoryFromTitle();
                 },
               ),
             ],
@@ -922,53 +1004,144 @@ if (_customRecurrence != null) {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: InkWell(
-        onTap: () => setState(() => _showCategorySelector = true),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Icon(
-                _isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
-                size: 20,
-                color: _isPositiveCashflow ? Colors.green : Colors.red,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Category',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const Spacer(),
-              if (_selectedCategory != null) ...[
-                if (_selectedCategory!.icon?.isNotEmpty == true)
-                  Text(
-                    _selectedCategory!.icon!,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                const SizedBox(width: 4),
-                Text(
-                  _selectedCategory!.name,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ] else
-                Text(
-                  'Select category',
-                  style: TextStyle(color: Colors.grey.shade400),
-                ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.keyboard_arrow_right,
-                color: Colors.grey.shade400,
-              ),
-            ],
-          ),
+        side: BorderSide(
+          color: _isSmartSuggestionActive 
+            ? Colors.blue.shade300
+            : Colors.grey.shade200,
+          width: _isSmartSuggestionActive ? 2 : 1,
         ),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _showCategorySelector = true),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Icon(
+                    _isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
+                    size: 20,
+                    color: _isPositiveCashflow ? Colors.green : Colors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Category',
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  const Spacer(),
+                  
+                  // Smart suggestion indicator
+                  if (_isSmartSuggestionActive) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.auto_awesome, size: 12, color: Colors.blue.shade700),
+                          const SizedBox(width: 2),
+                          Text(
+                            'Smart',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  
+                  // Category display
+                  if (_selectedCategory != null) ...[
+                    if (_selectedCategory!.icon?.isNotEmpty == true)
+                      Text(
+                        _selectedCategory!.icon!,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        _selectedCategory!.name,
+                        style: TextStyle(
+                          color: _isSmartSuggestionActive 
+                            ? Colors.blue.shade700
+                            : Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ] else
+                    Text(
+                      'Select category',
+                      style: TextStyle(color: Colors.grey.shade400),
+                    ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.keyboard_arrow_right,
+                    color: Colors.grey.shade400,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Smart suggestion details and controls
+          if (_isSmartSuggestionActive && _smartSuggestion != null) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                children: [
+                  Icon(Icons.lightbulb_outline, size: 16, color: Colors.blue.shade600),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${_smartSuggestion!.reason} (${_smartSuggestion!.confidencePercentage} match)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
+          // Smart suggest button for manual requests
+          if (!_isSmartSuggestionActive && _userHasSelectedCategory && _titleController.text.isNotEmpty) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextButton.icon(
+                onPressed: _requestSmartSuggestion,
+                icon: Icon(Icons.auto_awesome, size: 16, color: Colors.blue.shade600),
+                label: Text(
+                  'Get Smart Suggestion',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue.shade600,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -1027,13 +1200,7 @@ if (_customRecurrence != null) {
                   child: HierarchicalCategorySelector(
                     categoryType: _isPositiveCashflow ? CategoryType.income : CategoryType.expense,
                     selectedCategory: _selectedCategory,
-                    onCategorySelected: (category) {
-                      setState(() {
-                        _selectedCategory = category;
-                        _selectedCategoryId = category.id;
-                        _showCategorySelector = false;
-                      });
-                    },
+                    onCategorySelected: _onCategoryManuallySelected,
                     onClose: () {
                       setState(() {
                         _showCategorySelector = false;

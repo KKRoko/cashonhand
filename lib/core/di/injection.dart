@@ -22,6 +22,7 @@ import '../../services/auto_allocation_rules_engine.dart';
 import '../../services/financial_suggestions_engine.dart';
 import '../../services/notification_service.dart';
 import '../../services/savings_opportunity_detector.dart';
+import '../../services/smart_categorization_service.dart';
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -193,6 +194,13 @@ Future<void> configureDependencies() async {
         getIt<ISavingGoalRepository>(),
         getIt<FinancialSuggestionsEngine>(),
       ),
+    );
+  }
+
+  // Add Smart Categorization Service registration
+  if (!getIt.isRegistered<SmartCategorizationService>()) {
+    getIt.registerLazySingleton<SmartCategorizationService>(
+      () => SmartCategorizationService(getIt<Database>()),
     );
   }
 }

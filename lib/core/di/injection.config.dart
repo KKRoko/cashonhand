@@ -31,6 +31,7 @@ import '../../services/notification_service.dart' as _i85;
 import '../../services/round_up_service.dart' as _i78;
 import '../../services/savings_opportunity_detector.dart' as _i685;
 import '../../services/settings_service.dart' as _i583;
+import '../../services/smart_categorization_service.dart' as _i229;
 import '../../settings/settings_service.dart' as _i882;
 import '../../state/achievement_state.dart' as _i682;
 import '../../state/category_notifier.dart' as _i930;
@@ -53,6 +54,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i583.SettingsService>(() => _i583.SettingsService());
     gh.factory<_i114.AllocationService>(
         () => _i114.AllocationService(gh<_i495.Database>()));
+    gh.factory<_i229.SmartCategorizationService>(
+        () => _i229.SmartCategorizationService(gh<_i495.Database>()));
     gh.factory<_i269.ICategoryRepository>(
         () => _i282.CategoryRepository(gh<_i495.Database>()));
     gh.factory<_i576.CategoryService>(
