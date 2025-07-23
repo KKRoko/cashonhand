@@ -72,6 +72,11 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         oldWidget.focusedDay.year != widget.focusedDay.year) {
       _loadGoalData();
     }
+    
+    // Also reload monthly data when the month summary changes (indicates events have loaded/changed)
+    if (oldWidget.monthSummary != widget.monthSummary) {
+      _loadMonthlyBreakdown();
+    }
   }
 
   Future<void> _loadGoalData() async {
