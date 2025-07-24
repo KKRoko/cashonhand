@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../settings/settings_view.dart';
 import '../../state/event_notifier.dart';
+import '../../state/category_notifier.dart';
 import '../../core/di/injection.dart';
 import '../../data/database/database.dart';
+import '../../data/models/enums/category_type.dart';
+import '../../data/models/event_creation_result.dart';
 import '../achievements/achievement_screen.dart';
+import '../dialogs/add_edit_event_dialog.dart';
+import '../calendar/calendar_screen.dart';
 import '../../theme/design_tokens.dart';
 import '../components/cash_components.dart';
 
@@ -217,6 +222,101 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     }
   }
 
+  Future<void> _showAddEventDialog({required bool isPositiveCashflow}) async {
+    try {
+      print("Starting _showAddEventDialog from Cash page");
+      final categoryNotifier = context.read<CategoryNotifier>();
+      final eventNotifier = context.read<EventNotifier>();
+      
+      final categoryType = isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+      final categories = categoryNotifier.getCategoriesByType(categoryType)
+          .map((category) => CategoryTableData(
+                id: category.id,
+                name: category.name,
+                type: category.type,
+                parentCategoryId: null,
+                icon: null,
+                sortOrder: 0,
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+              ))
+          .toList();
+
+      if (categories.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No categories found. Please add categories first.')),
+        );
+        return;
+      }
+
+      // Get available goals for allocation
+      final database = getIt<Database>();
+      final availableGoals = await database.getActiveGoals();
+      print("Debug: Found ${availableGoals.length} active goals for allocation");
+      
+      // Use current date as the selected day
+      final selectedDay = DateTime.now();
+      
+      print("About to show AddEditEventDialog from Cash page");
+      final result = await showDialog<EventCreationResult>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return AddEditEventDialog(
+            selectedDay: selectedDay,
+            isPositiveCashflow: isPositiveCashflow,
+            categories: categories,
+            availableGoals: availableGoals,
+          );
+        },
+      );
+
+      print("Dialog result: ${result != null ? 'event created with ${result.allocations.length} allocations' : 'cancelled'}");
+      if (result != null) {
+        DateTime? firstEventDate;
+        
+        if (result.allocations.isNotEmpty) {
+          // Use the new method that handles allocations
+          firstEventDate = await eventNotifier.addEventWithAllocations(selectedDay, result.event, result.allocations);
+          print("Event and allocations saved: ${result.allocations.length} allocations");
+        } else {
+          // Use the regular method for events without allocations
+          firstEventDate = await eventNotifier.addEvent(selectedDay, result.event);
+        }
+        print("Event added successfully from Cash page");
+        
+        // Refresh the cash totals after adding the event
+        _calculateTotals();
+        
+        // Show success feedback
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.event.isRecurring 
+                ? 'Recurring events created! Your balance has been updated.'
+                : 'Event created successfully! Your balance has been updated.'
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      print("Error in _showAddEventDialog from Cash page: $e");
+      print("Stack trace: $stackTrace");
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   // Hero Balance Section with large current balance and trend
   Widget _buildHeroBalanceSection() {
     final currentBalance = _totals['month']!['positive']! - _totals['month']!['negative']!;
@@ -292,12 +392,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       children: [
         Expanded(
           child: FinancialButton(
-            onPressed: () {
-              // TODO: Navigate to add income
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Add Income pressed')),
-              );
-            },
+            onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
             financialType: FinancialButtonType.income,
             icon: Icons.add,
             size: ButtonSize.large,
@@ -311,12 +406,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         HSpace('md'),
         Expanded(
           child: FinancialButton(
-            onPressed: () {
-              // TODO: Navigate to add expense
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Add Expense pressed')),
-              );
-            },
+            onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
             financialType: FinancialButtonType.expense,
             icon: Icons.remove,
             size: ButtonSize.large,
@@ -421,10 +511,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             ),
             TextButton(
               onPressed: () {
-                // TODO: Navigate to full transaction history
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('View All pressed')),
-                );
+                // Navigate to Calendar page to view full transaction history
+                Navigator.pushNamed(context, CalendarScreen.routeName);
               },
               child: ResponsiveText(
                 'View All',
