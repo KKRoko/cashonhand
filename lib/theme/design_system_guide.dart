@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'design_tokens.dart';
-import 'enhanced_theme.dart';
+// import 'enhanced_theme.dart';
 import '../ui/components/cash_components.dart';
 
 /// 📚 DESIGN SYSTEM USAGE GUIDE
@@ -453,7 +453,7 @@ class _AnimationExamplesState extends State<AnimationExamples> {
               child: const Text('Toggle Fade'),
             ),
             HSpace('md'),
-            CashComponents.FadeTransition(
+            FadeTransition(
               visible: _fadeVisible,
               child: Container(
                 width: 100,
@@ -482,7 +482,7 @@ class _AnimationExamplesState extends State<AnimationExamples> {
               child: const Text('Toggle Slide'),
             ),
             HSpace('md'),
-            CashComponents.SlideTransition(
+            SlideTransition(
               visible: _slideVisible,
               direction: SlideDirection.left,
               child: Container(
@@ -864,5 +864,4 @@ class ResponsiveExamples extends StatelessWidget {
 /// ✅ Am I following established spacing and typography hierarchy?
 /// ✅ Are interactive elements properly sized and spaced?
 
-// Create alias for easier imports
-typedef CashComponents = CashCard;
+// Removed CashComponents alias - using direct imports instead

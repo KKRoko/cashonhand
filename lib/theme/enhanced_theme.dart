@@ -32,10 +32,8 @@ class EnhancedTheme {
         // Surface Colors
         surface: DesignTokens.color('surface'),
         onSurface: DesignTokens.color('onSurface'),
-        surfaceVariant: DesignTokens.color('surfaceVariant'),
+        surfaceContainerHighest: DesignTokens.color('surfaceVariant'),
         onSurfaceVariant: DesignTokens.color('onSurfaceVariant'),
-        background: DesignTokens.color('background'),
-        onBackground: DesignTokens.color('onBackground'),
         
         // Status Colors
         error: DesignTokens.color('error'),
@@ -300,14 +298,14 @@ class EnhancedTheme {
 
       // 🎛 Switch Theme
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return DesignTokens.color('onPrimary');
           }
           return DesignTokens.color('surface');
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return DesignTokens.color('primary');
           }
           return DesignTokens.color('border');
@@ -316,13 +314,13 @@ class EnhancedTheme {
 
       // ☑️ Checkbox Theme
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return DesignTokens.color('primary');
           }
           return Colors.transparent;
         }),
-        checkColor: MaterialStateProperty.all(DesignTokens.color('onPrimary')),
+        checkColor: WidgetStateProperty.all(DesignTokens.color('onPrimary')),
         side: BorderSide(
           color: DesignTokens.color('border'),
           width: 2,
@@ -334,8 +332,8 @@ class EnhancedTheme {
 
       // 🔘 Radio Theme  
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return DesignTokens.color('primary');
           }
           return DesignTokens.color('border');
@@ -438,7 +436,6 @@ class EnhancedTheme {
       ),
 
       // 🎨 Material Theme
-      material3: true,
       splashColor: DesignTokens.color('primary').withOpacity(0.1),
       highlightColor: DesignTokens.color('primary').withOpacity(0.05),
       hoverColor: DesignTokens.color('primary').withOpacity(0.05),
@@ -469,10 +466,8 @@ class EnhancedTheme {
         
         surface: const Color(0xFF121212),
         onSurface: const Color(0xFFE0E0E0),
-        surfaceVariant: const Color(0xFF1E1E1E),
+        surfaceContainerHighest: const Color(0xFF1E1E1E),
         onSurfaceVariant: const Color(0xFFBDBDBD),
-        background: const Color(0xFF0F0F0F),
-        onBackground: const Color(0xFFE0E0E0),
         
         error: DesignTokens.color('error'),
         onError: DesignTokens.color('onError'),

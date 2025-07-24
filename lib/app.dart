@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'core/di/injection.dart';
 import 'state/category_notifier.dart';
 import 'state/event_notifier.dart';
-import 'theme/app_theme.dart';
 import 'theme/enhanced_theme.dart';
 import 'ui/achievements/achievement_screen.dart';
 import 'ui/cash_on_hand/cash_on_hand_screen.dart';
@@ -16,6 +15,7 @@ import 'ui/round_up/round_up_history_screen.dart';
 import 'ui/allocation_rules/allocation_rules_screen.dart';
 import 'ui/suggestions/suggestions_screen.dart';
 import 'ui/onboarding/goal_integration_onboarding.dart';
+import 'ui/test_design_system_screen.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -106,6 +106,8 @@ class MyApp extends StatelessWidget {
                     return const AllocationRulesScreen();
                   case SuggestionsScreen.routeName:
                     return const SuggestionsScreen();
+                  case TestDesignSystemScreen.routeName:
+                    return const TestDesignSystemScreen();
                   default:
                     return const MainNavigationScreen();
                 }
