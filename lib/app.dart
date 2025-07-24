@@ -6,6 +6,7 @@ import 'core/di/injection.dart';
 import 'state/category_notifier.dart';
 import 'state/event_notifier.dart';
 import 'theme/app_theme.dart';
+import 'theme/enhanced_theme.dart';
 import 'ui/achievements/achievement_screen.dart';
 import 'ui/cash_on_hand/cash_on_hand_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
@@ -56,21 +57,29 @@ class MyApp extends StatelessWidget {
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
 
-          theme: AppTheme.lightTheme().copyWith(
+          theme: EnhancedTheme.lightTheme().copyWith(
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
                 TargetPlatform.android: CupertinoPageTransitionsBuilder(),
                 TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
               },
             ),
+            extensions: [
+              FinancialTheme.light(),
+              MotionTokens(),
+            ],
           ),
-          darkTheme: AppTheme.darkTheme().copyWith(
+          darkTheme: EnhancedTheme.darkTheme().copyWith(
             pageTransitionsTheme: const PageTransitionsTheme(
               builders: {
                 TargetPlatform.android: CupertinoPageTransitionsBuilder(),
                 TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
               },
             ),
+            extensions: [
+              FinancialTheme.dark(),
+              MotionTokens(),
+            ],
           ),
           themeMode: settingsController.themeMode,
 
