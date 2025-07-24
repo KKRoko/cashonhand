@@ -227,9 +227,9 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           incomeTransactions.add(event);
           totalIncome += amount;
         } else {
-          expenseByCategory[categoryName] = (expenseByCategory[categoryName] ?? 0) + amount;
+          expenseByCategory[categoryName] = (expenseByCategory[categoryName] ?? 0) + amount.abs();
           expenseTransactions.add(event);
-          totalExpenses += amount;
+          totalExpenses += amount.abs();
         }
       }
       
@@ -421,7 +421,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                       ),
                     ),
                     FinancialAmount(
-                      amount: _monthlyTotalExpenses,
+                      amount: -_monthlyTotalExpenses, // Make negative to show as red
                       size: FinancialAmountSize.medium,
                       showSign: false,
                     ),
@@ -541,7 +541,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   ),
                   HSpace('sm'),
                   FinancialAmount(
-                    amount: entry.value,
+                    amount: financialContext == FinancialContext.expense ? -entry.value : entry.value,
                     size: FinancialAmountSize.small,
                     showSign: false,
                   ),
