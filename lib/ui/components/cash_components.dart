@@ -19,6 +19,8 @@ class FinancialAmount extends StatelessWidget {
     this.showCurrency = true,
     this.currency = '\$',
     this.style,
+    this.maxWidth,
+    this.adaptive = true,
   });
 
   final double amount;
@@ -27,6 +29,8 @@ class FinancialAmount extends StatelessWidget {
   final bool showCurrency;
   final String currency;
   final TextStyle? style;
+  final double? maxWidth;
+  final bool adaptive; // Whether to use adaptive scaling
 
   @override
   Widget build(BuildContext context) {
@@ -44,22 +48,42 @@ class FinancialAmount extends StatelessWidget {
       color = financial.expenseColor;
     }
 
-    // Get text style based on size
-    TextStyle textStyle;
+    // Get base text style token based on size
+    String styleToken;
+    double minFontSize;
+    double maxFontSize;
+    
     switch (size) {
       case FinancialAmountSize.small:
-        textStyle = DesignTokens.textStyle('amountSmall');
+        styleToken = 'amountSmall';
+        minFontSize = 10.0;
+        maxFontSize = 16.0;
         break;
       case FinancialAmountSize.medium:
-        textStyle = DesignTokens.textStyle('amountMedium');
+        styleToken = 'amountMedium';
+        minFontSize = 12.0;
+        maxFontSize = 20.0;
         break;
       case FinancialAmountSize.large:
-        textStyle = DesignTokens.textStyle('amountLarge');
+        styleToken = 'amountLarge';
+        minFontSize = 16.0;
+        maxFontSize = 32.0;
         break;
     }
 
-    // Format the amount
-    String formattedAmount = amount.abs().toStringAsFixed(2);
+    // Get responsive text style
+    TextStyle textStyle = adaptive
+        ? DesignTokens.adaptiveTextStyle(
+            styleToken,
+            context,
+            maxWidth: maxWidth,
+            minFontSize: minFontSize,
+            maxFontSize: maxFontSize,
+          )
+        : DesignTokens.textStyle(styleToken);
+
+    // Format the amount with smart formatting for large numbers
+    String formattedAmount = _formatAmount(amount.abs());
     String displayText = '';
     
     if (showCurrency) {
@@ -72,14 +96,124 @@ class FinancialAmount extends StatelessWidget {
     
     displayText += formattedAmount;
 
-    return Text(
-      displayText,
-      style: (style ?? textStyle).copyWith(color: color),
-    );
+    // Use FittedBox to prevent overflow and ensure text fits
+    return maxWidth != null
+        ? SizedBox(
+            width: maxWidth,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                displayText,
+                style: (style ?? textStyle).copyWith(color: color),
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          )
+        : FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              displayText,
+              style: (style ?? textStyle).copyWith(color: color),
+              maxLines: 1,
+              overflow: TextOverflow.visible,
+            ),
+          );
+  }
+
+  /// Smart number formatting that abbreviates large amounts
+  String _formatAmount(double amount) {
+    if (amount >= 1000000000) {
+      return '${(amount / 1000000000).toStringAsFixed(1)}B';
+    } else if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(1)}K';
+    } else {
+      return amount.toStringAsFixed(2);
+    }
   }
 }
 
 enum FinancialAmountSize { small, medium, large }
+
+/// 📱 RESPONSIVE TEXT
+/// Text widget that automatically scales and prevents wrapping
+class ResponsiveText extends StatelessWidget {
+  const ResponsiveText(
+    this.text, {
+    super.key,
+    this.style,
+    this.styleToken,
+    this.maxWidth,
+    this.minFontSize,
+    this.maxFontSize,
+    this.textAlign,
+    this.overflow = TextOverflow.ellipsis,
+    this.maxLines = 1,
+    this.adaptive = true,
+  });
+
+  final String text;
+  final TextStyle? style;
+  final String? styleToken;
+  final double? maxWidth;
+  final double? minFontSize;
+  final double? maxFontSize;
+  final TextAlign? textAlign;
+  final TextOverflow overflow;
+  final int maxLines;
+  final bool adaptive;
+
+  @override
+  Widget build(BuildContext context) {
+    // Get base text style
+    TextStyle baseStyle;
+    if (style != null) {
+      baseStyle = style!;
+    } else if (styleToken != null) {
+      baseStyle = adaptive
+          ? DesignTokens.adaptiveTextStyle(
+              styleToken!,
+              context,
+              minFontSize: minFontSize,
+              maxFontSize: maxFontSize,
+            )
+          : DesignTokens.textStyle(styleToken!);
+    } else {
+      baseStyle = DesignTokens.responsiveTextStyle('bodyMedium', context);
+    }
+
+    final textWidget = Text(
+      text,
+      style: baseStyle,
+      textAlign: textAlign,
+      overflow: overflow,
+      maxLines: maxLines,
+    );
+
+    // If maxWidth is specified, use FittedBox to prevent overflow
+    if (maxWidth != null) {
+      return SizedBox(
+        width: maxWidth,
+        child: maxLines == 1
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: textAlign == TextAlign.center
+                    ? Alignment.center
+                    : textAlign == TextAlign.right
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                child: textWidget,
+              )
+            : textWidget,
+      );
+    }
+
+    return textWidget;
+  }
+}
 
 /// 🃏 ENHANCED CARD
 /// Card component with design token styling and optional financial context

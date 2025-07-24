@@ -502,6 +502,49 @@ class DesignTokens {
     return textStyles[token] ?? fallback ?? textStyles['bodyMedium']!;
   }
 
+  /// 📱 RESPONSIVE TEXT SCALING
+  /// Scales text based on screen size and available space
+  
+  static double getScaleFactor(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Define breakpoints
+    if (screenWidth < 350) return 0.85; // Small phones
+    if (screenWidth < 400) return 0.9;  // Medium phones
+    if (screenWidth < 450) return 1.0;  // Large phones
+    return 1.1; // Very large phones/tablets
+  }
+  
+  static TextStyle responsiveTextStyle(String token, BuildContext context, [TextStyle? fallback]) {
+    final baseStyle = textStyles[token] ?? fallback ?? textStyles['bodyMedium']!;
+    final scaleFactor = getScaleFactor(context);
+    
+    return baseStyle.copyWith(
+      fontSize: (baseStyle.fontSize ?? 16.0) * scaleFactor,
+    );
+  }
+  
+  static TextStyle adaptiveTextStyle(String token, BuildContext context, {
+    double? maxWidth,
+    double? minFontSize,
+    double? maxFontSize,
+  }) {
+    final baseStyle = textStyles[token] ?? textStyles['bodyMedium']!;
+    final scaleFactor = getScaleFactor(context);
+    
+    double fontSize = (baseStyle.fontSize ?? 16.0) * scaleFactor;
+    
+    // Apply constraints if provided
+    if (minFontSize != null && fontSize < minFontSize) {
+      fontSize = minFontSize;
+    }
+    if (maxFontSize != null && fontSize > maxFontSize) {
+      fontSize = maxFontSize;
+    }
+    
+    return baseStyle.copyWith(fontSize: fontSize);
+  }
+
   // Shadow getter with fallback
   static List<BoxShadow> shadow(String token, [List<BoxShadow>? fallback]) {
     return shadows[token] ?? fallback ?? shadows['sm']!;

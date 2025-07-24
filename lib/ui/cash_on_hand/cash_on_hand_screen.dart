@@ -230,17 +230,20 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       child: Column(
         children: [
           // Current Balance
-          Text(
+          ResponsiveText(
             'Current Balance',
+            styleToken: 'titleMedium',
             style: DesignTokens.textStyle('titleMedium').copyWith(
               color: DesignTokens.color('textSecondary'),
             ),
+            textAlign: TextAlign.center,
           ),
           VSpace('sm'),
           FinancialAmount(
             amount: currentBalance,
             size: FinancialAmountSize.large,
-            style: DesignTokens.textStyle('displayMedium'),
+            style: DesignTokens.responsiveTextStyle('displayMedium', context),
+            adaptive: true,
           ),
           VSpace('md'),
           
@@ -259,20 +262,24 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 size: FinancialAmountSize.small,
               ),
               HSpace('xs'),
-              Text(
+              ResponsiveText(
                 '(${trendPercentage.toStringAsFixed(1)}%)',
+                styleToken: 'bodySmall',
                 style: DesignTokens.textStyle('bodySmall').copyWith(
                   color: trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense'),
                 ),
+                maxWidth: 80,
               ),
             ],
           ),
           VSpace('sm'),
-          Text(
+          ResponsiveText(
             'vs last month',
+            styleToken: 'bodySmall',
             style: DesignTokens.textStyle('bodySmall').copyWith(
               color: DesignTokens.color('textTertiary'),
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -294,7 +301,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             financialType: FinancialButtonType.income,
             icon: Icons.add,
             size: ButtonSize.large,
-            child: const Text('Add Income'),
+            child: ResponsiveText(
+              'Add Income',
+              styleToken: 'labelLarge',
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
         HSpace('md'),
@@ -309,7 +320,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             financialType: FinancialButtonType.expense,
             icon: Icons.remove,
             size: ButtonSize.large,
-            child: const Text('Add Expense'),
+            child: ResponsiveText(
+              'Add Expense',
+              styleToken: 'labelLarge',
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ],
@@ -328,9 +343,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        ResponsiveText(
           'Time Periods',
-          style: DesignTokens.textStyle('titleLarge'),
+          styleToken: 'titleLarge',
         ),
         VSpace('md'),
         SizedBox(
@@ -358,22 +373,28 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      ResponsiveText(
                         period['title'] as String,
-                        style: DesignTokens.textStyle('titleSmall'),
+                        styleToken: 'titleSmall',
                         textAlign: TextAlign.center,
+                        maxWidth: 120, // Constrain width to prevent overflow
                       ),
                       VSpace('xs'),
                       FinancialAmount(
                         amount: total,
                         size: FinancialAmountSize.medium,
+                        maxWidth: 120, // Prevent amount from overflowing card
+                        adaptive: true,
                       ),
                       VSpace('xs'),
-                      Text(
+                      ResponsiveText(
                         period['subtitle'] as String,
+                        styleToken: 'bodySmall',
                         style: DesignTokens.textStyle('bodySmall').copyWith(
                           color: DesignTokens.color('textSecondary'),
                         ),
+                        textAlign: TextAlign.center,
+                        maxWidth: 120,
                       ),
                     ],
                   ),
@@ -394,9 +415,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            ResponsiveText(
               'Recent Activity',
-              style: DesignTokens.textStyle('titleLarge'),
+              styleToken: 'titleLarge',
             ),
             TextButton(
               onPressed: () {
@@ -405,11 +426,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   const SnackBar(content: Text('View All pressed')),
                 );
               },
-              child: Text(
+              child: ResponsiveText(
                 'View All',
+                styleToken: 'labelMedium',
                 style: DesignTokens.textStyle('labelMedium').copyWith(
                   color: DesignTokens.color('primary'),
                 ),
+                maxWidth: 60,
               ),
             ),
           ],
@@ -490,17 +513,21 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                ResponsiveText(
                   title,
+                  styleToken: 'bodyMedium',
                   style: DesignTokens.textStyle('bodyMedium').copyWith(
                     fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 1,
                 ),
-                Text(
+                ResponsiveText(
                   '$category • $date',
+                  styleToken: 'bodySmall',
                   style: DesignTokens.textStyle('bodySmall').copyWith(
                     color: DesignTokens.color('textSecondary'),
                   ),
+                  maxLines: 1,
                 ),
               ],
             ),
@@ -508,6 +535,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           FinancialAmount(
             amount: amount,
             size: FinancialAmountSize.medium,
+            adaptive: true,
+            maxWidth: 80, // Constrain width to prevent overflow
           ),
         ],
       ),
@@ -529,20 +558,22 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            ResponsiveText(
               'Achievements',
-              style: DesignTokens.textStyle('titleLarge'),
+              styleToken: 'titleLarge',
             ),
             TextButton(
               onPressed: () => Navigator.pushNamed(
                 context,
                 AchievementsScreen.routeName,
               ),
-              child: Text(
+              child: ResponsiveText(
                 'View All',
+                styleToken: 'labelMedium',
                 style: DesignTokens.textStyle('labelMedium').copyWith(
                   color: DesignTokens.color('primary'),
                 ),
+                maxWidth: 60,
               ),
             ),
           ],
@@ -604,9 +635,10 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            ResponsiveText(
               '${periodKey.toUpperCase()} BREAKDOWN',
-              style: DesignTokens.textStyle('titleLarge'),
+              styleToken: 'titleLarge',
+              textAlign: TextAlign.center,
             ),
             VSpace('lg'),
             Row(
@@ -614,21 +646,21 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               children: [
                 Column(
                   children: [
-                    Text('Income', style: DesignTokens.textStyle('labelMedium')),
+                    ResponsiveText('Income', styleToken: 'labelMedium', textAlign: TextAlign.center),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['positive']!, showSign: false),
                   ],
                 ),
                 Column(
                   children: [
-                    Text('Expenses', style: DesignTokens.textStyle('labelMedium')),
+                    ResponsiveText('Expenses', styleToken: 'labelMedium', textAlign: TextAlign.center),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['negative']!, showSign: false),
                   ],
                 ),
                 Column(
                   children: [
-                    Text('Net', style: DesignTokens.textStyle('labelMedium')),
+                    ResponsiveText('Net', styleToken: 'labelMedium', textAlign: TextAlign.center),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['positive']! - amounts['negative']!),
                   ],
@@ -638,7 +670,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             VSpace('xl'),
             SecondaryButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: ResponsiveText('Close', styleToken: 'labelLarge', textAlign: TextAlign.center),
             ),
           ],
         ),
