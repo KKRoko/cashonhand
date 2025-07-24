@@ -378,7 +378,6 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           children: [
             Expanded(
               child: CashCard(
-                financialContext: FinancialContext.income,
                 child: Column(
                   children: [
                     Icon(
@@ -405,7 +404,6 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             HSpace('md'),
             Expanded(
               child: CashCard(
-                financialContext: FinancialContext.expense,
                 child: Column(
                   children: [
                     Icon(
