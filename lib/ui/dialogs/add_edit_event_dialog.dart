@@ -482,72 +482,55 @@ if (_customRecurrence != null) {
               _isPositiveCashflow ? Colors.green.shade200 : Colors.red.shade200,
         ),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: _isPositiveCashflow ? Colors.green : Colors.red,
-              width: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Amount input field
+            TextField(
+              controller: _amountController,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: _isPositiveCashflow ? Colors.green : Colors.red,
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                CurrencyInputFormatter(),
+              ],
+              decoration: InputDecoration(
+                hintText: '0.00',
+                border: InputBorder.none,
+                errorText:
+                    _showAmountError ? 'Amount is required' : null,
+              ),
+              onChanged: (value) {
+                // Clear error when user types
+                if (_showAmountError) {
+                  setState(() => _showAmountError = false);
+                }
+              },
             ),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    _isPositiveCashflow ? Icons.add : Icons.remove,
-                    color: _isPositiveCashflow ? Colors.green : Colors.red,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _amountController,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        CurrencyInputFormatter(),
-                  
-                      ],
-                      decoration: InputDecoration(
-                        hintText: '0.00',
-                        border: InputBorder.none,
-                        errorText:
-                            _showAmountError ? 'Amount is required' : null,
-                      ),
-                      onChanged: (value) {
-                        // Clear error when user types
-                        if (_showAmountError) {
-                          setState(() => _showAmountError = false);
-                        }
-                      },
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 16), // Padding between amount and title
+            // Title/description input field
+            TextField(
+              controller: _titleController,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: "What's this for?",
+                border: InputBorder.none,
+                errorText: _showTitleError ? 'Description is required' : null,
               ),
-              TextField(
-                controller: _titleController,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  hintText: "What's this for?",
-                  border: InputBorder.none,
-                  errorText: _showTitleError ? 'Description is required' : null,
-                ),
-                onChanged: (value) {
-                  // Clear error when user types
-                  if (_showTitleError) {
-                    setState(() => _showTitleError = false);
-                  }
-                  // Trigger smart categorization if no category selected
-                  _suggestCategoryFromTitle();
-                },
-              ),
-            ],
-          ),
+              onChanged: (value) {
+                // Clear error when user types
+                if (_showTitleError) {
+                  setState(() => _showTitleError = false);
+                }
+                // Trigger smart categorization if no category selected
+                _suggestCategoryFromTitle();
+              },
+            ),
+          ],
         ),
       ),
     );
