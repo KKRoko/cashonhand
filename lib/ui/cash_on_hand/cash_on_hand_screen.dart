@@ -7,6 +7,7 @@ import '../../core/di/injection.dart';
 import '../../data/database/database.dart';
 import '../../data/models/enums/category_type.dart';
 import '../../data/models/event_creation_result.dart';
+import '../../data/models/freezed/event.dart';
 import '../achievements/achievement_screen.dart';
 import '../dialogs/add_edit_event_dialog.dart';
 import '../calendar/calendar_screen.dart';
@@ -30,6 +31,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   late Map<String, Map<String, double>> _totals;
   String? _expandedTileId;
   bool _isLoading = false;
+  List<Event> _recentTransactions = [];
 
   // Animation controller for progress bars
   late AnimationController _progressController;
@@ -148,6 +150,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
       if (mounted) {
         setState(() {});
+        // Load recent transactions after calculating totals
+        _loadRecentTransactions();
       }
     } catch (e) {
       if (mounted) {
@@ -222,6 +226,38 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     }
   }
 
+  Future<void> _loadRecentTransactions() async {
+    try {
+      final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
+      
+      // Get all events from the current year
+      final allEvents = eventNotifier.getEventsForDateRange(
+        DateTime(_now.year, 1, 1),
+        _endOfYear,
+      );
+      
+      // Sort by date (most recent first) and take the first 5
+      final sortedEvents = allEvents.toList()
+        ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      
+      // Take only the most recent 5 transactions
+      final recentEvents = sortedEvents.take(5).toList();
+      
+      if (mounted) {
+        setState(() {
+          _recentTransactions = recentEvents;
+        });
+      }
+    } catch (e) {
+      print('Error loading recent transactions: $e');
+      if (mounted) {
+        setState(() {
+          _recentTransactions = [];
+        });
+      }
+    }
+  }
+
   Future<void> _showAddEventDialog({required bool isPositiveCashflow}) async {
     try {
       print("Starting _showAddEventDialog from Cash page");
@@ -285,7 +321,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         }
         print("Event added successfully from Cash page");
         
-        // Refresh the cash totals after adding the event
+        // Refresh the cash totals and recent transactions after adding the event
         _calculateTotals();
         
         // Show success feedback
@@ -527,51 +563,92 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         ),
         VSpace('md'),
         CashCard(
-          child: Column(
-            children: [
-              _buildTransactionItem(
-                title: 'Salary Payment',
-                category: 'Income',
-                amount: 3500.00,
-                date: 'Today',
-                icon: Icons.attach_money,
-              ),
-              Divider(
-                color: DesignTokens.color('border'),
-                height: 1,
-              ),
-              _buildTransactionItem(
-                title: 'Grocery Shopping',
-                category: 'Food',
-                amount: -87.50,
-                date: 'Yesterday',
-                icon: Icons.shopping_cart,
-              ),
-              Divider(
-                color: DesignTokens.color('border'),
-                height: 1,
-              ),
-              _buildTransactionItem(
-                title: 'Coffee',
-                category: 'Food',
-                amount: -4.25,
-                date: '2 days ago',
-                icon: Icons.local_cafe,
-              ),
-            ],
-          ),
+          child: _recentTransactions.isEmpty
+              ? Padding(
+                  padding: EdgeInsets.all(DesignTokens.space('lg')),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 48,
+                        color: DesignTokens.color('textTertiary'),
+                      ),
+                      VSpace('md'),
+                      ResponsiveText(
+                        'No recent transactions',
+                        styleToken: 'bodyMedium',
+                        style: DesignTokens.textStyle('bodyMedium').copyWith(
+                          color: DesignTokens.color('textSecondary'),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      VSpace('xs'),
+                      ResponsiveText(
+                        'Add your first transaction using the buttons above',
+                        styleToken: 'bodySmall',
+                        style: DesignTokens.textStyle('bodySmall').copyWith(
+                          color: DesignTokens.color('textTertiary'),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: _recentTransactions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final transaction = entry.value;
+                    return Column(
+                      children: [
+                        _buildTransactionItem(transaction: transaction),
+                        if (index < _recentTransactions.length - 1)
+                          Divider(
+                            color: DesignTokens.color('border'),
+                            height: 1,
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                ),
         ),
       ],
     );
   }
   
   Widget _buildTransactionItem({
-    required String title,
-    required String category,
-    required double amount,
-    required String date,
-    required IconData icon,
+    required Event transaction,
   }) {
+    // Format the date relative to today
+    String formatRelativeDate(DateTime transactionDate) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final transactionDay = DateTime(transactionDate.year, transactionDate.month, transactionDate.day);
+      
+      final difference = today.difference(transactionDay).inDays;
+      
+      if (difference == 0) {
+        return 'Today';
+      } else if (difference == 1) {
+        return 'Yesterday';
+      } else if (difference < 7) {
+        return '$difference days ago';
+      } else {
+        return '${transactionDate.month}/${transactionDate.day}/${transactionDate.year}';
+      }
+    }
+
+    // Get appropriate icon based on transaction type and amount
+    IconData getTransactionIcon() {
+      if (transaction.isPositiveCashflow) {
+        // For income, use a general income icon or try to determine from category
+        return Icons.trending_up;
+      } else {
+        // For expenses, try to guess icon from category name or use general expense icon
+        final categoryName = 'Unknown'; // We'll get this from the category lookup
+        return Icons.trending_down;
+      }
+    }
+
     return Padding(
       padding: EdgeInsets.symmetric(
         vertical: DesignTokens.space('sm'),
@@ -582,15 +659,15 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           Container(
             padding: EdgeInsets.all(DesignTokens.space('sm')),
             decoration: BoxDecoration(
-              color: (amount >= 0 
+              color: (transaction.isPositiveCashflow 
                   ? DesignTokens.color('incomeLight') 
                   : DesignTokens.color('expenseLight')
               ).withOpacity(0.2),
               borderRadius: DesignTokens.radius('sm'),
             ),
             child: Icon(
-              icon,
-              color: amount >= 0 
+              getTransactionIcon(),
+              color: transaction.isPositiveCashflow 
                   ? DesignTokens.color('income') 
                   : DesignTokens.color('expense'),
               size: 20,
@@ -602,26 +679,32 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ResponsiveText(
-                  title,
+                  transaction.title,
                   styleToken: 'bodyMedium',
                   style: DesignTokens.textStyle('bodyMedium').copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                 ),
-                ResponsiveText(
-                  '$category • $date',
-                  styleToken: 'bodySmall',
-                  style: DesignTokens.textStyle('bodySmall').copyWith(
-                    color: DesignTokens.color('textSecondary'),
-                  ),
-                  maxLines: 1,
+                FutureBuilder<String>(
+                  future: _getCategoryName(transaction.categoryId),
+                  builder: (context, snapshot) {
+                    final categoryName = snapshot.data ?? 'Unknown';
+                    return ResponsiveText(
+                      '$categoryName • ${formatRelativeDate(transaction.dateTime)}',
+                      styleToken: 'bodySmall',
+                      style: DesignTokens.textStyle('bodySmall').copyWith(
+                        color: DesignTokens.color('textSecondary'),
+                      ),
+                      maxLines: 1,
+                    );
+                  },
                 ),
               ],
             ),
           ),
           FinancialAmount(
-            amount: amount,
+            amount: transaction.amount,
             size: FinancialAmountSize.medium,
             adaptive: true,
             maxWidth: 80, // Constrain width to prevent overflow
@@ -629,6 +712,16 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         ],
       ),
     );
+  }
+
+  Future<String> _getCategoryName(int categoryId) async {
+    try {
+      final database = getIt<Database>();
+      final category = await database.getCategoryById(categoryId);
+      return category?.name ?? 'Unknown';
+    } catch (e) {
+      return 'Unknown';
+    }
   }
   
   // Achievement Highlights (Horizontal Chips)
