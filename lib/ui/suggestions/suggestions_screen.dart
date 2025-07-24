@@ -3,6 +3,8 @@ import '../../core/di/injection.dart';
 import '../../data/models/freezed/financial_suggestion.dart';
 import '../../services/financial_suggestions_engine.dart';
 import '../../services/notification_service.dart';
+import '../../theme/design_tokens.dart';
+import '../components/cash_components.dart';
 import '../dialogs/suggestion_detail_dialog.dart';
 import 'widgets/suggestion_card.dart';
 import 'widgets/suggestions_filter_bar.dart';
@@ -159,13 +161,18 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
 
   Widget _buildSuggestionsTab() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Analyzing your financial data...'),
+            const CircularProgressIndicator(),
+            VSpace('lg'),
+            Text(
+              'Analyzing your financial data...',
+              style: DesignTokens.textStyle('bodyLarge').copyWith(
+                color: DesignTokens.color('textSecondary'),
+              ),
+            ),
           ],
         ),
       );
@@ -174,24 +181,30 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(DesignTokens.space('2xl')),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
+              Icon(
+                Icons.error_outline, 
+                size: 64, 
+                color: DesignTokens.color('error'),
+              ),
+              VSpace('lg'),
               Text(
                 'Error Loading Suggestions',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: DesignTokens.textStyle('headlineSmall'),
               ),
-              const SizedBox(height: 8),
+              VSpace('sm'),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
+                style: DesignTokens.textStyle('bodyMedium').copyWith(
+                  color: DesignTokens.color('textSecondary'),
+                ),
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
+              VSpace('xl'),
+              PrimaryButton(
                 onPressed: _loadData,
                 child: const Text('Retry'),
               ),
@@ -229,7 +242,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               : RefreshIndicator(
                   onRefresh: _loadData,
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(DesignTokens.space('lg')),
                     itemCount: _filteredSuggestions.length,
                     itemBuilder: (context, index) {
                       final suggestion = _filteredSuggestions[index];
@@ -253,32 +266,28 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
     if (activeNotifications.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(DesignTokens.space('2xl')),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.notifications_off_outlined,
                 size: 80,
-                color: Colors.grey.shade400,
+                color: DesignTokens.color('textTertiary'),
               ),
-              const SizedBox(height: 24),
+              VSpace('xl'),
               Text(
                 'No Active Notifications',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
+                style: DesignTokens.textStyle('headlineMedium').copyWith(
+                  color: DesignTokens.color('textSecondary'),
                 ),
               ),
-              const SizedBox(height: 16),
+              VSpace('lg'),
               Text(
                 'We\'ll notify you about important financial insights and goal updates.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                  height: 1.5,
+                style: DesignTokens.textStyle('bodyLarge').copyWith(
+                  color: DesignTokens.color('textSecondary'),
                 ),
               ),
             ],
@@ -288,7 +297,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(DesignTokens.space('lg')),
       itemCount: activeNotifications.length,
       itemBuilder: (context, index) {
         final notification = activeNotifications[index];
@@ -298,35 +307,37 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
   }
 
   Widget _buildNotificationCard(AppNotification notification) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: notification.isRead ? 1 : 3,
+    return CashCard(
+      margin: EdgeInsets.only(bottom: DesignTokens.space('md')),
+      elevation: notification.isRead ? 'xs' : 'md',
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: _getNotificationColor(notification.priority),
           child: Icon(
             _getNotificationIcon(notification.type),
-            color: Colors.white,
+            color: DesignTokens.color('onPrimary'),
             size: 20,
           ),
         ),
         title: Text(
           notification.title,
-          style: TextStyle(
+          style: DesignTokens.textStyle('titleMedium').copyWith(
             fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w600,
           ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(notification.body),
-            const SizedBox(height: 8),
+            VSpace('xs'),
+            Text(
+              notification.body,
+              style: DesignTokens.textStyle('bodyMedium'),
+            ),
+            VSpace('sm'),
             Text(
               _formatNotificationTime(notification.createdAt),
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 12,
+              style: DesignTokens.textStyle('bodySmall').copyWith(
+                color: DesignTokens.color('textSecondary'),
               ),
             ),
           ],
@@ -356,39 +367,35 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(DesignTokens.space('2xl')),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.lightbulb_outline,
               size: 80,
-              color: Colors.grey.shade400,
+              color: DesignTokens.color('textTertiary'),
             ),
-            const SizedBox(height: 24),
+            VSpace('xl'),
             Text(
               'No Suggestions Available',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+              style: DesignTokens.textStyle('headlineMedium').copyWith(
+                color: DesignTokens.color('textSecondary'),
               ),
             ),
-            const SizedBox(height: 16),
+            VSpace('lg'),
             Text(
               'Keep using the app and we\'ll provide personalized financial insights based on your spending patterns.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-                height: 1.5,
+              style: DesignTokens.textStyle('bodyLarge').copyWith(
+                color: DesignTokens.color('textSecondary'),
               ),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
+            VSpace('2xl'),
+            PrimaryButton(
               onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Check Again'),
+              icon: Icons.refresh,
+              child: const Text('Check Again'),
             ),
           ],
         ),
@@ -447,13 +454,13 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
   Color _getNotificationColor(NotificationPriority priority) {
     switch (priority) {
       case NotificationPriority.low:
-        return Colors.grey;
+        return DesignTokens.color('neutral');
       case NotificationPriority.normal:
-        return Colors.blue;
+        return DesignTokens.color('info');
       case NotificationPriority.high:
-        return Colors.orange;
+        return DesignTokens.color('warning');
       case NotificationPriority.urgent:
-        return Colors.red;
+        return DesignTokens.color('error');
     }
   }
 

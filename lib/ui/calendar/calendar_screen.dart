@@ -7,6 +7,8 @@ import '../../data/models/enums/category_type.dart';
 import '../../data/models/enums/edit_option.dart';
 import '../../data/models/freezed/event.dart';
 import '../../data/models/event_creation_result.dart';
+import '../../theme/design_tokens.dart';
+import '../components/cash_components.dart';
 import '../dialogs/add_edit_event_dialog.dart';
 import '../dialogs/delete_event_dialog.dart' show showDeleteEventDialog;
 import '../dialogs/edit_scope_dialog.dart';
@@ -377,13 +379,11 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                   return Center(child: Text(eventNotifier.error!));
                 }
 
-                return Column(
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.5,
-                      ),
-                      child: EnhancedCalendarWidget(
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // Calendar with flexible sizing
+                      EnhancedCalendarWidget(
                         focusedDay: _focusedDay,
                         selectedDay: _selectedDay,
                         onDaySelected: _onDaySelected,
@@ -394,65 +394,68 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                         calendarFormat: _calendarFormat,
                         monthSummary: _getMonthSummary(),
                       ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: EventListWidget(
-                          events: eventNotifier.getEventsForDay(_selectedDay!),
-                          onDeleteEvent: _showDeleteEventDialog,
-                          onEditEvent: _showEditEventDialog,
+                      // Event list with minimum height for visibility
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: 200,
+                          maxHeight: MediaQuery.of(context).size.height * 0.3,
                         ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                        border: Border(
-                          top: BorderSide(
-                            color: Theme.of(context).dividerColor,
-                            width: 1.0,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: EventListWidget(
+                            events: eventNotifier.getEventsForDay(_selectedDay!),
+                            onDeleteEvent: _showDeleteEventDialog,
+                            onEditEvent: _showEditEventDialog,
                           ),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: FilledButton.icon(
-                              onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              ),
-                              icon: const Icon(Icons.add, color: Colors.white),
-                              label: const Text(
-                                'Add Income',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: FilledButton.icon(
-                              onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              ),
-                              icon: const Icon(Icons.remove, color: Colors.white),
-                              label: const Text(
-                                'Add Expense',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      // Add some bottom padding for the action buttons
+                      const SizedBox(height: 80),
+                    ],
+                  ),
                 );
               },
+            ),
+          ),
+          // Floating action buttons at the bottom
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.all(DesignTokens.space('lg')),
+              decoration: BoxDecoration(
+                color: DesignTokens.color('surface'),
+                border: Border(
+                  top: BorderSide(
+                    color: DesignTokens.color('border'),
+                    width: 1.0,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FinancialButton(
+                      onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
+                      financialType: FinancialButtonType.income,
+                      icon: Icons.add,
+                      fullWidth: true,
+                      child: const Text('Add Income'),
+                    ),
+                  ),
+                  HSpace('lg'),
+                  Expanded(
+                    child: FinancialButton(
+                      onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
+                      financialType: FinancialButtonType.expense,
+                      icon: Icons.remove,
+                      fullWidth: true,
+                      child: const Text('Add Expense'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           if (_isLoading)

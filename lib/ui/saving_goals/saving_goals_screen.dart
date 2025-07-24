@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../data/models/freezed/saving_goal.dart';
 import '../../state/saving_goal_notifier.dart';
 import '../../services/goal_update_notifier.dart';
+import '../../theme/design_tokens.dart';
+import '../components/cash_components.dart';
 import 'widgets/goal_list_item.dart';
 import 'widgets/goal_statistics_widget.dart';
 import 'widgets/add_edit_goal_dialog.dart';
@@ -43,13 +45,13 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
 
   void _onGoalUpdated() {
     if (mounted) {
-      print("Debug: Received goal update notification, refreshing goals automatically");
+      // Received goal update notification, refreshing goals automatically
       context.read<SavingGoalNotifier>().loadGoals();
     }
   }
 
   void _loadGoals() {
-    print("Debug: Loading goals for Goals screen");
+    // Loading goals for Goals screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<SavingGoalNotifier>().loadGoals();
@@ -61,7 +63,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed && mounted) {
-      print("Debug: App resumed, refreshing goals");
+      // App resumed, refreshing goals
       _loadGoals();
     }
   }
@@ -76,7 +78,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
     if (!_isFirstBuild) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          print("Debug: Goals screen became visible (returning), refreshing goals");
+          // Goals screen became visible (returning), refreshing goals
           context.read<SavingGoalNotifier>().loadGoals();
         }
       });
@@ -104,30 +106,30 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
   }
 
   Widget _buildOverallProgress() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return CashCard(
+      financialContext: FinancialContext.income,
+      padding: EdgeInsets.all(DesignTokens.space('lg')),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.savings, color: Colors.green.shade700),
-              const SizedBox(width: 12),
+              Icon(
+                Icons.savings, 
+                color: DesignTokens.color('income'),
+              ),
+              HSpace('md'),
               Expanded(
                 child: Text(
                   'Overall Savings Progress',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.green.shade700,
+                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                    color: DesignTokens.color('income'),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          VSpace('lg'),
           const GoalStatisticsWidget(),
         ],
       ),
@@ -145,7 +147,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              print("Debug: Manual refresh triggered");
+              // Manual refresh triggered
               context.read<SavingGoalNotifier>().loadGoals();
             },
           ),
@@ -167,29 +169,30 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                 await context.read<SavingGoalNotifier>().loadGoals();
               },
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(DesignTokens.space('lg')),
               children: [
                 _buildOverallProgress(),
-                const SizedBox(height: 24),
+                VSpace('xl'),
                 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Your Goals',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: DesignTokens.textStyle('titleLarge'),
                     ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text('Add Goal'),
+                    PrimaryButton(
                       onPressed: () => _showAddEditGoalDialog(),
+                      icon: Icons.add,
+                      size: ButtonSize.medium,
+                      child: const Text('Add Goal'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                VSpace('lg'),
                 
                 ...goals.map((goal) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: DesignTokens.space('sm')),
                   child: GoalListItem(
                     goal: goal,
                     isExpanded: _expandedGoalId == goal.id,
@@ -204,21 +207,23 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                 if (goals.isEmpty)
                   Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(32),
+                      padding: EdgeInsets.all(DesignTokens.space('2xl')),
                       child: Column(
                         children: [
                           Icon(
                             Icons.savings_outlined,
                             size: 48,
-                            color: Colors.grey.shade400,
+                            color: DesignTokens.color('textTertiary'),
                           ),
-                          const SizedBox(height: 16),
+                          VSpace('lg'),
                           Text(
                             'No saving goals yet',
-                            style: TextStyle(color: Colors.grey.shade600),
+                            style: DesignTokens.textStyle('bodyLarge').copyWith(
+                              color: DesignTokens.color('textSecondary'),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          ElevatedButton(
+                          VSpace('sm'),
+                          PrimaryButton(
                             onPressed: () => _showAddEditGoalDialog(),
                             child: const Text('Create Your First Goal'),
                           ),

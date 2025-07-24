@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/freezed/saving_goal.dart';
 import '../../../utils/formatters.dart';
+import '../../../theme/design_tokens.dart';
+import '../../components/cash_components.dart';
 
 class GoalListItem extends StatelessWidget {
   final SavingGoal goal;
@@ -26,31 +28,27 @@ class GoalListItem extends StatelessWidget {
     final requiredMonthly = remainingAmount / monthsLeft;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: DesignTokens.duration('normal'),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: DesignTokens.color('surface'),
+        borderRadius: DesignTokens.radius('md'),
         border: Border(
           left: BorderSide(
             color: _getProgressColor(progress),
             width: 4,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: isExpanded ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: isExpanded 
+            ? DesignTokens.shadow('lg') 
+            : DesignTokens.shadow('sm'),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: DesignTokens.radius('md'),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(DesignTokens.space('lg')),
             child: Column(
               children: [
                 Row(
@@ -61,11 +59,13 @@ class GoalListItem extends StatelessWidget {
                         children: [
                           Text(
                             goal.title,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: DesignTokens.textStyle('titleMedium'),
                           ),
                           Text(
                             'Target: ${FormatUtils.formatCurrency(goal.targetAmount)}',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: DesignTokens.textStyle('bodySmall').copyWith(
+                              color: DesignTokens.color('textSecondary'),
+                            ),
                           ),
                         ],
                       ),
@@ -75,75 +75,58 @@ class GoalListItem extends StatelessWidget {
                       onPressed: onEdit,
                     ),
                     AnimatedRotation(
-                      duration: const Duration(milliseconds: 300),
+                      duration: DesignTokens.duration('normal'),
                       turns: isExpanded ? 0.5 : 0,
-                      child: const Icon(Icons.keyboard_arrow_down),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Progress (${(progress * 100).toInt()}%)'),
-                        Text(FormatUtils.formatCurrency(goal.currentAmount)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: Colors.grey.shade200,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          _getProgressColor(progress),
-                        ),
-                        minHeight: 8,
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: DesignTokens.color('textSecondary'),
                       ),
                     ),
                   ],
                 ),
+                VSpace('sm'),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FinancialProgressBar(
+                      value: goal.currentAmount,
+                      total: goal.targetAmount,
+                      label: 'Progress',
+                      financialContext: _getFinancialContext(progress),
+                      height: 8,
+                    ),
+                  ],
+                ),
                 if (isExpanded) ...[
-                  const SizedBox(height: 16),
+                  VSpace('lg'),
                   _buildDetailRow(
                     'Remaining',
                     FormatUtils.formatCurrency(remainingAmount),
                   ),
-                  const SizedBox(height: 8),
+                  VSpace('sm'),
                   _buildDetailRow(
                     'Required Monthly Savings',
                     FormatUtils.formatCurrency(requiredMonthly),
                   ),
-                  const SizedBox(height: 8),
-                _buildDetailRow(
-                  'Deadline Date',
-                  goal.deadlineDate != null 
-                      ? FormatUtils.formatDate(goal.deadlineDate!)
-                      : 'No deadline set',
-                ),
-                  const SizedBox(height: 8),
+                  VSpace('sm'),
+                  _buildDetailRow(
+                    'Deadline Date',
+                    goal.deadlineDate != null 
+                        ? FormatUtils.formatDate(goal.deadlineDate!)
+                        : 'No deadline set',
+                  ),
+                  VSpace('sm'),
                   _buildDetailRow(
                     'Months Left',
                     '${monthsLeft.round()} months',
                   ),
                   if (onViewDetails != null) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: onViewDetails,
-                        icon: const Icon(Icons.visibility, size: 18),
-                        label: const Text('View Details & History'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade50,
-                          foregroundColor: Colors.blue.shade700,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
+                    VSpace('lg'),
+                    SecondaryButton(
+                      onPressed: onViewDetails!,
+                      icon: Icons.visibility,
+                      fullWidth: true,
+                      child: const Text('View Details & History'),
                     ),
                   ],
                 ],
@@ -159,15 +142,29 @@ class GoalListItem extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label),
-        Text(value),
+        Text(
+          label,
+          style: DesignTokens.textStyle('bodyMedium'),
+        ),
+        Text(
+          value,
+          style: DesignTokens.textStyle('bodyMedium').copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
 
   Color _getProgressColor(double progress) {
-    if (progress >= 0.8) return Colors.green;
-    if (progress >= 0.5) return Colors.orange;
-    return Colors.red;
+    if (progress >= 0.8) return DesignTokens.color('success');
+    if (progress >= 0.5) return DesignTokens.color('warning');
+    return DesignTokens.color('error');
+  }
+  
+  FinancialContext _getFinancialContext(double progress) {
+    if (progress >= 0.8) return FinancialContext.income;
+    if (progress >= 0.5) return FinancialContext.neutral;
+    return FinancialContext.expense;
   }
 }

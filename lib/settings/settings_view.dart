@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'settings_controller.dart';
+import '../theme/design_tokens.dart';
+import '../ui/components/cash_components.dart';
 import '../ui/settings/round_up_settings_screen.dart';
 import '../ui/allocation_rules/allocation_rules_screen.dart';
 
@@ -19,22 +21,23 @@ class SettingsView extends StatelessWidget {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Reset All Data?'),
-            content: const Text(
+            title: Text(
+              'Reset All Data?',
+              style: DesignTokens.textStyle('titleLarge'),
+            ),
+            content: Text(
               'This action will permanently delete all your data including transactions, '
               'categories, and savings goals. This cannot be undone. Are you sure you '
-              'want to proceed?'
+              'want to proceed?',
+              style: DesignTokens.textStyle('bodyMedium'),
             ),
             actions: [
-              TextButton(
-                child: const Text('Cancel'),
+              SecondaryButton(
                 onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
               ),
-              TextButton(
-                child: const Text(
-                  'Reset',
-                  style: TextStyle(color: Colors.red),
-                ),
+              HSpace('sm'),
+              FinancialButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
                   try {
@@ -57,6 +60,8 @@ class SettingsView extends StatelessWidget {
                     }
                   }
                 },
+                financialType: FinancialButtonType.expense,
+                child: const Text('Reset'),
               ),
             ],
           );
@@ -69,64 +74,114 @@ class SettingsView extends StatelessWidget {
         title: const Text('Settings'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(DesignTokens.space('lg')),
         children: [
-          Card(
+          CashCard(
             child: ListTile(
-              title: const Text('Theme'),
+              title: Text(
+                'Theme',
+                style: DesignTokens.textStyle('titleMedium'),
+              ),
               trailing: DropdownButton<ThemeMode>(
                 value: controller.themeMode,
                 onChanged: controller.updateThemeMode,
-                items: const [
+                items: [
                   DropdownMenuItem(
                     value: ThemeMode.system,
-                    child: Text('System Theme'),
+                    child: Text(
+                      'System Theme',
+                      style: DesignTokens.textStyle('bodyMedium'),
+                    ),
                   ),
                   DropdownMenuItem(
                     value: ThemeMode.light,
-                    child: Text('Light Theme'),
+                    child: Text(
+                      'Light Theme',
+                      style: DesignTokens.textStyle('bodyMedium'),
+                    ),
                   ),
                   DropdownMenuItem(
                     value: ThemeMode.dark,
-                    child: Text('Dark Theme'),
+                    child: Text(
+                      'Dark Theme',
+                      style: DesignTokens.textStyle('bodyMedium'),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Card(
+          VSpace('lg'),
+          CashCard(
+            onTap: () {
+              Navigator.of(context).pushNamed(RoundUpSettingsScreen.routeName);
+            },
             child: ListTile(
-              leading: const Icon(Icons.auto_awesome, color: Colors.blue),
-              title: const Text('Round-Up Savings'),
-              subtitle: const Text('Automatically round up purchases and save the difference'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).pushNamed(RoundUpSettingsScreen.routeName);
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.rule, color: Colors.purple),
-              title: const Text('Auto-Allocation Rules'),
-              subtitle: const Text('Create rules to automatically allocate money to goals'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).pushNamed(AllocationRulesScreen.routeName);
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: ListTile(
-              title: const Text('Reset All Data'),
-              subtitle: const Text(
-                'Delete all transactions, categories, and savings goals'
+              leading: Icon(
+                Icons.auto_awesome, 
+                color: DesignTokens.color('info'),
               ),
-              trailing: const Icon(Icons.warning, color: Colors.red),
-              onTap: showResetConfirmation,
+              title: Text(
+                'Round-Up Savings',
+                style: DesignTokens.textStyle('titleMedium'),
+              ),
+              subtitle: Text(
+                'Automatically round up purchases and save the difference',
+                style: DesignTokens.textStyle('bodySmall').copyWith(
+                  color: DesignTokens.color('textSecondary'),
+                ),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: DesignTokens.color('textSecondary'),
+              ),
+            ),
+          ),
+          VSpace('lg'),
+          CashCard(
+            onTap: () {
+              Navigator.of(context).pushNamed(AllocationRulesScreen.routeName);
+            },
+            child: ListTile(
+              leading: Icon(
+                Icons.rule, 
+                color: DesignTokens.color('secondary'),
+              ),
+              title: Text(
+                'Auto-Allocation Rules',
+                style: DesignTokens.textStyle('titleMedium'),
+              ),
+              subtitle: Text(
+                'Create rules to automatically allocate money to goals',
+                style: DesignTokens.textStyle('bodySmall').copyWith(
+                  color: DesignTokens.color('textSecondary'),
+                ),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                color: DesignTokens.color('textSecondary'),
+              ),
+            ),
+          ),
+          VSpace('lg'),
+          CashCard(
+            financialContext: FinancialContext.expense,
+            onTap: showResetConfirmation,
+            child: ListTile(
+              title: Text(
+                'Reset All Data',
+                style: DesignTokens.textStyle('titleMedium'),
+              ),
+              subtitle: Text(
+                'Delete all transactions, categories, and savings goals',
+                style: DesignTokens.textStyle('bodySmall').copyWith(
+                  color: DesignTokens.color('textSecondary'),
+                ),
+              ),
+              trailing: Icon(
+                Icons.warning, 
+                color: DesignTokens.color('error'),
+              ),
             ),
           ),
         ],

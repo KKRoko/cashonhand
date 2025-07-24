@@ -8,6 +8,8 @@ import '../../../core/di/injection.dart';
 import '../../../data/repositories/saving_goal_repository.dart';
 import '../../../data/database/database.dart';
 import '../../../services/settings_service.dart';
+import '../../../theme/design_tokens.dart';
+import '../../components/cash_components.dart';
 
 class EnhancedCalendarWidget extends StatefulWidget {
   final DateTime focusedDay;
@@ -258,7 +260,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         children: [
           _buildMonthSummaryCard(context),
           if (_goals.isNotEmpty) _buildGoalsSummaryCard(context),
-          const SizedBox(height: 5),
+          VSpace('xs'),
           _buildCalendar(context),
           if (!_isLoading) _buildSavingsStreakIndicator(context),
         ],
@@ -267,260 +269,231 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   }
 
   Widget _buildMonthSummaryCard(BuildContext context) {
-    final theme = Theme.of(context);
     final currentMonthTotal = widget.monthSummary[DateTime(
       widget.focusedDay.year,
       widget.focusedDay.month,
       1,
     )] ?? 0.0;
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: () => setState(() => _isMonthlySummaryExpanded = !_isMonthlySummaryExpanded),
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border(
-              left: BorderSide(
-                width: 4,
-                color: currentMonthTotal >= 0 ? Colors.green : Colors.red,
-              ),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with expand/collapse icon
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Monthly Summary',
-                      style: theme.textTheme.titleMedium,
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: _isMonthlySummaryExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: theme.textTheme.titleMedium?.color,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              
-              // Summary totals
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  Text(
-                    _formatAmount(currentMonthTotal),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: currentMonthTotal >= 0 ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              
-              // Progress indicator
-              GestureDetector(
-                onLongPress: () => _showProgressThresholdDialog(context),
-                child: LinearProgressIndicator(
-                  value: _calculateProgress(currentMonthTotal),
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation(
-                    currentMonthTotal >= 0 ? Colors.green : Colors.red,
-                  ),
-                ),
-              ),
-              
-              // Expanded content
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: _isMonthlySummaryExpanded ? null : 0,
-                child: _isMonthlySummaryExpanded 
-                  ? _buildExpandedMonthlyContent(theme)
-                  : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+    // Determine financial context for smart theming
+    final financialContext = currentMonthTotal > 0 
+        ? FinancialContext.income 
+        : currentMonthTotal < 0 
+            ? FinancialContext.expense 
+            : FinancialContext.neutral;
 
-  Widget _buildExpandedMonthlyContent(ThemeData theme) {
-    if (_isLoadingMonthlyData) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 16),
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
+    return CashCard(
+      financialContext: financialContext,
+      onTap: () => setState(() => _isMonthlySummaryExpanded = !_isMonthlySummaryExpanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Income and Expense totals
+          // Header with expand/collapse icon
           Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.green.shade200),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.trending_up,
-                        color: Colors.green.shade600,
-                        size: 20,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Income',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.green.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        '\$${_monthlyTotalIncome.toStringAsFixed(2)}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.green.shade800,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Text(
+                  'Monthly Summary',
+                  style: DesignTokens.textStyle('titleMedium'),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.trending_down,
-                        color: Colors.red.shade600,
-                        size: 20,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Expenses',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.red.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        '\$${_monthlyTotalExpenses.toStringAsFixed(2)}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.red.shade800,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+              AnimatedRotation(
+                turns: _isMonthlySummaryExpanded ? 0.5 : 0,
+                duration: DesignTokens.duration('fast'),
+                child: Icon(
+                  Icons.expand_more,
+                  color: DesignTokens.color('textSecondary'),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          VSpace('sm'),
           
-          // Category breakdowns
-          if (_monthlyIncomeByCategory.isNotEmpty) ...[
-            _buildCategoryBreakdown(
-              theme,
-              'Income by Category',
-              _monthlyIncomeByCategory,
-              Colors.green,
-              Icons.trending_up,
-            ),
-            const SizedBox(height: 12),
-          ],
-          
-          if (_monthlyExpenseByCategory.isNotEmpty) ...[
-            _buildCategoryBreakdown(
-              theme,
-              'Expenses by Category',
-              _monthlyExpenseByCategory,
-              Colors.red,
-              Icons.trending_down,
-            ),
-          ],
-          
-          const SizedBox(height: 16),
-          
-          // Detailed transaction lists
-          Text(
-            'Transaction Details',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          
+          // Summary totals
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Income transactions column
-              Expanded(
-                child: _buildTransactionList(
-                  theme,
-                  'Income Transactions',
-                  _monthlyIncomeTransactions,
-                  Colors.green,
-                ),
+              Text(
+                '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
+                style: DesignTokens.textStyle('titleLarge'),
               ),
-              const SizedBox(width: 12),
-              // Expense transactions column
-              Expanded(
-                child: _buildTransactionList(
-                  theme,
-                  'Expense Transactions',
-                  _monthlyExpenseTransactions,
-                  Colors.red,
-                ),
+              FinancialAmount(
+                amount: currentMonthTotal,
+                size: FinancialAmountSize.large,
               ),
             ],
+          ),
+          VSpace('sm'),
+          
+          // Progress indicator with design system
+          GestureDetector(
+            onLongPress: () => _showProgressThresholdDialog(context),
+            child: FinancialProgressBar(
+              value: currentMonthTotal.abs(),
+              total: _getProgressThreshold(),
+              showLabels: false,
+              financialContext: financialContext,
+              height: 6,
+            ),
+          ),
+          
+          // Expanded content
+          ExpandTransition(
+            expanded: _isMonthlySummaryExpanded,
+            duration: 'normal',
+            child: _isMonthlySummaryExpanded 
+                ? Column(
+                    children: [
+                      VSpace('md'),
+                      _buildExpandedMonthlyContent(),
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
     );
   }
 
+  double _getProgressThreshold() {
+    final settingsService = getIt<SettingsService>();
+    return settingsService.monthlyProgressThreshold;
+  }
+
+  Widget _buildExpandedMonthlyContent() {
+    if (_isLoadingMonthlyData) {
+      return Padding(
+        padding: EdgeInsets.only(top: DesignTokens.space('md')),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Income and Expense totals using design system
+        Row(
+          children: [
+            Expanded(
+              child: CashCard(
+                financialContext: FinancialContext.income,
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.trending_up,
+                      color: DesignTokens.color('income'),
+                      size: 20,
+                    ),
+                    VSpace('xs'),
+                    Text(
+                      'Income',
+                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    FinancialAmount(
+                      amount: _monthlyTotalIncome,
+                      size: FinancialAmountSize.medium,
+                      showSign: false,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            HSpace('md'),
+            Expanded(
+              child: CashCard(
+                financialContext: FinancialContext.expense,
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.trending_down,
+                      color: DesignTokens.color('expense'),
+                      size: 20,
+                    ),
+                    VSpace('xs'),
+                    Text(
+                      'Expenses',
+                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    FinancialAmount(
+                      amount: _monthlyTotalExpenses,
+                      size: FinancialAmountSize.medium,
+                      showSign: false,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        VSpace('lg'),
+        
+        // Category breakdowns using design system
+        if (_monthlyIncomeByCategory.isNotEmpty) ...[
+          _buildCategoryBreakdown(
+            'Income by Category',
+            _monthlyIncomeByCategory,
+            FinancialContext.income,
+            Icons.trending_up,
+          ),
+          VSpace('md'),
+        ],
+        
+        if (_monthlyExpenseByCategory.isNotEmpty) ...[
+          _buildCategoryBreakdown(
+            'Expenses by Category',
+            _monthlyExpenseByCategory,
+            FinancialContext.expense,
+            Icons.trending_down,
+          ),
+        ],
+        
+        VSpace('lg'),
+        
+        // Detailed transaction lists using design system
+        Text(
+          'Transaction Details',
+          style: DesignTokens.textStyle('titleMedium').copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        VSpace('sm'),
+        
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Income transactions column
+            Expanded(
+              child: _buildTransactionList(
+                'Income Transactions',
+                _monthlyIncomeTransactions,
+                FinancialContext.income,
+              ),
+            ),
+            HSpace('md'),
+            // Expense transactions column
+            Expanded(
+              child: _buildTransactionList(
+                'Expense Transactions',
+                _monthlyExpenseTransactions,
+                FinancialContext.expense,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildCategoryBreakdown(
-    ThemeData theme,
     String title,
     Map<String, double> categories,
-    MaterialColor color,
+    FinancialContext financialContext,
     IconData icon,
   ) {
     // Sort categories by amount (descending)
@@ -531,13 +504,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     final topCategories = sortedEntries.take(5).toList();
     final totalAmount = categories.values.fold<double>(0, (sum, amount) => sum + amount);
     
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.shade200),
-      ),
+    return CashCard(
+      financialContext: financialContext,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -546,45 +514,42 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Icon(
                 icon,
                 size: 16,
-                color: color.shade700,
+                color: DesignTokens.color(financialContext == FinancialContext.income ? 'income' : 'expense'),
               ),
-              const SizedBox(width: 8),
+              HSpace('sm'),
               Text(
                 title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: color.shade800,
+                style: DesignTokens.textStyle('titleSmall').copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          VSpace('sm'),
           ...topCategories.map((entry) {
             final percentage = (entry.value / totalAmount * 100);
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: EdgeInsets.symmetric(vertical: DesignTokens.space('xs') / 2),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       entry.key,
-                      style: theme.textTheme.bodySmall,
+                      style: DesignTokens.textStyle('bodySmall'),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '\$${entry.value.toStringAsFixed(2)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: color.shade700,
-                    ),
+                  HSpace('sm'),
+                  FinancialAmount(
+                    amount: entry.value,
+                    size: FinancialAmountSize.small,
+                    showSign: false,
                   ),
-                  const SizedBox(width: 4),
+                  HSpace('xs'),
                   Text(
                     '(${percentage.toStringAsFixed(1)}%)',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
+                    style: DesignTokens.textStyle('bodySmall').copyWith(
+                      color: DesignTokens.color('textTertiary'),
                     ),
                   ),
                 ],
@@ -593,11 +558,11 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           }),
           if (sortedEntries.length > 5) ...[
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: EdgeInsets.only(top: DesignTokens.space('xs')),
               child: Text(
                 '+ ${sortedEntries.length - 5} more categories',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
+                style: DesignTokens.textStyle('bodySmall').copyWith(
+                  color: DesignTokens.color('textTertiary'),
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -609,33 +574,26 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   }
 
   Widget _buildTransactionList(
-    ThemeData theme,
     String title,
     List<Event> transactions,
-    MaterialColor color,
+    FinancialContext financialContext,
   ) {
     if (transactions.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.shade50,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.shade200),
-        ),
+      return CashCard(
+        financialContext: financialContext,
         child: Column(
           children: [
             Text(
               title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: color.shade800,
+              style: DesignTokens.textStyle('titleSmall').copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
+            VSpace('sm'),
             Text(
               'No transactions this month',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey.shade600,
+              style: DesignTokens.textStyle('bodySmall').copyWith(
+                color: DesignTokens.color('textTertiary'),
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -648,30 +606,18 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     final sortedTransactions = List<Event>.from(transactions)
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-    return Container(
-      decoration: BoxDecoration(
-        color: color.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.shade200),
-      ),
+    return CashCard(
+      financialContext: financialContext,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.shade100,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
-              ),
-            ),
+            padding: EdgeInsets.all(DesignTokens.space('md')),
             child: Text(
               title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: color.shade800,
+              style: DesignTokens.textStyle('titleSmall').copyWith(
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
@@ -686,7 +632,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               itemCount: sortedTransactions.length,
               itemBuilder: (context, index) {
                 final transaction = sortedTransactions[index];
-                return _buildTransactionListItem(theme, transaction, color);
+                return _buildTransactionListItem(transaction, financialContext);
               },
             ),
           ),
@@ -696,16 +642,18 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   }
 
   Widget _buildTransactionListItem(
-    ThemeData theme,
     Event transaction,
-    MaterialColor color,
+    FinancialContext financialContext,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: DesignTokens.space('md'),
+        vertical: DesignTokens.space('sm'),
+      ),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: color.shade200,
+            color: DesignTokens.color('border'),
             width: 0.5,
           ),
         ),
@@ -718,22 +666,20 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Expanded(
                 child: Text(
                   transaction.title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                  style: DesignTokens.textStyle('bodyMedium').copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Text(
-                '\$${transaction.amount.abs().toStringAsFixed(2)}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: color.shade700,
-                  fontWeight: FontWeight.w600,
-                ),
+              FinancialAmount(
+                amount: transaction.amount.abs(),
+                size: FinancialAmountSize.small,
+                showSign: false,
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          VSpace('xs'),
           Row(
             children: [
               Expanded(
@@ -743,8 +689,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                     final categoryName = snapshot.data ?? 'Loading...';
                     return Text(
                       categoryName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
+                      style: DesignTokens.textStyle('bodySmall').copyWith(
+                        color: DesignTokens.color('textTertiary'),
                       ),
                       overflow: TextOverflow.ellipsis,
                     );
@@ -753,8 +699,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               ),
               Text(
                 _formatTransactionDate(transaction.dateTime),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
+                style: DesignTokens.textStyle('bodySmall').copyWith(
+                  color: DesignTokens.color('textTertiary'),
                 ),
               ),
             ],
@@ -831,24 +777,27 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             ],
           ),
           actions: [
-            TextButton(
+            SecondaryButton(
               onPressed: () => Navigator.of(context).pop(),
+              size: ButtonSize.small,
               child: const Text('Cancel'),
             ),
-            TextButton(
+            HSpace('sm'),
+            PrimaryButton(
               onPressed: () {
                 final value = double.tryParse(controller.text);
                 if (value != null && value > 0) {
                   Navigator.of(context).pop(value);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a valid amount greater than 0'),
-                      backgroundColor: Colors.red,
+                    SnackBar(
+                      content: const Text('Please enter a valid amount greater than 0'),
+                      backgroundColor: DesignTokens.color('error'),
                     ),
                   );
                 }
               },
+              size: ButtonSize.small,
               child: const Text('Save'),
             ),
           ],
@@ -864,7 +813,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Failed to update threshold: ${failure.message}'),
-                backgroundColor: Colors.red,
+                backgroundColor: DesignTokens.color('error'),
               ),
             );
           }
@@ -874,7 +823,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Progress threshold updated to \$${result.toStringAsFixed(0)}'),
-                backgroundColor: Colors.green,
+                backgroundColor: DesignTokens.color('success'),
               ),
             );
             // Trigger a rebuild to update the progress bar
@@ -886,11 +835,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   }
 
  Widget _buildCalendar(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return CashCard(
       child: TableCalendar<Event>(
         firstDay: DateTime.utc(2010, 10, 16),
         lastDay: DateTime.utc(2030, 3, 14),
@@ -901,14 +846,30 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         startingDayOfWeek: StartingDayOfWeek.sunday,
         calendarStyle: CalendarStyle(
           outsideDaysVisible: false,
-          cellMargin: const EdgeInsets.all(4),
+          cellMargin: EdgeInsets.all(DesignTokens.space('xs')),
+          defaultDecoration: BoxDecoration(
+            color: DesignTokens.color('surface'),
+            borderRadius: DesignTokens.radius('sm'),
+            border: Border.all(
+              color: DesignTokens.color('border'),
+              width: 1,
+            ),
+          ),
           todayDecoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(8),
+            color: DesignTokens.color('primary').withOpacity(0.3),
+            borderRadius: DesignTokens.radius('sm'),
+            border: Border.all(
+              color: DesignTokens.color('primary'),
+              width: 2,
+            ),
           ),
           selectedDecoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(8),
+            color: DesignTokens.color('primary').withOpacity(0.7),
+            borderRadius: DesignTokens.radius('sm'),
+            border: Border.all(
+              color: DesignTokens.color('primary'),
+              width: 2,
+            ),
           ),
         ),
         onDaySelected: widget.onDaySelected,
@@ -943,10 +904,10 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.all(2),
+      margin: EdgeInsets.all(DesignTokens.space('xs') / 2),
       decoration: BoxDecoration(
         color: _getDayCellBackgroundColor(isSelected, hasSavings, isMilestone),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: DesignTokens.radius('sm'),
         border: Border.all(
           color: _getDayCellBorderColor(isSelected, hasSavings, isMilestone),
           width: isMilestone ? 2 : 1,
@@ -958,8 +919,10 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           Center(
             child: Text(
               '${date.day}',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: amount != 0 ? (amount > 0 ? Colors.green : Colors.red) : null,
+              style: DesignTokens.textStyle('bodyLarge').copyWith(
+                color: amount != 0 
+                    ? (amount > 0 ? DesignTokens.color('income') : DesignTokens.color('expense'))
+                    : DesignTokens.color('textPrimary'),
                 fontWeight: isMilestone ? FontWeight.bold : null,
               ),
             ),
@@ -975,13 +938,13 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                 height: 14,
                 decoration: BoxDecoration(
                   color: theme.primaryColor,
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: DesignTokens.radius('sm'),
                 ),
                 child: Center(
                   child: Text(
                     '${events.length}',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
+                      color: DesignTokens.color('onPrimary'),
                       fontSize: 9,
                     ),
                   ),
@@ -998,13 +961,13 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                 width: 14,
                 height: 14,
                 decoration: BoxDecoration(
-                  color: Colors.green.shade600,
-                  borderRadius: BorderRadius.circular(7),
+                  color: DesignTokens.color('income'),
+                  borderRadius: DesignTokens.radius('sm'),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.savings,
-                    color: Colors.white,
+                    color: DesignTokens.color('onPrimary'),
                     size: 8,
                   ),
                 ),
@@ -1029,13 +992,13 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.amber,
-                  borderRadius: BorderRadius.circular(6),
+                  color: DesignTokens.color('warning'),
+                  borderRadius: DesignTokens.radius('xs'),
                 ),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     Icons.star,
-                    color: Colors.white,
+                    color: DesignTokens.color('onPrimary'),
                     size: 8,
                   ),
                 ),
@@ -1048,15 +1011,15 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               bottom: 1,
               left: 1,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                padding: EdgeInsets.symmetric(horizontal: DesignTokens.space('xs') / 2, vertical: 1),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(3),
+                  color: DesignTokens.color('income').withOpacity(0.8),
+                  borderRadius: DesignTokens.radius('xs'),
                 ),
                 child: Text(
                   '\$${totalAllocationAmount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: DesignTokens.color('onPrimary'),
                     fontSize: 8,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1079,13 +1042,13 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: events.map((event) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 1),
+        padding: EdgeInsets.symmetric(horizontal: DesignTokens.space('xs') / 4),
         child: Container(
           width: 4,
           height: 4,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: event.isPositiveCashflow ? Colors.green : Colors.red,
+            color: event.isPositiveCashflow ? DesignTokens.color('income') : DesignTokens.color('expense'),
           ),
         ),
       )).toList(),
@@ -1114,115 +1077,87 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
   // New goal-related methods
 
   Widget _buildGoalsSummaryCard(BuildContext context) {
-    final theme = Theme.of(context);
     final activeGoals = _goals.where((g) => g.currentAmount < g.targetAmount).length;
     final totalSaved = _goals.fold<double>(0, (sum, goal) => sum + goal.currentAmount);
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: const Border(
-            left: BorderSide(width: 4, color: Colors.green),
+    return CashCard(
+      financialContext: FinancialContext.income,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Goals Summary',
+            style: DesignTokens.textStyle('titleMedium'),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Goals Summary',
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '$activeGoals Active Goals',
-                  style: theme.textTheme.bodyLarge,
-                ),
-                Text(
-                  '\$${totalSaved.toStringAsFixed(2)} Saved',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          VSpace('sm'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$activeGoals Active Goals',
+                style: DesignTokens.textStyle('bodyLarge'),
+              ),
+              FinancialAmount(
+                amount: totalSaved,
+                size: FinancialAmountSize.medium,
+                showSign: false,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSavingsStreakIndicator(BuildContext context) {
-    final theme = Theme.of(context);
     final currentStreak = _calculateCurrentSavingsStreak();
     
     if (currentStreak == 0) return const SizedBox();
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            colors: [Colors.orange.shade100, Colors.orange.shade50],
+    return CashCard(
+      financialContext: FinancialContext.neutral,
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(DesignTokens.space('sm')),
+            decoration: BoxDecoration(
+              color: DesignTokens.color('warning'),
+              borderRadius: DesignTokens.radius('sm'),
+            ),
+            child: Icon(
+              Icons.local_fire_department,
+              color: DesignTokens.color('onWarning'),
+              size: 20,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.local_fire_department,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Savings Streak',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.orange.shade800,
-                    ),
+          HSpace('md'),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Savings Streak',
+                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                    color: DesignTokens.color('warning'),
                   ),
-                  Text(
-                    '$currentStreak ${currentStreak == 1 ? 'day' : 'days'} of consistent saving!',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.orange.shade700,
-                    ),
+                ),
+                Text(
+                  '$currentStreak ${currentStreak == 1 ? 'day' : 'days'} of consistent saving!',
+                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                    color: DesignTokens.color('textSecondary'),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Text(
-              '$currentStreak',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: Colors.orange,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          Text(
+            '$currentStreak',
+            style: DesignTokens.textStyle('headlineMedium').copyWith(
+              color: DesignTokens.color('warning'),
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1241,15 +1176,15 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
           width: 16,
           height: 3,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(1.5),
-            color: Colors.grey.shade300,
+            borderRadius: DesignTokens.radius('xs'),
+            color: DesignTokens.color('borderLight'),
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
             widthFactor: progress,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(1.5),
+                borderRadius: DesignTokens.radius('xs'),
                 color: _getGoalProgressColor(progress),
               ),
             ),
@@ -1261,34 +1196,34 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
 
   Color _getDayCellBackgroundColor(bool isSelected, bool hasSavings, bool isMilestone) {
     if (isMilestone) {
-      return Colors.amber.withOpacity(0.1);
+      return DesignTokens.color('warning').withOpacity(0.1);
     }
     if (hasSavings) {
-      return Colors.green.withOpacity(0.05);
+      return DesignTokens.color('income').withOpacity(0.05);
     }
     if (isSelected) {
-      return Colors.blue.withOpacity(0.1);
+      return DesignTokens.color('primary').withOpacity(0.1);
     }
-    return Colors.transparent;
+    return DesignTokens.color('surface');
   }
 
   Color _getDayCellBorderColor(bool isSelected, bool hasSavings, bool isMilestone) {
     if (isMilestone) {
-      return Colors.amber;
+      return DesignTokens.color('warning');
     }
     if (hasSavings) {
-      return Colors.green.withOpacity(0.3);
+      return DesignTokens.color('income').withOpacity(0.3);
     }
     if (isSelected) {
-      return Colors.blue;
+      return DesignTokens.color('primary');
     }
-    return Colors.transparent;
+    return DesignTokens.color('border');
   }
 
   Color _getGoalProgressColor(double progress) {
-    if (progress >= 0.8) return Colors.green;
-    if (progress >= 0.5) return Colors.orange;
-    return Colors.red;
+    if (progress >= 0.8) return DesignTokens.color('success');
+    if (progress >= 0.5) return DesignTokens.color('warning');
+    return DesignTokens.color('error');
   }
 
   int _calculateCurrentSavingsStreak() {

@@ -6,6 +6,7 @@ import 'core/di/injection.dart';
 import 'state/category_notifier.dart';
 import 'state/event_notifier.dart';
 import 'theme/enhanced_theme.dart';
+import 'theme/design_tokens.dart';
 import 'ui/achievements/achievement_screen.dart';
 import 'ui/cash_on_hand/cash_on_hand_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
@@ -15,7 +16,6 @@ import 'ui/round_up/round_up_history_screen.dart';
 import 'ui/allocation_rules/allocation_rules_screen.dart';
 import 'ui/suggestions/suggestions_screen.dart';
 import 'ui/onboarding/goal_integration_onboarding.dart';
-import 'ui/test_design_system_screen.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -106,8 +106,6 @@ class MyApp extends StatelessWidget {
                     return const AllocationRulesScreen();
                   case SuggestionsScreen.routeName:
                     return const SuggestionsScreen();
-                  case TestDesignSystemScreen.routeName:
-                    return const TestDesignSystemScreen();
                   default:
                     return const MainNavigationScreen();
                 }
@@ -140,25 +138,49 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     SuggestionsScreen(),
   ];
 
-  final List<NavigationDestination> _destinations = const [
+  List<NavigationDestination> get _destinations => [
     NavigationDestination(
-      icon: Icon(Icons.account_balance_wallet_outlined),
-      selectedIcon: Icon(Icons.account_balance_wallet),
+      icon: Icon(
+        Icons.account_balance_wallet_outlined,
+        color: DesignTokens.color('textSecondary'),
+      ),
+      selectedIcon: Icon(
+        Icons.account_balance_wallet,
+        color: DesignTokens.color('primary'),
+      ),
       label: 'Cash',
     ),
     NavigationDestination(
-      icon: Icon(Icons.savings_outlined),
-      selectedIcon: Icon(Icons.savings),
+      icon: Icon(
+        Icons.savings_outlined,
+        color: DesignTokens.color('textSecondary'),
+      ),
+      selectedIcon: Icon(
+        Icons.savings,
+        color: DesignTokens.color('primary'),
+      ),
       label: 'Goals',
     ),
     NavigationDestination(
-      icon: Icon(Icons.calendar_today_outlined),
-      selectedIcon: Icon(Icons.calendar_today),
+      icon: Icon(
+        Icons.calendar_today_outlined,
+        color: DesignTokens.color('textSecondary'),
+      ),
+      selectedIcon: Icon(
+        Icons.calendar_today,
+        color: DesignTokens.color('primary'),
+      ),
       label: 'Calendar',
     ),
     NavigationDestination(
-      icon: Icon(Icons.lightbulb_outline),
-      selectedIcon: Icon(Icons.lightbulb),
+      icon: Icon(
+        Icons.lightbulb_outline,
+        color: DesignTokens.color('textSecondary'),
+      ),
+      selectedIcon: Icon(
+        Icons.lightbulb,
+        color: DesignTokens.color('primary'),
+      ),
       label: 'Insights',
     ),
   ];
@@ -192,6 +214,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         elevation: 0,
         height: 65,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        backgroundColor: DesignTokens.color('surface'),
+        indicatorColor: DesignTokens.color('primaryContainer'),
+        surfaceTintColor: DesignTokens.color('primary'),
       ),
     );
   }

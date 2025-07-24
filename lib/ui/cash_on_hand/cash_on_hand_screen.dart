@@ -5,7 +5,8 @@ import '../../state/event_notifier.dart';
 import '../../core/di/injection.dart';
 import '../../data/database/database.dart';
 import '../achievements/achievement_screen.dart';
-import '../../utils/formatters.dart';
+import '../../theme/design_tokens.dart';
+import '../components/cash_components.dart';
 
 class CashOnHandScreen extends StatefulWidget {
   static const routeName = '/cashOnHand';
@@ -198,7 +199,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         }
       }
     } catch (e) {
-      print('Debug: Error calculating goal allocations: $e');
+      // Error calculating goal allocations: $e
     }
   }
 
@@ -221,33 +222,35 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     required String description,
     required bool obtained,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: obtained ? Colors.green.shade50 : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    final financialContext = obtained 
+        ? FinancialContext.income 
+        : FinancialContext.neutral;
+        
+    return CashCard(
+      financialContext: financialContext,
       child: Row(
         children: [
           Icon(
             Icons.emoji_events,
-            color: obtained ? Colors.green : Colors.grey,
+            color: obtained 
+                ? DesignTokens.color('income') 
+                : DesignTokens.color('textTertiary'),
             size: 32,
           ),
-          const SizedBox(width: 12),
+          HSpace('md'),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: DesignTokens.textStyle('titleMedium'),
                 ),
                 Text(
                   description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
+                  style: DesignTokens.textStyle('bodySmall').copyWith(
+                    color: DesignTokens.color('textSecondary'),
+                  ),
                 ),
               ],
             ),
@@ -271,35 +274,22 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     final totalAmount = positiveAmount - negativeAmount;
     final isExpanded = _expandedTileId == period;
 
+    final financialContext = totalAmount >= 0 
+        ? FinancialContext.income 
+        : totalAmount < 0 
+            ? FinancialContext.expense 
+            : FinancialContext.neutral;
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(
-          left: BorderSide(
-            color: totalAmount >= 0 ? Colors.green : Colors.red,
-            width: 4,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: isExpanded ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => setState(() {
-            _expandedTileId = isExpanded ? null : period;
-          }),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
+      duration: DesignTokens.duration('normal'),
+      margin: EdgeInsets.symmetric(vertical: DesignTokens.space('sm')),
+      child: CashCard(
+        financialContext: financialContext,
+        onTap: () => setState(() {
+          _expandedTileId = isExpanded ? null : period;
+        }),
+        child: Padding(
+          padding: EdgeInsets.all(DesignTokens.space('lg')),
             child: Column(
               children: [
                 Row(
@@ -309,13 +299,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         children: [
                           Text(
                             period,
-                            style: Theme.of(context).textTheme.titleLarge,
+                            style: DesignTokens.textStyle('titleLarge'),
                           ),
                           if (isYearEnd) ...[
-                            const SizedBox(width: 8),
+                            HSpace('sm'),
                             Icon(
                               Icons.auto_awesome,
-                              color: Colors.amber.shade700,
+                              color: DesignTokens.color('warning'),
                             ),
                           ],
                         ],
@@ -324,161 +314,181 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          FormatUtils.formatCurrency(totalAmount),
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: totalAmount >= 0 ? Colors.green : Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        FinancialAmount(
+                          amount: totalAmount,
+                          size: FinancialAmountSize.large,
                         ),
                         if (goalAllocations > 0)
                           Text(
-                            'After goals: ${FormatUtils.formatCurrency(availableAfterGoals)}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: availableAfterGoals >= 0 ? Colors.green.shade600 : Colors.red.shade600,
-                              fontWeight: FontWeight.w500,
+                            'After goals:',
+                            style: DesignTokens.textStyle('bodySmall').copyWith(
+                              color: DesignTokens.color('textSecondary'),
                             ),
+                          ),
+                        if (goalAllocations > 0)
+                          FinancialAmount(
+                            amount: availableAfterGoals,
+                            size: FinancialAmountSize.small,
                           ),
                       ],
                     ),
-                    const SizedBox(width: 8),
+                    HSpace('sm'),
                     AnimatedRotation(
-                      duration: const Duration(milliseconds: 300),
+                      duration: DesignTokens.duration('normal'),
                       turns: isExpanded ? 0.5 : 0,
-                      child: const Icon(Icons.keyboard_arrow_down),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: DesignTokens.color('textSecondary'),
+                      ),
                     ),
                   ],
                 ),
-                if (isExpanded) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ExpandTransition(
+                  expanded: isExpanded,
+                  duration: 'normal',
+                  child: Column(
                     children: [
-                      const Text('Income'),
-                      Text(
-                        FormatUtils.formatCurrency(positiveAmount),
-                        style: const TextStyle(color: Colors.green),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Expenses'),
-                      Text(
-                        FormatUtils.formatCurrency(negativeAmount),
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ],
-                  ),
-                  if (goalAllocations > 0) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.savings, size: 16, color: Colors.blue.shade600),
-                            const SizedBox(width: 4),
-                            const Text('Goal Allocations'),
-                          ],
-                        ),
-                        Text(
-                          FormatUtils.formatCurrency(goalAllocations),
-                          style: TextStyle(color: Colors.blue.shade600, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.account_balance_wallet, size: 16, color: Colors.green.shade700),
-                            const SizedBox(width: 4),
-                            const Text('Available After Goals'),
-                          ],
-                        ),
-                        Text(
-                          FormatUtils.formatCurrency(availableAfterGoals),
-                          style: TextStyle(
-                            color: availableAfterGoals >= 0 ? Colors.green.shade700 : Colors.red,
-                            fontWeight: FontWeight.bold,
+                      VSpace('lg'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Income',
+                            style: DesignTokens.textStyle('bodyMedium'),
                           ),
+                          FinancialAmount(
+                            amount: positiveAmount,
+                            size: FinancialAmountSize.medium,
+                            showSign: false,
+                          ),
+                        ],
+                      ),
+                      VSpace('sm'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Expenses',
+                            style: DesignTokens.textStyle('bodyMedium'),
+                          ),
+                          FinancialAmount(
+                            amount: negativeAmount,
+                            size: FinancialAmountSize.medium,
+                            showSign: false,
+                          ),
+                        ],
+                      ),
+                      if (goalAllocations > 0) ...[
+                        VSpace('sm'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.savings, 
+                                  size: 16, 
+                                  color: DesignTokens.color('primary')
+                                ),
+                                HSpace('xs'),
+                                Text(
+                                  'Goal Allocations',
+                                  style: DesignTokens.textStyle('bodyMedium'),
+                                ),
+                              ],
+                            ),
+                            FinancialAmount(
+                              amount: goalAllocations,
+                              size: FinancialAmountSize.medium,
+                              showSign: false,
+                            ),
+                          ],
+                        ),
+                        VSpace('sm'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.account_balance_wallet, 
+                                  size: 16, 
+                                  color: DesignTokens.color('income')
+                                ),
+                                HSpace('xs'),
+                                Text(
+                                  'Available After Goals',
+                                  style: DesignTokens.textStyle('bodyMedium'),
+                                ),
+                              ],
+                            ),
+                            FinancialAmount(
+                              amount: availableAfterGoals,
+                              size: FinancialAmountSize.medium,
+                              showSign: false,
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                      VSpace('lg'),
                       if (goalAllocations > 0 && totalAmount > 0) ...[
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Goal Impact',
-                              style: TextStyle(fontWeight: FontWeight.w500),
+                            Text(
+                              'Goal Impact',
+                              style: DesignTokens.textStyle('bodyMedium').copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                            Text('${((goalAllocations / totalAmount.abs()) * 100).toInt()}% of cash flow'),
+                            Text(
+                              '${((goalAllocations / totalAmount.abs()) * 100).toInt()}% of cash flow',
+                              style: DesignTokens.textStyle('bodySmall').copyWith(
+                                color: DesignTokens.color('textSecondary'),
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Container(
+                        VSpace('sm'),
+                        FinancialProgressBar(
+                          value: goalAllocations,
+                          total: totalAmount.abs(),
+                          showLabels: false,
+                          financialContext: FinancialContext.neutral,
                           height: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: Colors.grey.shade200,
-                          ),
-                          child: Row(
-                            children: [
-                              Flexible(
-                                flex: ((goalAllocations / totalAmount.abs()) * 100).toInt(),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    color: Colors.blue.shade500,
-                                  ),
-                                ),
-                              ),
-                              Flexible(
-                                flex: 100 - ((goalAllocations / totalAmount.abs()) * 100).toInt(),
-                                child: Container(),
-                              ),
-                            ],
-                          ),
                         ),
-                        const SizedBox(height: 12),
+                        VSpace('md'),
                       ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Savings Goal Progress'),
-                          Text('${(progress * 100).toInt()}%'),
+                          Text(
+                            'Savings Goal Progress',
+                            style: DesignTokens.textStyle('bodyMedium'),
+                          ),
+                          Text(
+                            '${(progress * 100).toInt()}%',
+                            style: DesignTokens.textStyle('bodyMedium').copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          backgroundColor: Colors.grey.shade200,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.green.shade500,
-                          ),
-                          minHeight: 8,
-                        ),
+                      VSpace('sm'),
+                      FinancialProgressBar(
+                        value: progress * 100, // Convert to percentage for the component
+                        total: 100,
+                        showLabels: false,
+                        financialContext: FinancialContext.income,
+                        height: 8,
                       ),
                     ],
                   ),
-                ],
+                ),
               ],
             ),
           ),
         ),
-      ),
     );
   }
 
@@ -511,34 +521,30 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             return Stack(
               children: [
                 ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(DesignTokens.space('lg')),
                   children: [
-                    // Progress Alert
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    // Progress Alert using design system
+                    CashCard(
+                      financialContext: FinancialContext.income,
                       child: Row(
                         children: [
                           Icon(
                             Icons.trending_up,
-                            color: Colors.green.shade700,
+                            color: DesignTokens.color('income'),
                           ),
-                          const SizedBox(width: 12),
+                          HSpace('md'),
                           Expanded(
                             child: Text(
                               "You're on track to save 15% more than last month!",
-                              style: TextStyle(
-                                color: Colors.green.shade700,
+                              style: DesignTokens.textStyle('bodyMedium').copyWith(
+                                color: DesignTokens.color('income'),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    VSpace('lg'),
 
                     // Cash Flow Tiles
                     _buildCashFlowTile(
@@ -570,20 +576,20 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       isYearEnd: true,
                     ),
 
-                    const SizedBox(height: 24),
+                    VSpace('xl'),
 
                     // Achievements Section
                     Text(
                       'Achievements',
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: DesignTokens.textStyle('titleLarge'),
                     ),
-                    const SizedBox(height: 12),
+                    VSpace('md'),
                     _buildAchievementBadge(
                       title: 'Saving Starter',
                       description: 'Save your first \$1,000',
                       obtained: true,
                     ),
-                    const SizedBox(height: 8),
+                    VSpace('sm'),
                     _buildAchievementBadge(
                       title: 'Consistent Saver',
                       description: 'Save money 3 months in a row',
@@ -593,7 +599,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 ),
                 if (_isLoading)
                   Container(
-                    color: Colors.black.withOpacity(0.3),
+                    color: DesignTokens.color('overlay'),
                     child: const Center(
                       child: CircularProgressIndicator(),
                     ),

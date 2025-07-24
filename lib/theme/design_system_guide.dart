@@ -1,7 +1,7 @@
 // Cash on Hand - Design System Usage Guide
 // Comprehensive documentation and examples for using the design system
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide FadeTransition, SlideTransition;
 import 'design_tokens.dart';
 // import 'enhanced_theme.dart';
 import '../ui/components/cash_components.dart';
