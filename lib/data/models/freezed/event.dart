@@ -69,9 +69,9 @@ class Event with _$Event {
   bool get isRepeating => repeatOption != RepeatOption.today;
 
   String get formattedAmount {
-    final prefix = isPositiveCashflow ? '+' : '-';
+    // Signs removed - relying on color coding instead
     final formatter = NumberFormat("#,##0.00", "en_US");
-    return '$prefix\$${formatter.format(absoluteAmount)}';
+    return '\$${formatter.format(absoluteAmount)}';
   }
 
   String get repeatDescription {
