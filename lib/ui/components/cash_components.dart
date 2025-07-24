@@ -90,9 +90,7 @@ class FinancialAmount extends StatelessWidget {
       displayText += currency;
     }
     
-    if (showSign && !isZero) {
-      displayText += isPositive ? '+' : '-';
-    }
+    // Signs removed - relying on color coding instead
     
     displayText += formattedAmount;
 
