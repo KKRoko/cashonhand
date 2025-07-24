@@ -9,11 +9,14 @@ import '../data/models/freezed/round_up_preferences.dart';
 class SettingsService {
   static const String _settingsKey = 'app_settings';
   static const String _roundUpPrefsKey = 'round_up_preferences';
+  static const String _monthlyProgressThresholdKey = 'monthly_progress_threshold';
   
   SharedPreferences? _prefs;
   RoundUpPreferences _roundUpPreferences = const RoundUpPreferences();
+  double _monthlyProgressThreshold = 10000.0; // Default $10K
 
   RoundUpPreferences get roundUpPreferences => _roundUpPreferences;
+  double get monthlyProgressThreshold => _monthlyProgressThreshold;
 
   /// Initialize the settings service
   Future<Either<Failure, void>> initialize() async {
@@ -38,9 +41,13 @@ class SettingsService {
         _roundUpPreferences = const RoundUpPreferences();
         await _saveSettings();
       }
+      
+      // Load monthly progress threshold
+      _monthlyProgressThreshold = _prefs?.getDouble(_monthlyProgressThresholdKey) ?? 10000.0;
     } catch (e) {
       print('Error loading settings, using defaults: $e');
       _roundUpPreferences = const RoundUpPreferences();
+      _monthlyProgressThreshold = 10000.0;
     }
   }
 
@@ -120,6 +127,26 @@ class SettingsService {
   Future<Either<Failure, void>> resetRoundUpToDefaults() async {
     _roundUpPreferences = const RoundUpPreferences();
     return await _saveSettings();
+  }
+
+  /// Update monthly progress threshold
+  Future<Either<Failure, void>> updateMonthlyProgressThreshold(double threshold) async {
+    try {
+      if (threshold <= 0) {
+        return const Left(SettingsFailure('Monthly progress threshold must be greater than 0'));
+      }
+      
+      _monthlyProgressThreshold = threshold;
+      final success = await _prefs?.setDouble(_monthlyProgressThresholdKey, threshold) ?? false;
+      
+      if (!success) {
+        return const Left(SettingsFailure('Failed to save monthly progress threshold'));
+      }
+      
+      return const Right(null);
+    } catch (e) {
+      return Left(SettingsFailure('Failed to update monthly progress threshold: $e'));
+    }
   }
 }
 

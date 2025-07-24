@@ -7,6 +7,7 @@ import '../../../data/models/freezed/saving_goal.dart';
 import '../../../core/di/injection.dart';
 import '../../../data/repositories/saving_goal_repository.dart';
 import '../../../data/database/database.dart';
+import '../../../services/settings_service.dart';
 
 class EnhancedCalendarWidget extends StatefulWidget {
   final DateTime focusedDay;
@@ -336,11 +337,14 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               const SizedBox(height: 8),
               
               // Progress indicator
-              LinearProgressIndicator(
-                value: _calculateProgress(currentMonthTotal),
-                backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation(
-                  currentMonthTotal >= 0 ? Colors.green : Colors.red,
+              GestureDetector(
+                onLongPress: () => _showProgressThresholdDialog(context),
+                child: LinearProgressIndicator(
+                  value: _calculateProgress(currentMonthTotal),
+                  backgroundColor: Colors.grey[200],
+                  valueColor: AlwaysStoppedAnimation(
+                    currentMonthTotal >= 0 ? Colors.green : Colors.red,
+                  ),
                 ),
               ),
               
@@ -795,6 +799,92 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     }
   }
 
+  Future<void> _showProgressThresholdDialog(BuildContext context) async {
+    final settingsService = getIt<SettingsService>();
+    final currentThreshold = settingsService.monthlyProgressThreshold;
+    final controller = TextEditingController(text: currentThreshold.toStringAsFixed(0));
+    
+    final result = await showDialog<double>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Monthly Progress Threshold'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Set the target amount for the monthly progress bar. The bar will show your progress toward this goal.',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Target Amount (\$)',
+                  hintText: 'e.g., 10000',
+                  prefixText: '\$',
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                final value = double.tryParse(controller.text);
+                if (value != null && value > 0) {
+                  Navigator.of(context).pop(value);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid amount greater than 0'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      final updateResult = await settingsService.updateMonthlyProgressThreshold(result);
+      updateResult.fold(
+        (failure) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to update threshold: ${failure.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Progress threshold updated to \$${result.toStringAsFixed(0)}'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Trigger a rebuild to update the progress bar
+            setState(() {});
+          }
+        },
+      );
+    }
+  }
+
  Widget _buildCalendar(BuildContext context) {
     return Card(
       elevation: 2,
@@ -1016,7 +1106,8 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
   }
 
   double _calculateProgress(double amount) {
-    const threshold = 10000; // Adjust based on your needs
+    final settingsService = getIt<SettingsService>();
+    final threshold = settingsService.monthlyProgressThreshold;
     return (amount.abs() / threshold).clamp(0.0, 1.0);
   }
 
