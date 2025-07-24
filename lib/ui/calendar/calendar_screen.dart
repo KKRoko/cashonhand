@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/physics.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../core/di/injection.dart';
@@ -25,7 +27,7 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  final CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isLoading = false;
@@ -104,11 +106,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _onFormatChanged(CalendarFormat format) {
-    if (_calendarFormat != format) {
-      setState(() {
-        _calendarFormat = format;
-      });
-    }
+    // Calendar is locked to month view only - no format changes allowed
   }
 
   void _onPageChanged(DateTime focusedDay) {
@@ -382,17 +380,19 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                 return SingleChildScrollView(
                   child: Column(
                     children: [
-                      // Calendar with flexible sizing
-                      EnhancedCalendarWidget(
-                        focusedDay: _focusedDay,
-                        selectedDay: _selectedDay,
-                        onDaySelected: _onDaySelected,
-                        onFormatChanged: _onFormatChanged,
-                        onPageChanged: _onPageChanged,
-                        eventLoader: (day) => eventNotifier.getEventsForDay(day),
-                        getDayAmount: _getDayAmount,
-                        calendarFormat: _calendarFormat,
-                        monthSummary: _getMonthSummary(),
+                      // Calendar wrapped in gesture interceptor
+                      _CalendarScrollWrapper(
+                        child: EnhancedCalendarWidget(
+                          focusedDay: _focusedDay,
+                          selectedDay: _selectedDay,
+                          onDaySelected: _onDaySelected,
+                          onFormatChanged: _onFormatChanged,
+                          onPageChanged: _onPageChanged,
+                          eventLoader: (day) => eventNotifier.getEventsForDay(day),
+                          getDayAmount: _getDayAmount,
+                          calendarFormat: _calendarFormat,
+                          monthSummary: _getMonthSummary(),
+                        ),
                       ),
                       // Event list with minimum height for visibility
                       ConstrainedBox(
@@ -469,4 +469,145 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       ),
     );
   }
+}
+
+class _CalendarScrollWrapper extends StatelessWidget {
+  final Widget child;
+
+  const _CalendarScrollWrapper({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    print("🚀 CalendarScrollWrapper: Building wrapper");
+    
+    return RawGestureDetector(
+      gestures: <Type, GestureRecognizerFactory>{
+        // Create a custom pan recognizer that beats TableCalendar's internal ones
+        _VerticalPanGestureRecognizer: GestureRecognizerFactoryWithHandlers<_VerticalPanGestureRecognizer>(
+          () => _VerticalPanGestureRecognizer()
+            ..team = GestureArenaTeam(), // Create our own team to win conflicts
+          (_VerticalPanGestureRecognizer instance) {
+            instance
+              ..onStart = (DragStartDetails details) {
+                print("👆 CalendarScrollWrapper: Vertical pan started at ${details.localPosition}");
+              }
+              ..onUpdate = (DragUpdateDetails details) {
+                print("🖱️ CalendarScrollWrapper: Vertical pan update - delta: ${details.delta}, dy: ${details.delta.dy}");
+                
+                // Forward vertical pan gestures to the parent ScrollView
+                final scrollableState = Scrollable.of(context);
+                if (scrollableState != null) {
+                  final position = scrollableState.position;
+                  final oldOffset = position.pixels;
+                  final newOffset = position.pixels - details.delta.dy;
+                  print("📊 CalendarScrollWrapper: Moving scroll from $oldOffset to $newOffset");
+                  position.moveTo(newOffset);
+                } else {
+                  print("❌ CalendarScrollWrapper: No scrollable found in context!");
+                }
+              }
+              ..onEnd = (DragEndDetails details) {
+                print("🛑 CalendarScrollWrapper: Vertical pan ended");
+              };
+          },
+        ),
+      },
+      child: child,
+    );
+  }
+}
+
+// Smart gesture recognizer that only claims vertical drags, lets taps through
+class _VerticalPanGestureRecognizer extends OneSequenceGestureRecognizer {
+  Offset? _initialPosition;
+  bool _hasDragged = false;
+  static const double _kTouchSlop = 18.0; // Minimum movement to be considered a drag
+  
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    print("🎯 VerticalPanGestureRecognizer: Pointer added");
+    startTrackingPointer(event.pointer, event.transform);
+    _initialPosition = event.localPosition;
+    _hasDragged = false;
+    print("👇 VerticalPanGestureRecognizer: Waiting to see if this is a tap or drag...");
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    print("🎯 VerticalPanGestureRecognizer: Handling event ${event.runtimeType}");
+    
+    if (event is PointerMoveEvent) {
+      if (_initialPosition != null) {
+        final delta = event.localPosition - _initialPosition!;
+        final distance = delta.distance;
+        
+        print("📏 Movement distance: $distance, delta: $delta");
+        
+        // Only claim the gesture if there's significant movement
+        if (!_hasDragged && distance > _kTouchSlop) {
+          final isVertical = delta.dy.abs() > delta.dx.abs();
+          print("📐 Movement analysis - isVertical: $isVertical, dy: ${delta.dy.abs()}, dx: ${delta.dx.abs()}");
+          
+          if (isVertical) {
+            // This is a vertical drag - claim it!
+            resolve(GestureDisposition.accepted);
+            _hasDragged = true;
+            print("⚡ VerticalPanGestureRecognizer: CLAIMING VERTICAL DRAG!");
+            
+            if (onStart != null) {
+              onStart!(DragStartDetails(
+                sourceTimeStamp: event.timeStamp,
+                localPosition: _initialPosition!,
+                globalPosition: event.position - event.localDelta,
+              ));
+            }
+          } else {
+            // This is horizontal or unclear - reject it
+            resolve(GestureDisposition.rejected);
+            print("❌ VerticalPanGestureRecognizer: REJECTING horizontal movement");
+            return;
+          }
+        }
+        
+        // If we've claimed the gesture, send updates
+        if (_hasDragged && onUpdate != null) {
+          print("🖱️ SMART Vertical pan update - delta: ${event.delta}, dy: ${event.delta.dy}");
+          onUpdate!(DragUpdateDetails(
+            sourceTimeStamp: event.timeStamp,
+            delta: event.delta,
+            localPosition: event.localPosition,
+            globalPosition: event.position,
+          ));
+        }
+      }
+    } else if (event is PointerUpEvent || event is PointerCancelEvent) {
+      if (!_hasDragged) {
+        // This was a tap - reject so other widgets can handle it
+        print("👆 VerticalPanGestureRecognizer: REJECTING tap - letting date selection work");
+        resolve(GestureDisposition.rejected);
+      } else {
+        print("🛑 SMART Vertical pan ended");
+        if (onEnd != null) {
+          onEnd!(DragEndDetails(
+            velocity: Velocity.zero,
+          ));
+        }
+      }
+      stopTrackingPointer(event.pointer);
+    }
+  }
+
+  @override
+  void didStopTrackingLastPointer(int pointer) {
+    print("🎯 VerticalPanGestureRecognizer: Stopped tracking pointer");
+    _initialPosition = null;
+    _hasDragged = false;
+  }
+
+  @override
+  String get debugDescription => 'smart_vertical_pan';
+
+  GestureDragStartCallback? onStart;
+  GestureDragUpdateCallback? onUpdate;
+  GestureDragEndCallback? onEnd;
 }

@@ -217,25 +217,273 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     }
   }
 
-  Widget _buildAchievementBadge({
-    required String title,
-    required String description,
-    required bool obtained,
-  }) {
-    final financialContext = obtained 
-        ? FinancialContext.income 
-        : FinancialContext.neutral;
-        
+  // Hero Balance Section with large current balance and trend
+  Widget _buildHeroBalanceSection() {
+    final currentBalance = _totals['month']!['positive']! - _totals['month']!['negative']!;
+    final previousBalance = currentBalance * 0.85; // Mock previous month data
+    final trend = currentBalance - previousBalance;
+    final trendPercentage = previousBalance != 0 ? ((trend / previousBalance) * 100) : 0;
+    
     return CashCard(
-      financialContext: financialContext,
+      financialContext: currentBalance >= 0 ? FinancialContext.income : FinancialContext.expense,
+      elevation: 'lg',
+      child: Column(
+        children: [
+          // Current Balance
+          Text(
+            'Current Balance',
+            style: DesignTokens.textStyle('titleMedium').copyWith(
+              color: DesignTokens.color('textSecondary'),
+            ),
+          ),
+          VSpace('sm'),
+          FinancialAmount(
+            amount: currentBalance,
+            size: FinancialAmountSize.large,
+            style: DesignTokens.textStyle('displayMedium'),
+          ),
+          VSpace('md'),
+          
+          // Trend Indicator
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                trend >= 0 ? Icons.trending_up : Icons.trending_down,
+                color: trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense'),
+                size: 20,
+              ),
+              HSpace('xs'),
+              FinancialAmount(
+                amount: trend,
+                size: FinancialAmountSize.small,
+              ),
+              HSpace('xs'),
+              Text(
+                '(${trendPercentage.toStringAsFixed(1)}%)',
+                style: DesignTokens.textStyle('bodySmall').copyWith(
+                  color: trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense'),
+                ),
+              ),
+            ],
+          ),
+          VSpace('sm'),
+          Text(
+            'vs last month',
+            style: DesignTokens.textStyle('bodySmall').copyWith(
+              color: DesignTokens.color('textTertiary'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // Quick Action Buttons
+  Widget _buildQuickActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: FinancialButton(
+            onPressed: () {
+              // TODO: Navigate to add income
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Add Income pressed')),
+              );
+            },
+            financialType: FinancialButtonType.income,
+            icon: Icons.add,
+            size: ButtonSize.large,
+            child: const Text('Add Income'),
+          ),
+        ),
+        HSpace('md'),
+        Expanded(
+          child: FinancialButton(
+            onPressed: () {
+              // TODO: Navigate to add expense
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Add Expense pressed')),
+              );
+            },
+            financialType: FinancialButtonType.expense,
+            icon: Icons.remove,
+            size: ButtonSize.large,
+            child: const Text('Add Expense'),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // Time Period Mini Cards (Horizontal Scroll)
+  Widget _buildTimePeriodSection() {
+    final periods = [
+      {'key': 'day', 'title': 'Today', 'subtitle': 'Daily'},
+      {'key': 'week', 'title': 'This Week', 'subtitle': 'Weekly'},
+      {'key': 'month', 'title': 'This Month', 'subtitle': 'Monthly'},
+      {'key': 'year', 'title': 'This Year', 'subtitle': 'Yearly'},
+    ];
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Time Periods',
+          style: DesignTokens.textStyle('titleLarge'),
+        ),
+        VSpace('md'),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: periods.length,
+            itemBuilder: (context, index) {
+              final period = periods[index];
+              final amounts = _totals[period['key']]!;
+              final total = amounts['positive']! - amounts['negative']!;
+              
+              return Container(
+                width: 140,
+                margin: EdgeInsets.only(
+                  right: index < periods.length - 1 ? DesignTokens.space('md') : 0,
+                ),
+                child: CashCard(
+                  financialContext: total >= 0 
+                      ? FinancialContext.income 
+                      : total < 0 
+                          ? FinancialContext.expense 
+                          : FinancialContext.neutral,
+                  onTap: () => _toggleExpanded(period['key'] as String),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        period['title'] as String,
+                        style: DesignTokens.textStyle('titleSmall'),
+                        textAlign: TextAlign.center,
+                      ),
+                      VSpace('xs'),
+                      FinancialAmount(
+                        amount: total,
+                        size: FinancialAmountSize.medium,
+                      ),
+                      VSpace('xs'),
+                      Text(
+                        period['subtitle'] as String,
+                        style: DesignTokens.textStyle('bodySmall').copyWith(
+                          color: DesignTokens.color('textSecondary'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // Recent Transactions Preview
+  Widget _buildRecentTransactionsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Activity',
+              style: DesignTokens.textStyle('titleLarge'),
+            ),
+            TextButton(
+              onPressed: () {
+                // TODO: Navigate to full transaction history
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('View All pressed')),
+                );
+              },
+              child: Text(
+                'View All',
+                style: DesignTokens.textStyle('labelMedium').copyWith(
+                  color: DesignTokens.color('primary'),
+                ),
+              ),
+            ),
+          ],
+        ),
+        VSpace('md'),
+        CashCard(
+          child: Column(
+            children: [
+              _buildTransactionItem(
+                title: 'Salary Payment',
+                category: 'Income',
+                amount: 3500.00,
+                date: 'Today',
+                icon: Icons.attach_money,
+              ),
+              Divider(
+                color: DesignTokens.color('border'),
+                height: 1,
+              ),
+              _buildTransactionItem(
+                title: 'Grocery Shopping',
+                category: 'Food',
+                amount: -87.50,
+                date: 'Yesterday',
+                icon: Icons.shopping_cart,
+              ),
+              Divider(
+                color: DesignTokens.color('border'),
+                height: 1,
+              ),
+              _buildTransactionItem(
+                title: 'Coffee',
+                category: 'Food',
+                amount: -4.25,
+                date: '2 days ago',
+                icon: Icons.local_cafe,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildTransactionItem({
+    required String title,
+    required String category,
+    required double amount,
+    required String date,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: DesignTokens.space('sm'),
+        horizontal: DesignTokens.space('xs'),
+      ),
       child: Row(
         children: [
-          Icon(
-            Icons.emoji_events,
-            color: obtained 
-                ? DesignTokens.color('income') 
-                : DesignTokens.color('textTertiary'),
-            size: 32,
+          Container(
+            padding: EdgeInsets.all(DesignTokens.space('sm')),
+            decoration: BoxDecoration(
+              color: (amount >= 0 
+                  ? DesignTokens.color('incomeLight') 
+                  : DesignTokens.color('expenseLight')
+              ).withOpacity(0.2),
+              borderRadius: DesignTokens.radius('sm'),
+            ),
+            child: Icon(
+              icon,
+              color: amount >= 0 
+                  ? DesignTokens.color('income') 
+                  : DesignTokens.color('expense'),
+              size: 20,
+            ),
           ),
           HSpace('md'),
           Expanded(
@@ -244,10 +492,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               children: [
                 Text(
                   title,
-                  style: DesignTokens.textStyle('titleMedium'),
+                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 Text(
-                  description,
+                  '$category • $date',
                   style: DesignTokens.textStyle('bodySmall').copyWith(
                     color: DesignTokens.color('textSecondary'),
                   ),
@@ -255,242 +505,147 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               ],
             ),
           ),
+          FinancialAmount(
+            amount: amount,
+            size: FinancialAmountSize.medium,
+          ),
         ],
       ),
     );
   }
-
-  Widget _buildCashFlowTile({
-    required String period,
-    required Map<String, double> amounts,
-    required DateTime date,
-    required double progress,
-    required bool isYearEnd,
-  }) {
-    final positiveAmount = amounts['positive'] ?? 0;
-    final negativeAmount = amounts['negative'] ?? 0;
-    final goalAllocations = amounts['goalAllocations'] ?? 0;
-    final availableAfterGoals = amounts['availableAfterGoals'] ?? 0;
-    final totalAmount = positiveAmount - negativeAmount;
-    final isExpanded = _expandedTileId == period;
-
-    final financialContext = totalAmount >= 0 
-        ? FinancialContext.income 
-        : totalAmount < 0 
-            ? FinancialContext.expense 
-            : FinancialContext.neutral;
-
-    return AnimatedContainer(
-      duration: DesignTokens.duration('normal'),
-      margin: EdgeInsets.symmetric(vertical: DesignTokens.space('sm')),
-      child: CashCard(
-        financialContext: financialContext,
-        onTap: () => setState(() {
-          _expandedTileId = isExpanded ? null : period;
-        }),
-        child: Padding(
-          padding: EdgeInsets.all(DesignTokens.space('lg')),
-            child: Column(
+  
+  // Achievement Highlights (Horizontal Chips)
+  Widget _buildAchievementHighlights() {
+    final achievements = [
+      {'title': 'Saving Starter', 'icon': Icons.savings, 'obtained': true},
+      {'title': 'Goal Achiever', 'icon': Icons.flag, 'obtained': true},
+      {'title': 'Streak Master', 'icon': Icons.local_fire_department, 'obtained': false},
+      {'title': 'Budget Pro', 'icon': Icons.timeline, 'obtained': false},
+    ];
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Achievements',
+              style: DesignTokens.textStyle('titleLarge'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                AchievementsScreen.routeName,
+              ),
+              child: Text(
+                'View All',
+                style: DesignTokens.textStyle('labelMedium').copyWith(
+                  color: DesignTokens.color('primary'),
+                ),
+              ),
+            ),
+          ],
+        ),
+        VSpace('md'),
+        SizedBox(
+          height: 50,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: achievements.length,
+            itemBuilder: (context, index) {
+              final achievement = achievements[index];
+              final obtained = achievement['obtained'] as bool;
+              
+              return Container(
+                margin: EdgeInsets.only(
+                  right: index < achievements.length - 1 ? DesignTokens.space('sm') : 0,
+                ),
+                child: CategoryChip(
+                  name: achievement['title'] as String,
+                  icon: _getIconString(achievement['icon'] as IconData),
+                  financialContext: obtained 
+                      ? FinancialContext.income 
+                      : FinancialContext.neutral,
+                  selected: obtained,
+                  size: ChipSize.medium,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+  
+  String _getIconString(IconData icon) {
+    if (icon == Icons.savings) return '💰';
+    if (icon == Icons.flag) return '🏁';
+    if (icon == Icons.local_fire_department) return '🔥';
+    if (icon == Icons.timeline) return '📈';
+    return '⭐';
+  }
+  
+  void _toggleExpanded(String periodKey) {
+    setState(() {
+      _expandedTileId = _expandedTileId == periodKey ? null : periodKey;
+    });
+    
+    // Show detailed breakdown in a bottom sheet or dialog
+    _showPeriodDetails(periodKey);
+  }
+  
+  void _showPeriodDetails(String periodKey) {
+    final amounts = _totals[periodKey]!;
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: EdgeInsets.all(DesignTokens.space('lg')),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${periodKey.toUpperCase()} BREAKDOWN',
+              style: DesignTokens.textStyle('titleLarge'),
+            ),
+            VSpace('lg'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Row(
+                Column(
                   children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Text(
-                            period,
-                            style: DesignTokens.textStyle('titleLarge'),
-                          ),
-                          if (isYearEnd) ...[
-                            HSpace('sm'),
-                            Icon(
-                              Icons.auto_awesome,
-                              color: DesignTokens.color('warning'),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        FinancialAmount(
-                          amount: totalAmount,
-                          size: FinancialAmountSize.large,
-                        ),
-                        if (goalAllocations > 0)
-                          Text(
-                            'After goals:',
-                            style: DesignTokens.textStyle('bodySmall').copyWith(
-                              color: DesignTokens.color('textSecondary'),
-                            ),
-                          ),
-                        if (goalAllocations > 0)
-                          FinancialAmount(
-                            amount: availableAfterGoals,
-                            size: FinancialAmountSize.small,
-                          ),
-                      ],
-                    ),
-                    HSpace('sm'),
-                    AnimatedRotation(
-                      duration: DesignTokens.duration('normal'),
-                      turns: isExpanded ? 0.5 : 0,
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: DesignTokens.color('textSecondary'),
-                      ),
-                    ),
+                    Text('Income', style: DesignTokens.textStyle('labelMedium')),
+                    VSpace('xs'),
+                    FinancialAmount(amount: amounts['positive']!, showSign: false),
                   ],
                 ),
-                ExpandTransition(
-                  expanded: isExpanded,
-                  duration: 'normal',
-                  child: Column(
-                    children: [
-                      VSpace('lg'),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Income',
-                            style: DesignTokens.textStyle('bodyMedium'),
-                          ),
-                          FinancialAmount(
-                            amount: positiveAmount,
-                            size: FinancialAmountSize.medium,
-                            showSign: false,
-                          ),
-                        ],
-                      ),
-                      VSpace('sm'),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Expenses',
-                            style: DesignTokens.textStyle('bodyMedium'),
-                          ),
-                          FinancialAmount(
-                            amount: negativeAmount,
-                            size: FinancialAmountSize.medium,
-                            showSign: false,
-                          ),
-                        ],
-                      ),
-                      if (goalAllocations > 0) ...[
-                        VSpace('sm'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.savings, 
-                                  size: 16, 
-                                  color: DesignTokens.color('primary')
-                                ),
-                                HSpace('xs'),
-                                Text(
-                                  'Goal Allocations',
-                                  style: DesignTokens.textStyle('bodyMedium'),
-                                ),
-                              ],
-                            ),
-                            FinancialAmount(
-                              amount: goalAllocations,
-                              size: FinancialAmountSize.medium,
-                              showSign: false,
-                            ),
-                          ],
-                        ),
-                        VSpace('sm'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.account_balance_wallet, 
-                                  size: 16, 
-                                  color: DesignTokens.color('income')
-                                ),
-                                HSpace('xs'),
-                                Text(
-                                  'Available After Goals',
-                                  style: DesignTokens.textStyle('bodyMedium'),
-                                ),
-                              ],
-                            ),
-                            FinancialAmount(
-                              amount: availableAfterGoals,
-                              size: FinancialAmountSize.medium,
-                              showSign: false,
-                            ),
-                          ],
-                        ),
-                      ],
-                      VSpace('lg'),
-                      if (goalAllocations > 0 && totalAmount > 0) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Goal Impact',
-                              style: DesignTokens.textStyle('bodyMedium').copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              '${((goalAllocations / totalAmount.abs()) * 100).toInt()}% of cash flow',
-                              style: DesignTokens.textStyle('bodySmall').copyWith(
-                                color: DesignTokens.color('textSecondary'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        VSpace('sm'),
-                        FinancialProgressBar(
-                          value: goalAllocations,
-                          total: totalAmount.abs(),
-                          showLabels: false,
-                          financialContext: FinancialContext.neutral,
-                          height: 8,
-                        ),
-                        VSpace('md'),
-                      ],
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Savings Goal Progress',
-                            style: DesignTokens.textStyle('bodyMedium'),
-                          ),
-                          Text(
-                            '${(progress * 100).toInt()}%',
-                            style: DesignTokens.textStyle('bodyMedium').copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      VSpace('sm'),
-                      FinancialProgressBar(
-                        value: progress * 100, // Convert to percentage for the component
-                        total: 100,
-                        showLabels: false,
-                        financialContext: FinancialContext.income,
-                        height: 8,
-                      ),
-                    ],
-                  ),
+                Column(
+                  children: [
+                    Text('Expenses', style: DesignTokens.textStyle('labelMedium')),
+                    VSpace('xs'),
+                    FinancialAmount(amount: amounts['negative']!, showSign: false),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text('Net', style: DesignTokens.textStyle('labelMedium')),
+                    VSpace('xs'),
+                    FinancialAmount(amount: amounts['positive']! - amounts['negative']!),
+                  ],
                 ),
               ],
             ),
-          ),
+            VSpace('xl'),
+            SecondaryButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
         ),
+      ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -520,82 +675,34 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           builder: (context, eventNotifier, child) {
             return Stack(
               children: [
-                ListView(
+                SingleChildScrollView(
                   padding: EdgeInsets.all(DesignTokens.space('lg')),
-                  children: [
-                    // Progress Alert using design system
-                    CashCard(
-                      financialContext: FinancialContext.income,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.trending_up,
-                            color: DesignTokens.color('income'),
-                          ),
-                          HSpace('md'),
-                          Expanded(
-                            child: Text(
-                              "You're on track to save 15% more than last month!",
-                              style: DesignTokens.textStyle('bodyMedium').copyWith(
-                                color: DesignTokens.color('income'),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    VSpace('lg'),
-
-                    // Cash Flow Tiles
-                    _buildCashFlowTile(
-                      period: 'End of Day',
-                      amounts: _totals['day']!,
-                      date: _now,
-                      progress: 0.85,
-                      isYearEnd: false,
-                    ),
-                    _buildCashFlowTile(
-                      period: 'End of Week',
-                      amounts: _totals['week']!,
-                      date: _endOfWeek,
-                      progress: 0.87,
-                      isYearEnd: false,
-                    ),
-                    _buildCashFlowTile(
-                      period: 'End of Month',
-                      amounts: _totals['month']!,
-                      date: _endOfMonth,
-                      progress: 0.84,
-                      isYearEnd: false,
-                    ),
-                    _buildCashFlowTile(
-                      period: 'End of Year',
-                      amounts: _totals['year']!,
-                      date: _endOfYear,
-                      progress: 0.75,
-                      isYearEnd: true,
-                    ),
-
-                    VSpace('xl'),
-
-                    // Achievements Section
-                    Text(
-                      'Achievements',
-                      style: DesignTokens.textStyle('titleLarge'),
-                    ),
-                    VSpace('md'),
-                    _buildAchievementBadge(
-                      title: 'Saving Starter',
-                      description: 'Save your first \$1,000',
-                      obtained: true,
-                    ),
-                    VSpace('sm'),
-                    _buildAchievementBadge(
-                      title: 'Consistent Saver',
-                      description: 'Save money 3 months in a row',
-                      obtained: false,
-                    ),
-                  ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Hero Balance Section with Trend
+                      _buildHeroBalanceSection(),
+                      VSpace('xl'),
+                      
+                      // Quick Action Buttons
+                      _buildQuickActions(),
+                      VSpace('xl'),
+                      
+                      // Time Period Mini Cards (Horizontal Scroll)
+                      _buildTimePeriodSection(),
+                      VSpace('xl'),
+                      
+                      // Recent Transactions Preview
+                      _buildRecentTransactionsSection(),
+                      VSpace('xl'),
+                      
+                      // Achievement Highlights (Horizontal Chips)
+                      _buildAchievementHighlights(),
+                      
+                      // Add bottom padding for safe area
+                      VSpace('2xl'),
+                    ],
+                  ),
                 ),
                 if (_isLoading)
                   Container(

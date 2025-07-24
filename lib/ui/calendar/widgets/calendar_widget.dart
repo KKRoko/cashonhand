@@ -835,15 +835,31 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   }
 
  Widget _buildCalendar(BuildContext context) {
+    print("📅 CalendarWidget: Building TableCalendar");
+    
     return CashCard(
-      child: TableCalendar<Event>(
+      child: GestureDetector(
+        onPanStart: (details) {
+          print("📅 TableCalendar: Internal pan started");
+        },
+        onPanUpdate: (details) {
+          print("📅 TableCalendar: Internal pan update - ${details.delta}");
+        },
+        behavior: HitTestBehavior.translucent,
+        child: TableCalendar<Event>(
         firstDay: DateTime.utc(2010, 10, 16),
         lastDay: DateTime.utc(2030, 3, 14),
         focusedDay: widget.focusedDay,
         selectedDayPredicate: (day) => isSameDay(widget.selectedDay, day),
-        calendarFormat: widget.calendarFormat,
+        calendarFormat: CalendarFormat.month,
+        availableCalendarFormats: const {
+          CalendarFormat.month: 'Month',
+        },
         eventLoader: widget.eventLoader,
         startingDayOfWeek: StartingDayOfWeek.sunday,
+        sixWeekMonthsEnforced: true,
+        pageJumpingEnabled: false,
+        pageAnimationEnabled: false,
         calendarStyle: CalendarStyle(
           outsideDaysVisible: false,
           cellMargin: EdgeInsets.all(DesignTokens.space('xs')),
@@ -873,7 +889,9 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           ),
         ),
         onDaySelected: widget.onDaySelected,
-        onFormatChanged: widget.onFormatChanged,
+        onFormatChanged: (format) {
+          // Disable format changes
+        },
         onPageChanged: widget.onPageChanged,
         calendarBuilders: CalendarBuilders(
           markerBuilder: (context, date, events) {
@@ -885,6 +903,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           defaultBuilder: (context, date, _) {
             return _buildEnhancedDayCell(context, date, false);
           },
+        ),
         ),
       ),
     );
