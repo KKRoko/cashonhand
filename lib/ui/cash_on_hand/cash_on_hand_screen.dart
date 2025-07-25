@@ -38,6 +38,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   
   // 🎯 FLICKER FIX: UI update suppression for Cash page
   bool _suppressCashPageUpdates = false;
+  Widget? _cachedBody; // Cache the body during suppression
 
   @override
   void initState() {
@@ -331,6 +332,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         print("🔍 CashPage DEBUG: isRecurring = $isRecurring, repeatOption = ${result.event.repeatOption}");
         if (isRecurring) {
           print("🚫 CashPage: Suppressing Cash page updates for recurring event");
+          // Cache current body before suppression starts
           _suppressCashPageUpdates = true;
         } else {
           print("ℹ️ CashPage: Single event detected, no suppression needed");
@@ -350,6 +352,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           if (isRecurring) {
             print("✅ CashPage: Resuming Cash page updates after recurring event");
             _suppressCashPageUpdates = false;
+            _cachedBody = null; // Clear cache to allow fresh rebuilds
           }
         }
         print("Event added successfully from Cash page");
@@ -928,7 +931,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             // 🎯 FLICKER FIX: Prevent Consumer rebuilds during suppression
             print("🔄 Consumer<EventNotifier>: Building with suppression = $_suppressCashPageUpdates");
             
-            return Stack(
+            // Return cached body if suppression is active
+            if (_suppressCashPageUpdates && _cachedBody != null) {
+              print("🚫 Consumer: Returning cached body during suppression");
+              return _cachedBody!;
+            }
+            
+            final bodyWidget = Stack(
               children: [
                 SingleChildScrollView(
                   padding: EdgeInsets.all(DesignTokens.space('lg')),
@@ -968,6 +977,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   ),
               ],
             );
+            
+            // Cache the body widget for suppression
+            if (!_suppressCashPageUpdates) {
+              _cachedBody = bodyWidget;
+            }
+            
+            return bodyWidget;
           },
         ),
       ),
