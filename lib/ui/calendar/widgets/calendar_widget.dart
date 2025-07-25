@@ -8,6 +8,7 @@ import '../../../core/di/injection.dart';
 import '../../../data/repositories/saving_goal_repository.dart';
 import '../../../data/database/database.dart';
 import '../../../services/settings_service.dart';
+import '../../../state/event_notifier.dart';
 import '../../../theme/design_tokens.dart';
 import '../../components/cash_components.dart';
 
@@ -65,6 +66,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     super.initState();
     _loadGoalData();
     _loadMonthlyBreakdown();
+    
+    // 🎯 FLICKER FIX: Register for global suppression notifications
+    _registerForGlobalSuppression();
   }
 
   @override
@@ -81,10 +85,10 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     final monthChanged = oldWidget.focusedDay.month != widget.focusedDay.month ||
         oldWidget.focusedDay.year != widget.focusedDay.year;
     
-    // Check if monthSummary changed
-    final summaryChanged = oldWidget.monthSummary != widget.monthSummary;
+    // 🎯 FLICKER FIX: Better monthSummary change detection
+    final summaryChanged = _hasMonthSummaryActuallyChanged(oldWidget.monthSummary, widget.monthSummary);
     
-    print("📅 Month changed: $monthChanged, Summary changed: $summaryChanged");
+    print("📅 Month changed: $monthChanged, Summary actually changed: $summaryChanged");
     print("📅 Suppressed: $_suppressCalendarWidgetUpdates");
     
     // 🎯 FLICKER FIX: If updates are suppressed, schedule for later
@@ -101,11 +105,51 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     }
     
     // Also reload monthly data when the month summary changes (indicates events have loaded/changed)
-    // BUT avoid duplicate calls if month already changed
-    if (summaryChanged && !monthChanged) {
-      print("📅 CalendarWidget: Monthly summary changed (without month change) - loading monthly breakdown");
+    // BUT avoid duplicate calls if month already changed AND prevent infinite loops
+    if (summaryChanged && !monthChanged && !_isLoadingMonthlyData) {
+      print("📅 CalendarWidget: Monthly summary actually changed - loading monthly breakdown");
       _loadMonthlyBreakdown();
     }
+  }
+
+  // 🎯 FLICKER FIX: Register for global suppression notifications from EventNotifier
+  void _registerForGlobalSuppression() {
+    EventNotifier.setGlobalCalendarWidgetSuppressionCallback((bool suppress) {
+      print("📅 CalendarWidget: Global suppression ${suppress ? 'activated' : 'deactivated'}");
+      if (suppress) {
+        suppressUpdates();
+      } else {
+        resumeUpdates();
+      }
+    });
+  }
+
+  // 🎯 FLICKER FIX: Proper monthSummary change detection to prevent false positives
+  bool _hasMonthSummaryActuallyChanged(Map<DateTime, double> oldSummary, Map<DateTime, double> newSummary) {
+    // Check if the keys are different
+    if (oldSummary.keys.length != newSummary.keys.length) {
+      print("📅 Summary change: Different number of keys (${oldSummary.keys.length} vs ${newSummary.keys.length})");
+      return true;
+    }
+    
+    // Check if the keys are the same
+    for (final key in oldSummary.keys) {
+      if (!newSummary.containsKey(key)) {
+        print("📅 Summary change: Missing key $key");
+        return true;
+      }
+      
+      // Check if the values are different (with small tolerance for floating point)
+      final oldValue = oldSummary[key] ?? 0.0;
+      final newValue = newSummary[key] ?? 0.0;
+      if ((oldValue - newValue).abs() > 0.001) {
+        print("📅 Summary change: Different value for $key ($oldValue vs $newValue)");
+        return true;
+      }
+    }
+    
+    print("📅 Summary unchanged: Same keys and values");
+    return false;
   }
 
   // 🎯 FLICKER FIX: Consolidated data loading with UI suppression

@@ -19,6 +19,9 @@ class EventNotifier extends ChangeNotifier {
   String? _error;
   bool _isAddingRecurringEvent = false;
   bool _suppressUIUpdates = false;
+  
+  // 🎯 FLICKER FIX: Global CalendarWidget suppression callback
+  static void Function(bool)? _globalCalendarWidgetSuppressionCallback;
 
   EventNotifier(this.eventService); 
 
@@ -78,6 +81,9 @@ class EventNotifier extends ChangeNotifier {
     if (isRecurring) {
       print('🚫 FLICKER FIX: Suppressing UI updates for entire recurring event operation');
       _suppressUIUpdates = true;
+      
+      // 🎯 FLICKER FIX: Global notification to suppress all CalendarWidget updates
+      _notifyCalendarWidgetSuppression(true);
     }
     
     _setLoading(true);
@@ -94,6 +100,9 @@ class EventNotifier extends ChangeNotifier {
     if (isRecurring) {
       _suppressUIUpdates = false;
       print('✅ FLICKER FIX: Re-enabling UI updates and triggering final notification');
+      
+      // 🎯 FLICKER FIX: Global notification to resume all CalendarWidget updates
+      _notifyCalendarWidgetSuppression(false);
     }
     
     _setLoading(false);
@@ -106,6 +115,9 @@ class EventNotifier extends ChangeNotifier {
     if (isRecurring) {
       print('🚫 FLICKER FIX: Suppressing UI updates for entire recurring event with allocations operation');
       _suppressUIUpdates = true;
+      
+      // 🎯 FLICKER FIX: Global notification to suppress all CalendarWidget updates
+      _notifyCalendarWidgetSuppression(true);
     }
     
     _setLoading(true);
@@ -130,6 +142,9 @@ class EventNotifier extends ChangeNotifier {
     if (isRecurring) {
       _suppressUIUpdates = false;
       print('✅ FLICKER FIX: Re-enabling UI updates and triggering final notification');
+      
+      // 🎯 FLICKER FIX: Global notification to resume all CalendarWidget updates
+      _notifyCalendarWidgetSuppression(false);
     }
     
     _setLoading(false);
@@ -254,6 +269,15 @@ class EventNotifier extends ChangeNotifier {
   void _setError(String error) {
     _error = error;
     notifyListeners();
+  }
+
+  // 🎯 FLICKER FIX: Global CalendarWidget suppression methods
+  static void setGlobalCalendarWidgetSuppressionCallback(void Function(bool) callback) {
+    _globalCalendarWidgetSuppressionCallback = callback;
+  }
+
+  void _notifyCalendarWidgetSuppression(bool suppress) {
+    _globalCalendarWidgetSuppressionCallback?.call(suppress);
   }
 
 void _groupEventsByDay(List<Event> events, {bool clearExisting = false}) {
