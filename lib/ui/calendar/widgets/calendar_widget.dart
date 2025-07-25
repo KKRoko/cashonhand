@@ -36,10 +36,10 @@ class EnhancedCalendarWidget extends StatefulWidget {
   });
 
   @override
-  State<EnhancedCalendarWidget> createState() => _EnhancedCalendarWidgetState();
+  State<EnhancedCalendarWidget> createState() => EnhancedCalendarWidgetState();
 }
 
-class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
+class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   List<SavingGoal> _goals = [];
   Map<DateTime, List<GoalAllocationHistory>> _dailyAllocations = {};
   Map<DateTime, bool> _savingsStreak = {};
@@ -55,6 +55,10 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   double _monthlyTotalIncome = 0.0;
   double _monthlyTotalExpenses = 0.0;
   bool _isLoadingMonthlyData = false;
+  
+  // 🎯 FLICKER FIX: UI update control
+  bool _suppressCalendarWidgetUpdates = false;
+  bool _pendingUpdate = false;
 
   @override
   void initState() {
@@ -66,24 +70,212 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   @override
   void didUpdateWidget(EnhancedCalendarWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reload monthly data when month changes
-    if (oldWidget.focusedDay.month != widget.focusedDay.month ||
-        oldWidget.focusedDay.year != widget.focusedDay.year) {
-      _loadMonthlyBreakdown();
+    
+    print("📅 CalendarWidget: didUpdateWidget called");
+    print("📅 OLD: focusedDay: ${oldWidget.focusedDay}, selectedDay: ${oldWidget.selectedDay}");
+    print("📅 NEW: focusedDay: ${widget.focusedDay}, selectedDay: ${widget.selectedDay}");
+    print("📅 OLD monthSummary keys: ${oldWidget.monthSummary.keys.toList()}");
+    print("📅 NEW monthSummary keys: ${widget.monthSummary.keys.toList()}");
+    
+    // Check if month changed
+    final monthChanged = oldWidget.focusedDay.month != widget.focusedDay.month ||
+        oldWidget.focusedDay.year != widget.focusedDay.year;
+    
+    // Check if monthSummary changed
+    final summaryChanged = oldWidget.monthSummary != widget.monthSummary;
+    
+    print("📅 Month changed: $monthChanged, Summary changed: $summaryChanged");
+    print("📅 Suppressed: $_suppressCalendarWidgetUpdates");
+    
+    // 🎯 FLICKER FIX: If updates are suppressed, schedule for later
+    if (_suppressCalendarWidgetUpdates) {
+      print("🚫 CalendarWidget: Updates suppressed, scheduling pending update");
+      _pendingUpdate = true;
+      return;
     }
-    if (oldWidget.focusedDay.month != widget.focusedDay.month ||
-        oldWidget.focusedDay.year != widget.focusedDay.year) {
-      _loadGoalData();
+    
+    // Reload monthly data when month changes
+    if (monthChanged) {
+      print("📅 CalendarWidget: Month changed - loading data with suppression");
+      _loadDataWithSuppression();
     }
     
     // Also reload monthly data when the month summary changes (indicates events have loaded/changed)
-    if (oldWidget.monthSummary != widget.monthSummary) {
+    // BUT avoid duplicate calls if month already changed
+    if (summaryChanged && !monthChanged) {
+      print("📅 CalendarWidget: Monthly summary changed (without month change) - loading monthly breakdown");
       _loadMonthlyBreakdown();
     }
   }
 
+  // 🎯 FLICKER FIX: Consolidated data loading with UI suppression
+  Future<void> _loadDataWithSuppression() async {
+    print("📅 CalendarWidget: _loadDataWithSuppression - suppressing UI updates");
+    _suppressCalendarWidgetUpdates = true;
+    
+    try {
+      // Load both goal data and monthly breakdown concurrently
+      await Future.wait([
+        _loadGoalDataSilent(),
+        _loadMonthlyBreakdownSilent(),
+      ]);
+      
+      // Single setState call for all updates
+      if (mounted) {
+        print("📅 CalendarWidget: _loadDataWithSuppression completed - single setState");
+        setState(() {
+          // All data is already loaded, just trigger a rebuild
+        });
+      }
+    } finally {
+      print("📅 CalendarWidget: Re-enabling UI updates after suppression");
+      _suppressCalendarWidgetUpdates = false;
+      
+      // Handle any pending updates
+      if (_pendingUpdate) {
+        print("📅 CalendarWidget: Processing pending update");
+        _pendingUpdate = false;
+        Future.microtask(() => didUpdateWidget(widget));
+      }
+    }
+  }
+
+  // 🎯 FLICKER FIX: Silent versions that don't trigger setState
+  Future<void> _loadGoalDataSilent() async {
+    print("📅 CalendarWidget: _loadGoalDataSilent called - NO setState");
+    
+    try {
+      final goalRepository = getIt<ISavingGoalRepository>();
+      final database = getIt<Database>();
+      
+      // Load goals
+      final goalsResult = await goalRepository.getAllGoals();
+      final goals = goalsResult.fold(
+        (failure) => <SavingGoal>[],
+        (goals) => goals,
+      );
+
+      // Load allocations for the current month
+      final monthStart = DateTime(widget.focusedDay.year, widget.focusedDay.month, 1);
+      final monthEnd = DateTime(widget.focusedDay.year, widget.focusedDay.month + 1, 0);
+      
+      final dailyAllocations = <DateTime, List<GoalAllocationHistory>>{};
+      final savingsStreak = <DateTime, bool>{};
+      final goalMilestones = <DateTime>{};
+
+      for (final goal in goals) {
+        // Load allocation history for this goal
+        final allocationsResult = await goalRepository.getGoalAllocationHistory(goal.id!);
+        await allocationsResult.fold(
+          (failure) => null,
+          (allocations) async {
+            for (final allocation in allocations) {
+              if (allocation.date.isAfter(monthStart.subtract(const Duration(days: 1))) &&
+                  allocation.date.isBefore(monthEnd.add(const Duration(days: 1)))) {
+                final day = DateTime(allocation.date.year, allocation.date.month, allocation.date.day);
+                dailyAllocations.putIfAbsent(day, () => []).add(allocation);
+                savingsStreak[day] = true; // Mark as savings day
+              }
+            }
+          },
+        );
+
+        // Check for goal milestones
+        _checkGoalMilestones(goal, goalMilestones);
+            }
+
+      // Calculate savings streak
+      _calculateSavingsStreak(savingsStreak, monthStart, monthEnd);
+
+      // Update state directly without setState
+      _goals = goals;
+      _dailyAllocations = dailyAllocations;
+      _savingsStreak = savingsStreak;
+      _goalMilestones = goalMilestones;
+      _isLoading = false;
+      
+      print("📅 CalendarWidget: _loadGoalDataSilent completed - NO setState");
+    } catch (e) {
+      print('Error loading goal data: $e');
+      _isLoading = false;
+    }
+  }
+
+  Future<void> _loadMonthlyBreakdownSilent() async {
+    print("📅 CalendarWidget: _loadMonthlyBreakdownSilent called - NO setState");
+    
+    try {
+      final database = getIt<Database>();
+      final monthStart = DateTime(widget.focusedDay.year, widget.focusedDay.month, 1);
+      final monthEnd = DateTime(widget.focusedDay.year, widget.focusedDay.month + 1, 0);
+      
+      // Get all events for the month
+      final allEvents = <Event>[];
+      for (var day = monthStart; !day.isAfter(monthEnd); day = day.add(const Duration(days: 1))) {
+        final dayEvents = widget.eventLoader(day);
+        allEvents.addAll(dayEvents);
+      }
+      
+      // Initialize breakdown maps and transaction lists
+      final incomeByCategory = <String, double>{};
+      final expenseByCategory = <String, double>{};
+      final incomeTransactions = <Event>[];
+      final expenseTransactions = <Event>[];
+      double totalIncome = 0.0;
+      double totalExpenses = 0.0;
+      
+      // Process each event and categorize
+      for (final event in allEvents) {
+        final amount = event.amount.abs();
+        
+        // Get category name
+        String categoryName = 'Unknown';
+        try {
+          final category = await database.getCategoryById(event.categoryId);
+          if (category != null) {
+            categoryName = category.name;
+            // If it's a subcategory, show parent > child format
+            if (category.parentCategoryId != null) {
+              final parentCategory = await database.getCategoryById(category.parentCategoryId!);
+              if (parentCategory != null) {
+                categoryName = '${parentCategory.name} > ${category.name}';
+              }
+            }
+          }
+        } catch (e) {
+          print('Error loading category for event: $e');
+        }
+        
+        if (event.isPositiveCashflow) {
+          incomeByCategory[categoryName] = (incomeByCategory[categoryName] ?? 0) + amount;
+          incomeTransactions.add(event);
+          totalIncome += amount;
+        } else {
+          expenseByCategory[categoryName] = (expenseByCategory[categoryName] ?? 0) + amount.abs();
+          expenseTransactions.add(event);
+          totalExpenses += amount.abs();
+        }
+      }
+      
+      // Update state directly without setState
+      _monthlyIncomeByCategory = incomeByCategory;
+      _monthlyExpenseByCategory = expenseByCategory;
+      _monthlyIncomeTransactions = incomeTransactions;
+      _monthlyExpenseTransactions = expenseTransactions;
+      _monthlyTotalIncome = totalIncome;
+      _monthlyTotalExpenses = totalExpenses;
+      _isLoadingMonthlyData = false;
+      
+      print("📅 CalendarWidget: _loadMonthlyBreakdownSilent completed - NO setState");
+    } catch (e) {
+      print('Error loading monthly breakdown: $e');
+      _isLoadingMonthlyData = false;
+    }
+  }
+
   Future<void> _loadGoalData() async {
-    setState(() => _isLoading = true);
+    print("📅 CalendarWidget: _loadGoalData called - triggering setState");
+    _setStateIfAllowed(() => _isLoading = true);
     
     try {
       final goalRepository = getIt<ISavingGoalRepository>();
@@ -129,7 +321,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
       _calculateSavingsStreak(savingsStreak, monthStart, monthEnd);
 
       if (mounted) {
-        setState(() {
+        print("📅 CalendarWidget: _loadGoalData completed - triggering setState");
+        _setStateIfAllowed(() {
           _goals = goals;
           _dailyAllocations = dailyAllocations;
           _savingsStreak = savingsStreak;
@@ -140,7 +333,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     } catch (e) {
       print('Error loading goal data: $e');
       if (mounted) {
-        setState(() => _isLoading = false);
+        _setStateIfAllowed(() => _isLoading = false);
       }
     }
   }
@@ -178,7 +371,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   }
 
   Future<void> _loadMonthlyBreakdown() async {
-    setState(() => _isLoadingMonthlyData = true);
+    print("📅 CalendarWidget: _loadMonthlyBreakdown called - triggering setState");
+    _setStateIfAllowed(() => _isLoadingMonthlyData = true);
     
     try {
       final database = getIt<Database>();
@@ -234,7 +428,8 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
       }
       
       if (mounted) {
-        setState(() {
+        print("📅 CalendarWidget: _loadMonthlyBreakdown completed - triggering setState");
+        _setStateIfAllowed(() {
           _monthlyIncomeByCategory = incomeByCategory;
           _monthlyExpenseByCategory = expenseByCategory;
           _monthlyIncomeTransactions = incomeTransactions;
@@ -247,13 +442,43 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     } catch (e) {
       print('Error loading monthly breakdown: $e');
       if (mounted) {
-        setState(() => _isLoadingMonthlyData = false);
+        _setStateIfAllowed(() => _isLoadingMonthlyData = false);
       }
+    }
+  }
+
+  // 🎯 FLICKER FIX: setState wrapper that respects suppression
+  void _setStateIfAllowed(VoidCallback fn) {
+    if (_suppressCalendarWidgetUpdates) {
+      print("🚫 CalendarWidget: setState suppressed");
+      fn(); // Execute the function but don't trigger setState
+      return;
+    }
+    
+    print("✅ CalendarWidget: setState allowed");
+    setState(fn);
+  }
+
+  // 🎯 FLICKER FIX: Public API for controlling suppression
+  void suppressUpdates() {
+    print("📅 CalendarWidget: External suppression requested");
+    _suppressCalendarWidgetUpdates = true;
+  }
+
+  void resumeUpdates() {
+    print("📅 CalendarWidget: External suppression lifted");
+    _suppressCalendarWidgetUpdates = false;
+    
+    if (_pendingUpdate) {
+      print("📅 CalendarWidget: Processing deferred update");
+      _pendingUpdate = false;
+      setState(() {}); // Trigger a rebuild for any pending updates
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print("📅 CalendarWidget: Building CalendarWidget with focusedDay: ${widget.focusedDay}, selectedDay: ${widget.selectedDay}");
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,

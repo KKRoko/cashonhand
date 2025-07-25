@@ -313,11 +313,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         
         if (result.allocations.isNotEmpty) {
           // Use the new method that handles allocations
-          firstEventDate = await eventNotifier.addEventWithAllocations(selectedDay, result.event, result.allocations);
+          firstEventDate = await eventNotifier.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
           print("Event and allocations saved: ${result.allocations.length} allocations");
         } else {
           // Use the regular method for events without allocations
-          firstEventDate = await eventNotifier.addEvent(selectedDay, result.event);
+          firstEventDate = await eventNotifier.addEvent(result.event.dateTime, result.event);
         }
         print("Event added successfully from Cash page");
         

@@ -305,7 +305,41 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     await _suggestCategoryFromTitle();
   }
 
+  // Accordion behavior helper methods
+  void _toggleBasicExpanded() {
+    setState(() {
+      _isBasicExpanded = !_isBasicExpanded;
+      if (_isBasicExpanded) {
+        _showCategorySelector = false;
+        _isRecurrenceExpanded = false;
+      }
+    });
+  }
+
+  void _toggleCategorySelector() {
+    setState(() {
+      _showCategorySelector = true;
+      _isBasicExpanded = false;
+      _isRecurrenceExpanded = false;
+    });
+  }
+
+  void _toggleRecurrenceExpanded() {
+    setState(() {
+      _isRecurrenceExpanded = !_isRecurrenceExpanded;
+      if (_isRecurrenceExpanded) {
+        _isBasicExpanded = false;
+        _showCategorySelector = false;
+      }
+    });
+  }
+
   void _saveEvent() {
+    print('🐛 DEBUG _saveEvent - Start');
+    print('🐛 selectedDate: $selectedDate');
+    print('🐛 _repeatOption: $_repeatOption');
+    print('🐛 _customRecurrence: ${_customRecurrence?.toJson()}');
+    
     // Validate required fields
     if (_amountController.text.isEmpty || _titleController.text.isEmpty) {
           setState(() {
@@ -386,66 +420,17 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       );
     }
 
-// In add_edit_event_dialog.dart, replace the adjustedDate calculation section with this:
 
-DateTime adjustedDate = selectedDate;
-if (_repeatOption == RepeatOption.weekly && _customRecurrence != null) {
-  final selectedDayIndices = _customRecurrence!.selectedDayIndices;
-  if (selectedDayIndices.isNotEmpty) {
-    int currentWeekdayIndex = selectedDate.weekday % 7;
-    
-    // Check if today is one of the selected days
-    bool todayIsSelectedDay = selectedDayIndices.contains(currentWeekdayIndex);
-    
-    if (todayIsSelectedDay) {
-      // Smart Start: If today is a selected day, start today
-      adjustedDate = selectedDate;
-      print('DEBUG - Today is a selected day, starting today');
-    } else {
-      // Smart Start: If today is NOT a selected day, find the next occurrence
-      int nextDayIndex = selectedDayIndices.firstWhere(
-        (dayIndex) => dayIndex > currentWeekdayIndex,
-        orElse: () => selectedDayIndices.first
-      );
-      
-      int daysUntilNext;
-      if (nextDayIndex > currentWeekdayIndex) {
-        // Next selected day is later this week
-        daysUntilNext = nextDayIndex - currentWeekdayIndex;
-      } else {
-        // Next selected day is next week
-        daysUntilNext = 7 - currentWeekdayIndex + nextDayIndex;
-      }
-      
-      adjustedDate = selectedDate.add(Duration(days: daysUntilNext));
-      print('DEBUG - Today is not a selected day, starting on next occurrence: ${adjustedDate.toIso8601String()}');
-    }
-  }
-} else if (_repeatOption == RepeatOption.monthly && _customRecurrence != null) {
-  if (_customRecurrence!.repeatAtEndOfMonth) {
-    // Calculate the first occurrence at end of month
-    adjustedDate = EventDateUtils.getEndOfMonth(selectedDate);
-  } else {
-    adjustedDate = EventDateUtils.adjustDateForEndOfMonth(selectedDate, _customRecurrence);
-  }
-}
-
-print('DEBUG - Before save:');
-print('DEBUG - selectedDate: $selectedDate');
-print('DEBUG - adjustedDate: $adjustedDate');
-print('DEBUG - repeatOption: $_repeatOption');
-if (_customRecurrence != null) {
-  print('DEBUG - selectedDays: ${_customRecurrence!.selectedDays}');
-  print('DEBUG - selectedDayIndices: ${_customRecurrence!.selectedDayIndices}');
-}
-
+  print('🐛 DEBUG - Creating event with dateTime: $selectedDate');
+  print('🐛 DEBUG - Final _customRecurrence: ${_customRecurrence?.toJson()}');
+  
   final event = widget.event?.id != null
       ? Event(
           id: widget.event!.id,
           title: _titleController.text,
           categoryId: _selectedCategoryId,
           amount: amount,
-          dateTime: adjustedDate,
+          dateTime: selectedDate,
           repeatOption: _repeatOption,
           isRecurring: _repeatOption != RepeatOption.today,
           customRecurrence: _customRecurrence,
@@ -458,7 +443,7 @@ if (_customRecurrence != null) {
           title: _titleController.text,
           categoryId: _selectedCategoryId,
           amount: amount,
-          dateTime: adjustedDate,
+          dateTime: selectedDate,
           repeatOption: _repeatOption,
           isRecurring: _repeatOption != RepeatOption.today,
           customRecurrence: _customRecurrence,
@@ -548,7 +533,7 @@ if (_customRecurrence != null) {
       child: Column(
         children: [
           InkWell(
-            onTap: () => setState(() => _isBasicExpanded = !_isBasicExpanded),
+            onTap: _toggleBasicExpanded,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -830,8 +815,7 @@ if (_customRecurrence != null) {
       child: Column(
         children: [
           InkWell(
-            onTap: () =>
-                setState(() => _isRecurrenceExpanded = !_isRecurrenceExpanded),
+            onTap: _toggleRecurrenceExpanded,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -967,7 +951,7 @@ if (_customRecurrence != null) {
       child: Column(
         children: [
           InkWell(
-            onTap: () => setState(() => _showCategorySelector = true),
+            onTap: _toggleCategorySelector,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16.0),

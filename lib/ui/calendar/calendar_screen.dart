@@ -33,6 +33,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _isLoading = false;
   bool _isDatabaseInitialized = false;
   late Database _database;
+  
+  // 🎯 FLICKER FIX: Key to access CalendarWidget state
+  final GlobalKey<EnhancedCalendarWidgetState> _calendarWidgetKey = GlobalKey<EnhancedCalendarWidgetState>();
 
   @override
   void initState() {
@@ -193,13 +196,28 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       if (result != null) {
         DateTime? firstEventDate;
         
-        if (result.allocations.isNotEmpty) {
-          // Use the new method that handles allocations
-          firstEventDate = await eventNotifier.addEventWithAllocations(_selectedDay!, result.event, result.allocations);
-          print("Event and allocations saved: ${result.allocations.length} allocations");
-        } else {
-          // Use the regular method for events without allocations
-          firstEventDate = await eventNotifier.addEvent(_selectedDay!, result.event);
+        // 🎯 FLICKER FIX: Suppress CalendarWidget updates during recurring event creation
+        final isRecurring = result.event.isRecurring;
+        if (isRecurring) {
+          print("🚫 CalendarScreen: Suppressing CalendarWidget updates for recurring event");
+          _calendarWidgetKey.currentState?.suppressUpdates();
+        }
+        
+        try {
+          if (result.allocations.isNotEmpty) {
+            // Use the new method that handles allocations
+            firstEventDate = await eventNotifier.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
+            print("Event and allocations saved: ${result.allocations.length} allocations");
+          } else {
+            // Use the regular method for events without allocations
+            firstEventDate = await eventNotifier.addEvent(result.event.dateTime, result.event);
+          }
+        } finally {
+          // 🎯 FLICKER FIX: Resume CalendarWidget updates
+          if (isRecurring) {
+            print("✅ CalendarScreen: Resuming CalendarWidget updates after recurring event");
+            _calendarWidgetKey.currentState?.resumeUpdates();
+          }
         }
         print("Event added successfully");
         
@@ -383,6 +401,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                       // Calendar wrapped in gesture interceptor
                       _CalendarScrollWrapper(
                         child: EnhancedCalendarWidget(
+                          key: _calendarWidgetKey,
                           focusedDay: _focusedDay,
                           selectedDay: _selectedDay,
                           onDaySelected: _onDaySelected,

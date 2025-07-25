@@ -18,6 +18,7 @@ class EventNotifier extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   bool _isAddingRecurringEvent = false;
+  bool _suppressUIUpdates = false;
 
   EventNotifier(this.eventService); 
 
@@ -63,7 +64,8 @@ class EventNotifier extends ChangeNotifier {
       (failure) => _setError(failure.message),
       (events) {
         _groupEventsByDay(events);
-        notifyListeners();
+        print('🔄 UI UPDATE: loadEventsForRange success - notifyListeners() called');
+        _notifyListenersIfAllowed('loadEventsForRange success');
       }
     );
 
@@ -71,6 +73,13 @@ class EventNotifier extends ChangeNotifier {
   }
 
   Future<DateTime?> addEvent(DateTime day, Event event) async {
+    // 🎯 FLICKER FIX: Suppress UI updates for recurring events during entire operation
+    final isRecurring = event.repeatOption != RepeatOption.today;
+    if (isRecurring) {
+      print('🚫 FLICKER FIX: Suppressing UI updates for entire recurring event operation');
+      _suppressUIUpdates = true;
+    }
+    
     _setLoading(true);
 
     DateTime? firstEventDate;
@@ -81,11 +90,24 @@ class EventNotifier extends ChangeNotifier {
       firstEventDate = await _addRecurringEvent(day, event);
     }
 
+    // 🎯 FLICKER FIX: Re-enable UI updates and trigger single final update
+    if (isRecurring) {
+      _suppressUIUpdates = false;
+      print('✅ FLICKER FIX: Re-enabling UI updates and triggering final notification');
+    }
+    
     _setLoading(false);
     return firstEventDate;
   }
 
   Future<DateTime?> addEventWithAllocations(DateTime day, Event event, List<GoalAllocation> allocations) async {
+    // 🎯 FLICKER FIX: Suppress UI updates for recurring events during entire operation
+    final isRecurring = event.repeatOption != RepeatOption.today;
+    if (isRecurring) {
+      print('🚫 FLICKER FIX: Suppressing UI updates for entire recurring event with allocations operation');
+      _suppressUIUpdates = true;
+    }
+    
     _setLoading(true);
 
     DateTime? firstEventDate;
@@ -104,6 +126,12 @@ class EventNotifier extends ChangeNotifier {
       }
     );
 
+    // 🎯 FLICKER FIX: Re-enable UI updates and trigger single final update
+    if (isRecurring) {
+      _suppressUIUpdates = false;
+      print('✅ FLICKER FIX: Re-enabling UI updates and triggering final notification');
+    }
+    
     _setLoading(false);
     return firstEventDate;
   }
@@ -210,7 +238,17 @@ class EventNotifier extends ChangeNotifier {
   // Private Helper Methods
   void _setLoading(bool loading) {
     _isLoading = loading;
-    notifyListeners();
+    print('🔄 UI UPDATE: _setLoading($loading) - notifyListeners() called');
+    _notifyListenersIfAllowed('_setLoading($loading)');
+  }
+  
+  void _notifyListenersIfAllowed(String source) {
+    if (_suppressUIUpdates) {
+      print('🚫 UI UPDATE SUPPRESSED: $source - skipping notifyListeners()');
+    } else {
+      print('✅ UI UPDATE ALLOWED: $source - calling notifyListeners()');
+      notifyListeners();
+    }
   }
 
   void _setError(String error) {
