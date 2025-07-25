@@ -925,6 +925,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       body: SafeArea(
         child: Consumer<EventNotifier>(
           builder: (context, eventNotifier, child) {
+            // 🎯 FLICKER FIX: Prevent Consumer rebuilds during suppression
+            print("🔄 Consumer<EventNotifier>: Building with suppression = $_suppressCashPageUpdates");
+            
             return Stack(
               children: [
                 SingleChildScrollView(
