@@ -101,12 +101,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   // 🎯 FLICKER FIX: setState wrapper that respects suppression
   void _setStateIfAllowed(VoidCallback fn) {
     if (_suppressCashPageUpdates) {
-      print("🚫 CashPage: setState suppressed");
+      print("🚫 CashPage: setState suppressed (flag = $_suppressCashPageUpdates)");
       fn(); // Execute the function but don't trigger setState
       return;
     }
     
-    print("✅ CashPage: setState allowed");
+    print("✅ CashPage: setState allowed (flag = $_suppressCashPageUpdates)");
     setState(fn);
   }
 
@@ -328,9 +328,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         
         // 🎯 FLICKER FIX: Suppress Cash page updates during recurring event creation
         final isRecurring = result.event.isRecurring;
+        print("🔍 CashPage DEBUG: isRecurring = $isRecurring, repeatOption = ${result.event.repeatOption}");
         if (isRecurring) {
           print("🚫 CashPage: Suppressing Cash page updates for recurring event");
           _suppressCashPageUpdates = true;
+        } else {
+          print("ℹ️ CashPage: Single event detected, no suppression needed");
         }
         
         try {
