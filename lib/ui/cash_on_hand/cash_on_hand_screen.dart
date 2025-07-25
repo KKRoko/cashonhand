@@ -348,20 +348,19 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             firstEventDate = await eventNotifier.addEvent(result.event.dateTime, result.event);
           }
         } finally {
-          // 🎯 FLICKER FIX: Resume Cash page updates
-          if (isRecurring) {
-            print("✅ CashPage: Resuming Cash page updates after recurring event");
-            _suppressCashPageUpdates = false;
-            _cachedBody = null; // Clear cache to allow fresh rebuilds
-          }
+          // Note: Don't resume suppression here - wait until after calculations
         }
         print("Event added successfully from Cash page");
         
         // Refresh the cash totals and recent transactions after adding the event
         await _calculateTotals();
         
-        // 🎯 FLICKER FIX: Single final UI update for recurring events
+        // 🎯 FLICKER FIX: Resume suppression and single final UI update for recurring events
         if (isRecurring && mounted) {
+          print("✅ CashPage: Resuming Cash page updates after all calculations");
+          _suppressCashPageUpdates = false;
+          _cachedBody = null; // Clear cache to allow fresh rebuilds
+          
           print("🎯 CashPage: Final UI update after recurring event completion");
           setState(() {}); // Single final update to show all changes
         }
