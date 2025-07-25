@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../settings/settings_view.dart';
@@ -11,6 +12,7 @@ import '../../data/models/freezed/event.dart';
 import '../achievements/achievement_screen.dart';
 import '../dialogs/add_edit_event_dialog.dart';
 import '../calendar/calendar_screen.dart';
+import '../transactions/transactions_screen.dart';
 import '../../theme/design_tokens.dart';
 import '../components/cash_components.dart';
 
@@ -36,9 +38,14 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   // Animation controller for progress bars
   late AnimationController _progressController;
   
+  // 🎯 FLICKER FIX: Manual EventNotifier listener instead of Consumer
+  EventNotifier? _eventNotifier;
+  
   // 🎯 FLICKER FIX: UI update suppression for Cash page
   bool _suppressCashPageUpdates = false;
-  Widget? _cachedBody; // Cache the body during suppression
+  
+  // 🎯 FLICKER FIX: Debounced calculation to prevent rapid rebuilds
+  Timer? _calculationDebounceTimer;
 
   @override
   void initState() {
@@ -62,8 +69,10 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     };
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
-      eventNotifier.loadInitialEvents();
+      _eventNotifier = Provider.of<EventNotifier>(context, listen: false);
+      // 🎯 FLICKER FIX: Add manual listener with suppression check
+      _eventNotifier!.addListener(_onEventNotifierChanged);
+      _eventNotifier!.loadInitialEvents();
     });
   }
 
@@ -71,21 +80,35 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Get the EventNotifier and initialize dates that depend on it
-    final eventNotifier = Provider.of<EventNotifier>(context);
+    // 🎯 FLICKER FIX: Only get EventNotifier without listening for changes
+    // We handle changes manually in _onEventNotifierChanged
+    final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
     final year = eventNotifier.currentYear;
     _endOfYear = DateTime(year, 12, 31);
 
-    // Get EventService from EventNotifier
-
-    // Initial load of totals
-    _calculateTotals();
+    // 🎯 FLICKER FIX: Use debounced calculation to prevent rapid rebuilds
+    // This will batch multiple rapid EventNotifier changes into a single calculation
+    _debouncedCalculateTotals();
   }
 
   @override
   void dispose() {
     _progressController.dispose();
+    _calculationDebounceTimer?.cancel();
+    // 🎯 FLICKER FIX: Remove manual listener
+    _eventNotifier?.removeListener(_onEventNotifierChanged);
     super.dispose();
+  }
+  
+  // 🎯 FLICKER FIX: Manual EventNotifier change handler with suppression
+  void _onEventNotifierChanged() {
+    if (_suppressCashPageUpdates) {
+      print("🚫 CashPage: EventNotifier change suppressed (flag = $_suppressCashPageUpdates)");
+      return;
+    }
+    
+    print("✅ CashPage: EventNotifier change allowed - triggering debounced calculation");
+    _debouncedCalculateTotals();
   }
 
   DateTime _getEndOfWeek(DateTime date) {
@@ -111,16 +134,23 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     setState(fn);
   }
 
+  // 🎯 FLICKER FIX: Debounced calculation to prevent rapid successive calls
+  void _debouncedCalculateTotals() {
+    _calculationDebounceTimer?.cancel();
+    _calculationDebounceTimer = Timer(const Duration(milliseconds: 100), () {
+      _calculateTotals();
+    });
+  }
+
   Future<void> _calculateTotals() async {
-    if (_isLoading) return;
+    if (_isLoading || _eventNotifier == null) return;
 
     _setStateIfAllowed(() {
       _isLoading = true;
     });
 
     try {
-      final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
-      final events = eventNotifier.getEventsForDateRange(
+      final events = _eventNotifier!.getEventsForDateRange(
         DateTime(_now.year, 1, 1),
         _endOfYear,
       );
@@ -243,20 +273,35 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   }
 
   Future<void> _loadRecentTransactions() async {
+    if (_eventNotifier == null) return;
+    
     try {
-      final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
-      
       // Get all events from the current year
-      final allEvents = eventNotifier.getEventsForDateRange(
+      final allEvents = _eventNotifier!.getEventsForDateRange(
         DateTime(_now.year, 1, 1),
         _endOfYear,
       );
       
-      // Sort by date (most recent first) and take the first 5
+      // Sort by date (most recent first), then by creation time for same-day events
       final sortedEvents = allEvents.toList()
-        ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+        ..sort((a, b) {
+          // First compare by event date (most recent first)
+          final dateComparison = b.dateTime.compareTo(a.dateTime);
+          if (dateComparison != 0) {
+            return dateComparison;
+          }
+          // If same date, sort by creation time (most recently created first)
+          return b.createdAt.compareTo(a.createdAt);
+        });
       
-      // Take only the most recent 5 transactions
+      // Debug: Print sorting verification
+      print("📅 Recent transactions sorted by date (most recent first):");
+      for (int i = 0; i < sortedEvents.take(5).length; i++) {
+        final event = sortedEvents[i];
+        print("  ${i + 1}. ${event.title} - Event: ${event.dateTime.toIso8601String()}, Created: ${event.createdAt.toIso8601String()}");
+      }
+      
+      // Take only the most recent 5 transactions  
       final recentEvents = sortedEvents.take(5).toList();
       
       if (mounted) {
@@ -278,7 +323,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     try {
       print("Starting _showAddEventDialog from Cash page");
       final categoryNotifier = context.read<CategoryNotifier>();
-      final eventNotifier = context.read<EventNotifier>();
+      if (_eventNotifier == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('EventNotifier not initialized. Please wait.')),
+        );
+        return;
+      }
       
       final categoryType = isPositiveCashflow ? CategoryType.income : CategoryType.expense;
       final categories = categoryNotifier.getCategoriesByType(categoryType)
@@ -325,6 +375,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
       print("Dialog result: ${result != null ? 'event created with ${result.allocations.length} allocations' : 'cancelled'}");
       if (result != null) {
+        print("🚨 CashPage: Event result received, checking if recurring...");
         DateTime? firstEventDate;
         
         // 🎯 FLICKER FIX: Suppress Cash page updates during recurring event creation
@@ -341,25 +392,24 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         try {
           if (result.allocations.isNotEmpty) {
             // Use the new method that handles allocations
-            firstEventDate = await eventNotifier.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
+            firstEventDate = await _eventNotifier!.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
             print("Event and allocations saved: ${result.allocations.length} allocations");
           } else {
             // Use the regular method for events without allocations
-            firstEventDate = await eventNotifier.addEvent(result.event.dateTime, result.event);
+            firstEventDate = await _eventNotifier!.addEvent(result.event.dateTime, result.event);
           }
         } finally {
           // Note: Don't resume suppression here - wait until after calculations
         }
         print("Event added successfully from Cash page");
         
-        // Refresh the cash totals and recent transactions after adding the event
-        await _calculateTotals();
+        // 🎯 FLICKER FIX: Use debounced calculation to prevent multiple rapid calculations
+        _debouncedCalculateTotals();
         
         // 🎯 FLICKER FIX: Resume suppression and single final UI update for recurring events
         if (isRecurring && mounted) {
           print("✅ CashPage: Resuming Cash page updates after all calculations");
           _suppressCashPageUpdates = false;
-          _cachedBody = null; // Clear cache to allow fresh rebuilds
           
           print("🎯 CashPage: Final UI update after recurring event completion");
           setState(() {}); // Single final update to show all changes
@@ -471,7 +521,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           child: FinancialButton(
             onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
             financialType: FinancialButtonType.income,
-            icon: Icons.add,
             size: ButtonSize.large,
             child: ResponsiveText(
               'Add Income',
@@ -485,7 +534,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           child: FinancialButton(
             onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
             financialType: FinancialButtonType.expense,
-            icon: Icons.remove,
             size: ButtonSize.large,
             child: ResponsiveText(
               'Add Expense',
@@ -516,7 +564,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         ),
         VSpace('md'),
         SizedBox(
-          height: 120,
+          height: 140, // Increased height to prevent overflow
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: periods.length,
@@ -537,33 +585,48 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           ? FinancialContext.expense 
                           : FinancialContext.neutral,
                   onTap: () => _toggleExpanded(period['key'] as String),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ResponsiveText(
-                        period['title'] as String,
-                        styleToken: 'titleSmall',
-                        textAlign: TextAlign.center,
-                        maxWidth: 120, // Constrain width to prevent overflow
-                      ),
-                      VSpace('xs'),
-                      FinancialAmount(
-                        amount: total,
-                        size: FinancialAmountSize.medium,
-                        maxWidth: 120, // Prevent amount from overflowing card
-                        adaptive: true,
-                      ),
-                      VSpace('xs'),
-                      ResponsiveText(
-                        period['subtitle'] as String,
-                        styleToken: 'bodySmall',
-                        style: DesignTokens.textStyle('bodySmall').copyWith(
-                          color: DesignTokens.color('textSecondary'),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: DesignTokens.space('sm'),
+                      horizontal: DesignTokens.space('xs'),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ResponsiveText(
+                          period['title'] as String,
+                          styleToken: 'titleSmall',
+                          textAlign: TextAlign.center,
+                          maxWidth: 120,
+                          maxLines: 1,
+                          minFontSize: 12,
+                          maxFontSize: 16,
                         ),
-                        textAlign: TextAlign.center,
-                        maxWidth: 120,
-                      ),
-                    ],
+                        SizedBox(height: DesignTokens.space('xs') / 2), // Reduced spacing
+                        Flexible(
+                          child: FinancialAmount(
+                            amount: total,
+                            size: FinancialAmountSize.medium,
+                            maxWidth: 120,
+                            adaptive: true,
+                          ),
+                        ),
+                        SizedBox(height: DesignTokens.space('xs') / 2), // Reduced spacing
+                        ResponsiveText(
+                          period['subtitle'] as String,
+                          styleToken: 'bodySmall',
+                          style: DesignTokens.textStyle('bodySmall').copyWith(
+                            color: DesignTokens.color('textSecondary'),
+                          ),
+                          textAlign: TextAlign.center,
+                          maxWidth: 120,
+                          maxLines: 1,
+                          minFontSize: 10,
+                          maxFontSize: 12,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -588,8 +651,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             ),
             TextButton(
               onPressed: () {
-                // Navigate to Calendar page to view full transaction history
-                Navigator.pushNamed(context, CalendarScreen.routeName);
+                // Navigate to Transactions page to view full transaction history
+                Navigator.pushNamed(context, TransactionsScreen.routeName);
               },
               child: ResponsiveText(
                 'View All',
@@ -925,65 +988,45 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         ],
       ),
       body: SafeArea(
-        child: Consumer<EventNotifier>(
-          builder: (context, eventNotifier, child) {
-            // 🎯 FLICKER FIX: Prevent Consumer rebuilds during suppression
-            print("🔄 Consumer<EventNotifier>: Building with suppression = $_suppressCashPageUpdates");
-            
-            // Return cached body if suppression is active
-            if (_suppressCashPageUpdates && _cachedBody != null) {
-              print("🚫 Consumer: Returning cached body during suppression");
-              return _cachedBody!;
-            }
-            
-            final bodyWidget = Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: EdgeInsets.all(DesignTokens.space('lg')),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Hero Balance Section with Trend
-                      _buildHeroBalanceSection(),
-                      VSpace('xl'),
-                      
-                      // Quick Action Buttons
-                      _buildQuickActions(),
-                      VSpace('xl'),
-                      
-                      // Time Period Mini Cards (Horizontal Scroll)
-                      _buildTimePeriodSection(),
-                      VSpace('xl'),
-                      
-                      // Recent Transactions Preview
-                      _buildRecentTransactionsSection(),
-                      VSpace('xl'),
-                      
-                      // Achievement Highlights (Horizontal Chips)
-                      _buildAchievementHighlights(),
-                      
-                      // Add bottom padding for safe area
-                      VSpace('2xl'),
-                    ],
-                  ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.all(DesignTokens.space('lg')),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Hero Balance Section with Trend
+                  _buildHeroBalanceSection(),
+                  VSpace('xl'),
+                  
+                  // Quick Action Buttons
+                  _buildQuickActions(),
+                  VSpace('xl'),
+                  
+                  // Time Period Mini Cards (Horizontal Scroll)
+                  _buildTimePeriodSection(),
+                  VSpace('xl'),
+                  
+                  // Recent Transactions Preview
+                  _buildRecentTransactionsSection(),
+                  VSpace('xl'),
+                  
+                  // Achievement Highlights (Horizontal Chips)
+                  _buildAchievementHighlights(),
+                  
+                  // Add bottom padding for safe area
+                  VSpace('2xl'),
+                ],
+              ),
+            ),
+            if (_isLoading)
+              Container(
+                color: DesignTokens.color('overlay'),
+                child: const Center(
+                  child: CircularProgressIndicator(),
                 ),
-                if (_isLoading)
-                  Container(
-                    color: DesignTokens.color('overlay'),
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-              ],
-            );
-            
-            // Cache the body widget for suppression
-            if (!_suppressCashPageUpdates) {
-              _cachedBody = bodyWidget;
-            }
-            
-            return bodyWidget;
-          },
+              ),
+          ],
         ),
       ),
     );

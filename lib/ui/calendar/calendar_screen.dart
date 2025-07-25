@@ -413,19 +413,13 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                           monthSummary: _getMonthSummary(),
                         ),
                       ),
-                      // Event list with minimum height for visibility
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: 200,
-                          maxHeight: MediaQuery.of(context).size.height * 0.3,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: EventListWidget(
-                            events: eventNotifier.getEventsForDay(_selectedDay!),
-                            onDeleteEvent: _showDeleteEventDialog,
-                            onEditEvent: _showEditEventDialog,
-                          ),
+                      // Event list - now part of unified scroll
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: EventListWidget(
+                          events: eventNotifier.getEventsForDay(_selectedDay!),
+                          onDeleteEvent: _showDeleteEventDialog,
+                          onEditEvent: _showEditEventDialog,
                         ),
                       ),
                       // Add some bottom padding for the action buttons
@@ -458,7 +452,6 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                     child: FinancialButton(
                       onPressed: () => _showAddEventDialog(isPositiveCashflow: true),
                       financialType: FinancialButtonType.income,
-                      icon: Icons.add,
                       fullWidth: true,
                       child: const Text('Add Income'),
                     ),
@@ -468,7 +461,6 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                     child: FinancialButton(
                       onPressed: () => _showAddEventDialog(isPositiveCashflow: false),
                       financialType: FinancialButtonType.expense,
-                      icon: Icons.remove,
                       fullWidth: true,
                       child: const Text('Add Expense'),
                     ),

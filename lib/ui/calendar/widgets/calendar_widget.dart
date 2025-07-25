@@ -1128,9 +1128,17 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         sixWeekMonthsEnforced: true,
         pageJumpingEnabled: false,
         pageAnimationEnabled: false,
+        daysOfWeekHeight: 40, // Increase height for day names row
+        rowHeight: 60, // Increase row height to prevent overlap
         calendarStyle: CalendarStyle(
           outsideDaysVisible: false,
-          cellMargin: EdgeInsets.all(DesignTokens.space('xs')),
+          cellMargin: EdgeInsets.only(
+            left: DesignTokens.space('xs'),
+            right: DesignTokens.space('xs'),
+            bottom: DesignTokens.space('xs'),
+            top: DesignTokens.space('md'), // Increased top margin to prevent overlap
+          ),
+          cellPadding: EdgeInsets.zero,
           defaultDecoration: BoxDecoration(
             color: DesignTokens.color('surface'),
             borderRadius: DesignTokens.radius('sm'),
@@ -1154,6 +1162,32 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               color: DesignTokens.color('primary'),
               width: 2,
             ),
+          ),
+        ),
+        daysOfWeekStyle: DaysOfWeekStyle(
+          weekdayStyle: DesignTokens.textStyle('labelMedium').copyWith(
+            color: DesignTokens.color('textSecondary'),
+            fontWeight: FontWeight.w600,
+          ),
+          weekendStyle: DesignTokens.textStyle('labelMedium').copyWith(
+            color: DesignTokens.color('textSecondary'),
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+          ),
+        ),
+        headerStyle: HeaderStyle(
+          formatButtonVisible: false,
+          titleCentered: true,
+          leftChevronVisible: true,
+          rightChevronVisible: true,
+          headerPadding: EdgeInsets.symmetric(
+            vertical: DesignTokens.space('md'),
+            horizontal: DesignTokens.space('lg'),
+          ),
+          titleTextStyle: DesignTokens.textStyle('titleLarge').copyWith(
+            fontWeight: FontWeight.w600,
           ),
         ),
         onDaySelected: widget.onDaySelected,

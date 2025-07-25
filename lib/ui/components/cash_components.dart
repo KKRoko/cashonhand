@@ -404,18 +404,30 @@ class SecondaryButton extends StatelessWidget {
     return SizedBox(
       width: fullWidth ? double.infinity : null,
       height: _getHeight(size),
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: icon != null ? Icon(icon, size: _getIconSize(size)) : const SizedBox.shrink(),
-        label: child,
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.symmetric(
-            horizontal: _getHorizontalPadding(size),
-            vertical: DesignTokens.space('sm'),
-          ),
-          textStyle: _getTextStyle(size),
-        ),
-      ),
+      child: icon != null
+          ? OutlinedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: _getIconSize(size)),
+              label: child,
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: _getHorizontalPadding(size),
+                  vertical: DesignTokens.space('sm'),
+                ),
+                textStyle: _getTextStyle(size),
+              ),
+            )
+          : OutlinedButton(
+              onPressed: onPressed,
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: _getHorizontalPadding(size),
+                  vertical: DesignTokens.space('sm'),
+                ),
+                textStyle: _getTextStyle(size),
+              ),
+              child: child,
+            ),
     );
   }
 
@@ -503,20 +515,34 @@ class FinancialButton extends StatelessWidget {
     return SizedBox(
       width: fullWidth ? double.infinity : null,
       height: _getHeight(size),
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: icon != null ? Icon(icon, size: _getIconSize(size)) : const SizedBox.shrink(),
-        label: child,
-        style: FilledButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          padding: EdgeInsets.symmetric(
-            horizontal: _getHorizontalPadding(size),
-            vertical: DesignTokens.space('sm'),
-          ),
-          textStyle: _getTextStyle(size),
-        ),
-      ),
+      child: icon != null
+          ? FilledButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: _getIconSize(size)),
+              label: child,
+              style: FilledButton.styleFrom(
+                backgroundColor: backgroundColor,
+                foregroundColor: foregroundColor,
+                padding: EdgeInsets.symmetric(
+                  horizontal: _getHorizontalPadding(size),
+                  vertical: DesignTokens.space('sm'),
+                ),
+                textStyle: _getTextStyle(size),
+              ),
+            )
+          : FilledButton(
+              onPressed: onPressed,
+              style: FilledButton.styleFrom(
+                backgroundColor: backgroundColor,
+                foregroundColor: foregroundColor,
+                padding: EdgeInsets.symmetric(
+                  horizontal: _getHorizontalPadding(size),
+                  vertical: DesignTokens.space('sm'),
+                ),
+                textStyle: _getTextStyle(size),
+              ),
+              child: child,
+            ),
     );
   }
 

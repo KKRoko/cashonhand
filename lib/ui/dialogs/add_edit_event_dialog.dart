@@ -565,24 +565,42 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                 children: [
                   SizedBox(
                     height: 300,
-                    child:              CalendarDatePicker(
-                    initialDate: selectedDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                    onDateChanged: (DateTime newDate) {
-                      setState(() {
-                        selectedDate = newDate;
-                        // Update day of month controller if it exists
-                        if (_repeatOption == RepeatOption.monthly &&
-                            !(_customRecurrence?.repeatAtEndOfMonth ?? false)) {
-                          _dayOfMonthController.text = newDate.day.toString();
-                          _updateMonthlyRecurrence(newDate.day);
-                        }
-                      });
-                      // Update the "Starts" text in real-time when date changes
-                      _updateFirstOccurrenceText();
-                    },
-                  ),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: Theme.of(context).colorScheme.copyWith(
+                          primary: Theme.of(context).primaryColor,
+                          onPrimary: Colors.white,
+                          surface: Theme.of(context).scaffoldBackgroundColor,
+                          onSurface: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                        ),
+                        textTheme: Theme.of(context).textTheme.copyWith(
+                          bodyLarge: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black,
+                          ),
+                          bodyMedium: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black,
+                          ),
+                        ),
+                      ),
+                      child: CalendarDatePicker(
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                        onDateChanged: (DateTime newDate) {
+                          setState(() {
+                            selectedDate = newDate;
+                            // Update day of month controller if it exists
+                            if (_repeatOption == RepeatOption.monthly &&
+                                !(_customRecurrence?.repeatAtEndOfMonth ?? false)) {
+                              _dayOfMonthController.text = newDate.day.toString();
+                              _updateMonthlyRecurrence(newDate.day);
+                            }
+                          });
+                          // Update the "Starts" text in real-time when date changes
+                          _updateFirstOccurrenceText();
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),

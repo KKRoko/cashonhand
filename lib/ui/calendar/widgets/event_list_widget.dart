@@ -20,7 +20,7 @@ class EventListWidget extends StatelessWidget {
     return ListView.builder(
       itemCount: events.length,
       shrinkWrap: true,
-      physics: const ClampingScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(), // Disable independent scrolling
       padding: const EdgeInsets.symmetric(vertical: AppTheme.defaultPadding / 2),
       itemBuilder: (context, index) {
         return EventListItem(
