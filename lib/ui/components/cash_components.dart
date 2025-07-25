@@ -100,7 +100,7 @@ class FinancialAmount extends StatelessWidget {
             width: maxWidth,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
+              alignment: Alignment.center,
               child: Text(
                 displayText,
                 style: (style ?? textStyle).copyWith(color: color),

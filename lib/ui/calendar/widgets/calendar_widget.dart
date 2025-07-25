@@ -283,7 +283,6 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             : FinancialContext.neutral;
 
     return CashCard(
-      financialContext: financialContext,
       onTap: () => setState(() => _isMonthlySummaryExpanded = !_isMonthlySummaryExpanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,6 +377,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           children: [
             Expanded(
               child: CashCard(
+                financialContext: FinancialContext.income,
                 child: Column(
                   children: [
                     Icon(
@@ -404,6 +404,7 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             HSpace('md'),
             Expanded(
               child: CashCard(
+                financialContext: FinancialContext.expense,
                 child: Column(
                   children: [
                     Icon(
@@ -969,58 +970,6 @@ class _EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               ),
             ),
             
-          // Goal allocation indicator
-          if (allocations.isNotEmpty)
-            Positioned(
-              left: 2,
-              top: 2,
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: DesignTokens.color('income'),
-                  borderRadius: DesignTokens.radius('sm'),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.savings,
-                    color: DesignTokens.color('onPrimary'),
-                    size: 8,
-                  ),
-                ),
-              ),
-            ),
-          
-          // Mini goal progress indicators (bottom row)
-          if (_goals.isNotEmpty && !_isLoading)
-            Positioned(
-              bottom: 2,
-              left: 2,
-              right: 2,
-              child: _buildMiniGoalProgressIndicators(),
-            ),
-          
-          // Milestone marker
-          if (isMilestone)
-            Positioned(
-              right: 2,
-              bottom: 2,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: DesignTokens.color('warning'),
-                  borderRadius: DesignTokens.radius('xs'),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.star,
-                    color: DesignTokens.color('onPrimary'),
-                    size: 8,
-                  ),
-                ),
-              ),
-            ),
             
           // Allocation amount text
           if (totalAllocationAmount > 0)
@@ -1179,37 +1128,6 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
     );
   }
 
-  Widget _buildMiniGoalProgressIndicators() {
-    if (_goals.isEmpty) return const SizedBox();
-    
-    const maxIndicators = 3; // Limit to show only top 3 goals
-    final topGoals = _goals.take(maxIndicators).toList();
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: topGoals.map((goal) {
-        final progress = (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0);
-        return Container(
-          width: 16,
-          height: 3,
-          decoration: BoxDecoration(
-            borderRadius: DesignTokens.radius('xs'),
-            color: DesignTokens.color('borderLight'),
-          ),
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: progress,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: DesignTokens.radius('xs'),
-                color: _getGoalProgressColor(progress),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
 
   Color _getDayCellBackgroundColor(bool isSelected, bool hasSavings, bool isMilestone) {
     if (isMilestone) {
@@ -1237,11 +1155,6 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
     return DesignTokens.color('border');
   }
 
-  Color _getGoalProgressColor(double progress) {
-    if (progress >= 0.8) return DesignTokens.color('success');
-    if (progress >= 0.5) return DesignTokens.color('warning');
-    return DesignTokens.color('error');
-  }
 
   int _calculateCurrentSavingsStreak() {
     final today = DateTime.now();

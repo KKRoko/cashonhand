@@ -216,12 +216,13 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     }
     
     setState(() {
-      if (adjustedDate.year == selectedDate.year && 
-          adjustedDate.month == selectedDate.month && 
-          adjustedDate.day == selectedDate.day) {
+      final now = DateTime.now();
+      if (adjustedDate.year == now.year && 
+          adjustedDate.month == now.month && 
+          adjustedDate.day == now.day) {
         _firstOccurrenceText = "Starts today";
       } else {
-        final formatter = DateFormat('EEE, MMM d');
+        final formatter = DateFormat('M/d/yyyy');
         _firstOccurrenceText = "Starts ${formatter.format(adjustedDate)}";
       }
     });
@@ -536,29 +537,6 @@ if (_customRecurrence != null) {
     );
   }
 
-    Widget _buildDateChip(String label, DateTime date) {
-    final isSelected = selectedDate.year == date.year &&
-        selectedDate.month == date.month &&
-        selectedDate.day == date.day;
-
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        if (selected) {
-          setState(() {
-            selectedDate = date;
-            // Update day of month if in monthly mode
-            if (_repeatOption == RepeatOption.monthly &&
-                !(_customRecurrence?.repeatAtEndOfMonth ?? false)) {
-              _dayOfMonthController.text = date.day.toString();
-              _updateMonthlyRecurrence(date.day);
-            }
-          });
-        }
-      },
-    );
-  }
 
     Widget _buildBasicDetailsSection() {
     return Card(
@@ -600,15 +578,6 @@ if (_customRecurrence != null) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      _buildDateChip('Today', DateTime.now()),
-                      _buildDateChip('Tomorrow',
-                          DateTime.now().add(const Duration(days: 1))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                   SizedBox(
                     height: 300,
                     child:              CalendarDatePicker(
@@ -625,6 +594,8 @@ if (_customRecurrence != null) {
                           _updateMonthlyRecurrence(newDate.day);
                         }
                       });
+                      // Update the "Starts" text in real-time when date changes
+                      _updateFirstOccurrenceText();
                     },
                   ),
                   ),
@@ -938,9 +909,8 @@ if (_customRecurrence != null) {
   } 
 
   Widget _buildActions() {
-    bool isValid = _amountController.text.isNotEmpty &&
-        _titleController.text.isNotEmpty &&
-        CurrencyInputFormatter.parse(_amountController.text) != null;
+    // Determine button text based on whether we're adding or editing
+    final buttonText = widget.event?.id != null ? 'Update' : 'Add';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -951,8 +921,8 @@ if (_customRecurrence != null) {
         ),
         const SizedBox(width: 8),
         FilledButton(
-          onPressed: isValid ? _saveEvent : null,
-          child: const Text('Save'),
+          onPressed: _saveEvent, // Always enabled, validation happens inside _saveEvent
+          child: Text(buttonText),
         ),
       ],
     );
