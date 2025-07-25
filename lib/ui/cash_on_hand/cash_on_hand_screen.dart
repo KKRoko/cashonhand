@@ -35,6 +35,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
   // Animation controller for progress bars
   late AnimationController _progressController;
+  
+  // 🎯 FLICKER FIX: UI update suppression for Cash page
+  bool _suppressCashPageUpdates = false;
 
   @override
   void initState() {
@@ -95,10 +98,22 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     return DateTime(date.year, date.month + 1, 0);
   }
 
+  // 🎯 FLICKER FIX: setState wrapper that respects suppression
+  void _setStateIfAllowed(VoidCallback fn) {
+    if (_suppressCashPageUpdates) {
+      print("🚫 CashPage: setState suppressed");
+      fn(); // Execute the function but don't trigger setState
+      return;
+    }
+    
+    print("✅ CashPage: setState allowed");
+    setState(fn);
+  }
+
   Future<void> _calculateTotals() async {
     if (_isLoading) return;
 
-    setState(() {
+    _setStateIfAllowed(() {
       _isLoading = true;
     });
 
@@ -149,7 +164,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       _calculateAvailableAfterGoals();
 
       if (mounted) {
-        setState(() {});
+        _setStateIfAllowed(() {});
         // Load recent transactions after calculating totals
         _loadRecentTransactions();
       }
@@ -161,7 +176,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       }
     } finally {
       if (mounted) {
-        setState(() {
+        _setStateIfAllowed(() {
           _isLoading = false;
         });
       }
@@ -244,14 +259,14 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       final recentEvents = sortedEvents.take(5).toList();
       
       if (mounted) {
-        setState(() {
+        _setStateIfAllowed(() {
           _recentTransactions = recentEvents;
         });
       }
     } catch (e) {
       print('Error loading recent transactions: $e');
       if (mounted) {
-        setState(() {
+        _setStateIfAllowed(() {
           _recentTransactions = [];
         });
       }
@@ -311,18 +326,39 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       if (result != null) {
         DateTime? firstEventDate;
         
-        if (result.allocations.isNotEmpty) {
-          // Use the new method that handles allocations
-          firstEventDate = await eventNotifier.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
-          print("Event and allocations saved: ${result.allocations.length} allocations");
-        } else {
-          // Use the regular method for events without allocations
-          firstEventDate = await eventNotifier.addEvent(result.event.dateTime, result.event);
+        // 🎯 FLICKER FIX: Suppress Cash page updates during recurring event creation
+        final isRecurring = result.event.isRecurring;
+        if (isRecurring) {
+          print("🚫 CashPage: Suppressing Cash page updates for recurring event");
+          _suppressCashPageUpdates = true;
+        }
+        
+        try {
+          if (result.allocations.isNotEmpty) {
+            // Use the new method that handles allocations
+            firstEventDate = await eventNotifier.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
+            print("Event and allocations saved: ${result.allocations.length} allocations");
+          } else {
+            // Use the regular method for events without allocations
+            firstEventDate = await eventNotifier.addEvent(result.event.dateTime, result.event);
+          }
+        } finally {
+          // 🎯 FLICKER FIX: Resume Cash page updates
+          if (isRecurring) {
+            print("✅ CashPage: Resuming Cash page updates after recurring event");
+            _suppressCashPageUpdates = false;
+          }
         }
         print("Event added successfully from Cash page");
         
         // Refresh the cash totals and recent transactions after adding the event
-        _calculateTotals();
+        await _calculateTotals();
+        
+        // 🎯 FLICKER FIX: Single final UI update for recurring events
+        if (isRecurring && mounted) {
+          print("🎯 CashPage: Final UI update after recurring event completion");
+          setState(() {}); // Single final update to show all changes
+        }
         
         // Show success feedback
         if (!mounted) return;
