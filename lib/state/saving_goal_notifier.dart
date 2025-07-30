@@ -58,7 +58,7 @@ class SavingGoalNotifier extends ChangeNotifier {
           _goals.addAll(loadedGoals);
           print('Debug Notifier: Loaded ${loadedGoals.length} goals with real-time progress');
           for (final goal in loadedGoals) {
-            print('  - ${goal.title}: \$${goal.currentAmount.toStringAsFixed(2)}/\$${goal.targetAmount.toStringAsFixed(2)} (${(goal.progressPercentage * 100).toInt()}%)');
+            print('  - ${goal.title}: \$${goal.currentAmount.toStringAsFixed(2)}/\$${goal.targetAmount.toStringAsFixed(2)} (${goal.progressPercentage.toInt()}%)');
           }
         },
       );
