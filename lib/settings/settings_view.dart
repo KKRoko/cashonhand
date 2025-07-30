@@ -80,31 +80,50 @@ class SettingsView extends StatelessWidget {
             child: ListTile(
               title: Text(
                 'Theme',
-                style: DesignTokens.textStyle('titleMedium'),
+                style: DesignTokens.textStyle('titleMedium').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('onPrimary') 
+                    : null,
+                ),
               ),
               trailing: DropdownButton<ThemeMode>(
                 value: controller.themeMode,
                 onChanged: controller.updateThemeMode,
+                dropdownColor: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.black 
+                  : null,
                 items: [
                   DropdownMenuItem(
                     value: ThemeMode.system,
                     child: Text(
                       'System Theme',
-                      style: DesignTokens.textStyle('bodyMedium'),
+                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('onPrimary') 
+                          : null,
+                      ),
                     ),
                   ),
                   DropdownMenuItem(
                     value: ThemeMode.light,
                     child: Text(
                       'Light Theme',
-                      style: DesignTokens.textStyle('bodyMedium'),
+                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('onPrimary') 
+                          : null,
+                      ),
                     ),
                   ),
                   DropdownMenuItem(
                     value: ThemeMode.dark,
                     child: Text(
                       'Dark Theme',
-                      style: DesignTokens.textStyle('bodyMedium'),
+                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('onPrimary') 
+                          : null,
+                      ),
                     ),
                   ),
                 ],
@@ -123,12 +142,18 @@ class SettingsView extends StatelessWidget {
               ),
               title: Text(
                 'Round-Up Savings',
-                style: DesignTokens.textStyle('titleMedium'),
+                style: DesignTokens.textStyle('titleMedium').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('onPrimary') 
+                    : null,
+                ),
               ),
               subtitle: Text(
                 'Automatically round up purchases and save the difference',
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('onPrimary') 
+                    : DesignTokens.color('textSecondary'),
                 ),
               ),
               trailing: Icon(
@@ -149,12 +174,18 @@ class SettingsView extends StatelessWidget {
               ),
               title: Text(
                 'Auto-Allocation Rules',
-                style: DesignTokens.textStyle('titleMedium'),
+                style: DesignTokens.textStyle('titleMedium').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('onPrimary') 
+                    : null,
+                ),
               ),
               subtitle: Text(
                 'Create rules to automatically allocate money to goals',
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('onPrimary') 
+                    : DesignTokens.color('textSecondary'),
                 ),
               ),
               trailing: Icon(

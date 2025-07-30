@@ -100,7 +100,7 @@ class EnhancedTheme {
       ),
 
       // 🃏 Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
@@ -366,7 +366,7 @@ class EnhancedTheme {
       ),
 
       // 🏷 Tab Bar Theme
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         indicatorColor: DesignTokens.color('primary'),
         labelColor: DesignTokens.color('primary'),
         unselectedLabelColor: DesignTokens.color('textSecondary'),
@@ -376,7 +376,7 @@ class EnhancedTheme {
       ),
 
       // 🎪 Dialog Theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: DesignTokens.color('surface'),
         surfaceTintColor: DesignTokens.color('surface'),
         elevation: 8,
@@ -464,9 +464,10 @@ class EnhancedTheme {
         secondaryContainer: DesignTokens.color('secondary').withOpacity(0.2),
         onSecondaryContainer: DesignTokens.color('secondary'),
         
-        surface: const Color(0xFF121212),
+        // 🎨 DARK THEME: Pure black background for better contrast
+        surface: Colors.black,
         onSurface: const Color(0xFFE0E0E0),
-        surfaceContainerHighest: const Color(0xFF1E1E1E),
+        surfaceContainerHighest: const Color(0xFF1A1A1A),
         onSurfaceVariant: const Color(0xFFBDBDBD),
         
         error: DesignTokens.color('error'),
@@ -481,12 +482,85 @@ class EnhancedTheme {
         scrim: DesignTokens.color('scrim'),
       ),
       
+      
       // Override specific themes for dark mode
+      scaffoldBackgroundColor: Colors.black, // Ensure scaffold background is also black
+      
+      // 🎨 DARK THEME: Override text theme for better dark mode contrast
+      textTheme: TextTheme(
+        displayLarge: DesignTokens.textStyle('displayLarge').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        displayMedium: DesignTokens.textStyle('displayMedium').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        displaySmall: DesignTokens.textStyle('displaySmall').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        headlineLarge: DesignTokens.textStyle('headlineLarge').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        headlineMedium: DesignTokens.textStyle('headlineMedium').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        headlineSmall: DesignTokens.textStyle('headlineSmall').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        titleLarge: DesignTokens.textStyle('titleLarge').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        titleMedium: DesignTokens.textStyle('titleMedium').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        titleSmall: DesignTokens.textStyle('titleSmall').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        bodyLarge: DesignTokens.textStyle('bodyLarge').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        bodyMedium: DesignTokens.textStyle('bodyMedium').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        bodySmall: DesignTokens.textStyle('bodySmall').copyWith(
+          color: const Color(0xFFBDBDBD),
+        ),
+        labelLarge: DesignTokens.textStyle('labelLarge').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+        labelMedium: DesignTokens.textStyle('labelMedium').copyWith(
+          color: const Color(0xFFBDBDBD),
+        ),
+        labelSmall: DesignTokens.textStyle('labelSmall').copyWith(
+          color: const Color(0xFF9E9E9E),
+        ),
+      ),
+      
       appBarTheme: AppBarTheme(
         elevation: 0,
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: Colors.black,
         foregroundColor: const Color(0xFFE0E0E0),
         systemOverlayStyle: SystemUiOverlayStyle.light,
+        titleTextStyle: DesignTokens.textStyle('titleLarge').copyWith(
+          color: const Color(0xFFE0E0E0),
+        ),
+      ),
+      
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: Colors.black,
+        indicatorColor: Colors.grey.shade800,
+        surfaceTintColor: Colors.white,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
+          }
+          return const TextStyle(color: Colors.white70);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: Colors.white);
+          }
+          return const IconThemeData(color: Colors.white70);
+        }),
       ),
     );
   }
@@ -546,9 +620,10 @@ class FinancialTheme extends ThemeExtension<FinancialTheme> {
       incomeColor: DesignTokens.color('income'),
       expenseColor: DesignTokens.color('expense'),
       neutralColor: DesignTokens.color('neutral'),
-      incomeBackground: DesignTokens.color('income').withOpacity(0.1),
-      expenseBackground: DesignTokens.color('expense').withOpacity(0.1),
-      neutralBackground: DesignTokens.color('neutral').withOpacity(0.1),
+      // 🎨 DARK THEME: Use same vibrant colors as light theme for better contrast against black
+      incomeBackground: DesignTokens.color('incomeLight'),
+      expenseBackground: DesignTokens.color('expenseLight'),
+      neutralBackground: DesignTokens.color('neutralLight'),
       amountTextStyle: DesignTokens.textStyle('amountMedium').copyWith(
         color: const Color(0xFFE0E0E0),
       ),

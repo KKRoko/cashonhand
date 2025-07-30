@@ -258,6 +258,150 @@ Future<Either<Failure, Event>> addEvent(DateTime day, Event event) {
     });
   }
 
+  Future<Either<Failure, int>> updateEventWithScopeAndAllocations(
+      DateTime day, Event oldEvent, Event newEvent, EditOption editOption, List<GoalAllocation> allocations) {
+    print('🔍 DEBUG: Repository.updateEventWithScopeAndAllocations called');
+    print('🔍 DEBUG: Event details - ID: ${oldEvent.id}, Title: "${oldEvent.title}", OriginalID: ${oldEvent.originalEventId}');
+    print('🔍 DEBUG: Edit option: $editOption, Date: ${day.toIso8601String()}, Allocations: ${allocations.length}');
+    
+    return catchError(() async {
+      if (oldEvent.id == null) {
+        print('❌ ERROR: Repository - Cannot update event without id');
+        throw const DatabaseException('Cannot update event without id');
+      }
+
+      return await _database.transaction(() async {
+        // First update the events using the existing method
+        final eventData = EventTableData(
+          id: newEvent.id ?? oldEvent.id!,
+          title: newEvent.title,
+          categoryId: newEvent.categoryId,
+          amount: newEvent.amount,
+          date: newEvent.dateTime,
+          repeatOption: newEvent.repeatOption,
+          isRecurring: newEvent.isRecurring,
+          notes: newEvent.notes,
+          customRecurrence: newEvent.customRecurrence,
+          originalEventId: oldEvent.originalEventId,
+          createdAt: oldEvent.createdAt,
+          updatedAt: DateTime.now(),
+        );
+        
+        print('🔍 DEBUG: Repository - Updating events with scope');
+        final updatedCount = await _database.updateEventsWithOption(
+          oldEvent.id!, 
+          eventData, 
+          editOption, 
+          day
+        );
+        print('🔍 DEBUG: Repository - Updated $updatedCount events');
+
+        if (updatedCount > 0 && allocations.isNotEmpty) {
+          // Get the updated event to determine the correct seriesId
+          final updatedEvent = await (_database.select(_database.events)
+            ..where((e) => e.id.equals(oldEvent.id!)))
+            .getSingleOrNull();
+          
+          final seriesId = updatedEvent?.originalEventId ?? oldEvent.id!;
+          print('🔍 DEBUG: Repository - Determined seriesId: $seriesId (from updated event originalEventId: ${updatedEvent?.originalEventId}, fallback eventId: ${oldEvent.id})');
+          List<EventTableData> eventsToUpdateAllocations = [];
+
+          switch (editOption) {
+            case EditOption.thisInstance:
+              final event = await (_database.select(_database.events)
+                ..where((e) => e.id.equals(oldEvent.id!)))
+                .getSingleOrNull();
+              if (event != null) eventsToUpdateAllocations.add(event);
+              break;
+            
+            case EditOption.allInstances:
+              eventsToUpdateAllocations = await (_database.select(_database.events)
+                ..where((e) => 
+                  e.originalEventId.equalsNullable(seriesId) | 
+                  e.id.equals(seriesId)))
+                .get();
+              print('🔍 DEBUG: AllInstances - SeriesId: $seriesId, Found: ${eventsToUpdateAllocations.length} events');
+              for (final evt in eventsToUpdateAllocations) {
+                print('  - Event ID: ${evt.id}, OriginalID: ${evt.originalEventId}, Date: ${evt.date}');
+              }
+              break;
+            
+            case EditOption.futureInstances:
+              eventsToUpdateAllocations = await (_database.select(_database.events)
+                ..where((e) => 
+                  (e.originalEventId.equalsNullable(seriesId) | e.id.equals(seriesId)) &
+                  e.date.isBiggerOrEqualValue(day)))
+                .get();
+              print('🔍 DEBUG: FutureInstances - SeriesId: $seriesId, Date: $day, Found: ${eventsToUpdateAllocations.length} events');
+              for (final evt in eventsToUpdateAllocations) {
+                print('  - Event ID: ${evt.id}, OriginalID: ${evt.originalEventId}, Date: ${evt.date}');
+              }
+              break;
+            
+            case EditOption.pastInstances:
+              eventsToUpdateAllocations = await (_database.select(_database.events)
+                ..where((e) => 
+                  (e.originalEventId.equalsNullable(seriesId) | e.id.equals(seriesId)) &
+                  e.date.isSmallerOrEqualValue(day)))
+                .get();
+              print('🔍 DEBUG: PastInstances - SeriesId: $seriesId, Date: $day, Found: ${eventsToUpdateAllocations.length} events');
+              for (final evt in eventsToUpdateAllocations) {
+                print('  - Event ID: ${evt.id}, OriginalID: ${evt.originalEventId}, Date: ${evt.date}');
+              }
+              break;
+          }
+
+          print('🔍 DEBUG: Repository - Applying allocations to ${eventsToUpdateAllocations.length} events');
+
+          // Remove existing allocations for these events and add new ones
+          for (final event in eventsToUpdateAllocations) {
+            print('🔍 DEBUG: Repository - Updating allocations for event ID: ${event.id}');
+            
+            // Check existing allocations before deletion
+            final existingAllocations = await _database.getAllocationsForEvent(event.id);
+            print('🔍 DEBUG: Event ${event.id} had ${existingAllocations.length} existing allocations');
+            
+            // Delete existing allocations for this event
+            final deletedCount = await (_database.delete(_database.goalAllocations)
+              ..where((a) => a.eventId.equals(event.id)))
+              .go();
+            print('🔍 DEBUG: Deleted $deletedCount existing allocations for event ${event.id}');
+
+            // Add new allocations if any
+            if (allocations.isNotEmpty) {
+              print('🔍 DEBUG: Adding ${allocations.length} new allocations to event ${event.id}');
+              for (final allocation in allocations) {
+                try {
+                  print('🔍 DEBUG: Adding allocation - Goal: ${allocation.goalId}, Amount: ${allocation.allocationAmount}');
+                  await _database.into(_database.goalAllocations).insert(
+                    GoalAllocationsCompanion.insert(
+                      eventId: event.id,
+                      goalId: allocation.goalId,
+                      allocationAmount: allocation.allocationAmount,
+                      allocationType: allocation.allocationType,
+                    )
+                  );
+                  print('✅ SUCCESS: Added allocation for goal ${allocation.goalId}');
+                } catch (e) {
+                  print('❌ ERROR: Failed to add allocation for goal ${allocation.goalId}: $e');
+                  rethrow;
+                }
+              }
+            } else {
+              print('🔍 DEBUG: No new allocations to add for event ${event.id}');
+            }
+            
+            // Verify allocations were added correctly
+            final newAllocations = await _database.getAllocationsForEvent(event.id);
+            print('🔍 DEBUG: Event ${event.id} now has ${newAllocations.length} allocations');
+          }
+        }
+
+        return updatedCount;
+      });
+    });
+  }
+
   // Helper method to get edit impact counts
   Future<Either<Failure, Map<String, int>>> getEditImpactCounts(
       Event event, DateTime cutoffDate) {
@@ -524,21 +668,39 @@ Future<Either<Failure, bool>> deleteEvent(DateTime day, Event event, DeleteOptio
         final createdEvent = await _database.createEvent(eventCompanion, generateRecurring: event.isRecurring);
         print('Created event - ID: ${createdEvent.id}, OriginalID: ${createdEvent.originalEventId}');
         
-        // Then create the allocations if any
+        // Then create the allocations for ALL recurring events if any
         if (allocations.isNotEmpty) {
-          for (final allocation in allocations) {
-            final allocationCompanion = GoalAllocationsCompanion.insert(
-              eventId: createdEvent.id,
-              goalId: allocation.goalId,
-              allocationAmount: allocation.allocationAmount,
-              allocationType: allocation.allocationType,
-              notes: Value(allocation.notes),
-              createdAt: Value(DateTime.now()),
-              updatedAt: Value(DateTime.now()),
-            );
-            
-            await _database.createGoalAllocation(allocationCompanion);
-            print('Created allocation: ${allocation.goalTitle} - \$${allocation.allocationAmount}');
+          // If this is a recurring event, get all created instances
+          List<EventTableData> eventsToAllocate = [createdEvent];
+          
+          if (event.isRecurring) {
+            print('🎯 EventRepository: Getting all recurring events for allocation assignment');
+            final seriesId = createdEvent.originalEventId ?? createdEvent.id;
+            final allRecurringEvents = await (_database.select(_database.events)
+              ..where((e) => 
+                e.originalEventId.equalsNullable(seriesId) | 
+                e.id.equals(seriesId)))
+              .get();
+            eventsToAllocate = allRecurringEvents;
+            print('🎯 EventRepository: Found ${eventsToAllocate.length} recurring events to assign allocations');
+          }
+          
+          // Create allocations for each event in the series
+          for (final eventToAllocate in eventsToAllocate) {
+            for (final allocation in allocations) {
+              final allocationCompanion = GoalAllocationsCompanion.insert(
+                eventId: eventToAllocate.id,
+                goalId: allocation.goalId,
+                allocationAmount: allocation.allocationAmount,
+                allocationType: allocation.allocationType,
+                notes: Value(allocation.notes),
+                createdAt: Value(DateTime.now()),
+                updatedAt: Value(DateTime.now()),
+              );
+              
+              await _database.createGoalAllocation(allocationCompanion);
+              print('🎯 EventRepository: Created allocation for event ${eventToAllocate.id} (${eventToAllocate.date}): ${allocation.goalTitle} - \$${allocation.allocationAmount}');
+            }
           }
         }
         

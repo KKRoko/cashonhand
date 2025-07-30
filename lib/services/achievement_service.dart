@@ -298,15 +298,48 @@ class AchievementService {
     final unlockedAchievements = <Achievement>[];
     
     try {
+      print('🏆 ACHIEVEMENT: Checking goal completion achievements...');
+      print('🏆 ACHIEVEMENT: Getting fresh goal data...');
+      
+      // Get goals from repository
       final goalsResult = await _goalRepository.getAllGoals();
       await goalsResult.fold(
-        (failure) => null,
+        (failure) {
+          print('❌ ACHIEVEMENT: Failed to get goals - ${failure.message}');
+          return null;
+        },
         (goals) async {
-          final completedGoals = goals.where((g) => g.currentAmount >= g.targetAmount).length;
+          // Calculate real-time progress for each goal including allocations
+          int completedGoals = 0;
+          
+          for (final goal in goals) {
+            // Get real current amount including allocations
+            final allocations = await _database.getAllocationsForGoal(goal.id);
+            final totalAllocations = allocations.fold<double>(
+              0.0, 
+              (sum, allocation) => sum + allocation.allocationAmount
+            );
+            final realCurrentAmount = goal.currentAmount + totalAllocations;
+            final isCompleted = realCurrentAmount >= goal.targetAmount;
+            
+            if (isCompleted) {
+              completedGoals++;
+            }
+            
+            print('🏆 ACHIEVEMENT: Goal "${goal.title}": \$${realCurrentAmount.toStringAsFixed(2)}/\$${goal.targetAmount.toStringAsFixed(2)} - Completed: $isCompleted');
+          }
+          
+          print('🏆 ACHIEVEMENT: Found $completedGoals completed goals out of ${goals.length} total goals');
           
           if (completedGoals >= 1) {
+            print('🏆 ACHIEVEMENT: Checking for goal_completer_bronze...');
             final achievement = await _unlockAchievementIfNew('goal_completer_bronze');
-            if (achievement != null) unlockedAchievements.add(achievement);
+            if (achievement != null) {
+              print('🎉 ACHIEVEMENT: Unlocked goal_completer_bronze!');
+              unlockedAchievements.add(achievement);
+            } else {
+              print('🔍 ACHIEVEMENT: goal_completer_bronze already unlocked or not found');
+            }
           }
           if (completedGoals >= 3) {
             final achievement = await _unlockAchievementIfNew('goal_completer_silver');
@@ -319,7 +352,7 @@ class AchievementService {
         },
       );
     } catch (e) {
-      print('Error checking goal completer: $e');
+      print('❌ ACHIEVEMENT: Error checking goal completer: $e');
     }
     
     return unlockedAchievements;
@@ -407,12 +440,25 @@ class AchievementService {
   // Helper methods
 
   Future<Achievement?> _unlockAchievementIfNew(String achievementId) async {
+    print('🔍 ACHIEVEMENT: Looking for achievement: $achievementId');
     final achievement = await _repository.getAchievementById(achievementId);
-    if (achievement != null && !achievement.isUnlocked) {
+    
+    if (achievement == null) {
+      print('❌ ACHIEVEMENT: Achievement $achievementId not found in database');
+      return null;
+    }
+    
+    print('🔍 ACHIEVEMENT: Found achievement "${achievement.title}" - Currently unlocked: ${achievement.isUnlocked}');
+    
+    if (!achievement.isUnlocked) {
+      print('🎉 ACHIEVEMENT: Unlocking achievement "${achievement.title}"!');
       await _repository.unlockAchievement(achievementId);
       _notifier.onAchievementUnlocked(achievementId);
       return achievement;
+    } else {
+      print('ℹ️ ACHIEVEMENT:, Achievement "${achievement.title}" already unlocked');
     }
+    
     return null;
   }
 
@@ -470,6 +516,7 @@ class AchievementService {
   }
 
   Future<void> initializeAchievements() async {
+    print('🏆 ACHIEVEMENT: Initializing achievements in database...');
     final defaults = [
       // Original achievements
       const Achievement(
@@ -615,11 +662,15 @@ class AchievementService {
       ),
     ];
 
+    int newAchievements = 0;
     for (final achievement in defaults) {
       final existing = await _repository.getAchievementById(achievement.id);
       if (existing == null) {
         await _repository.saveAchievement(achievement);
+        newAchievements++;
+        print('🏆 ACHIEVEMENT: Created new achievement: ${achievement.title}');
       }
     }
+    print('🏆 ACHIEVEMENT: Initialization complete. Created $newAchievements new achievements out of ${defaults.length} total.');
   }
 }

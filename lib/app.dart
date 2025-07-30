@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'localization/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/di/injection.dart';
@@ -19,6 +19,35 @@ import 'ui/suggestions/suggestions_screen.dart';
 import 'ui/onboarding/goal_integration_onboarding.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
+
+// Global tab change notifier for IndexedStack navigation
+class TabChangeNotifier extends ChangeNotifier {
+  int _currentTabIndex = 0;
+  int _previousTabIndex = 0;
+  
+  int get currentTabIndex => _currentTabIndex;
+  int get previousTabIndex => _previousTabIndex;
+  
+  void changeTab(int newIndex) {
+    if (_currentTabIndex != newIndex) {
+      _previousTabIndex = _currentTabIndex;
+      _currentTabIndex = newIndex;
+      
+      final tabNames = ['Cash', 'Goals', 'Calendar', 'Suggestions'];  
+      print('🔄 TAB CHANGE NOTIFIER: Tab changed from ${tabNames[_previousTabIndex]} to ${tabNames[newIndex]}');
+      
+      notifyListeners();
+    }
+  }
+  
+  bool get isCalendarVisible => _currentTabIndex == 2;
+  bool get wasCalendarVisible => _previousTabIndex == 2;
+  bool get didNavigateToCalendar => !wasCalendarVisible && isCalendarVisible;
+  bool get didNavigateAwayFromCalendar => wasCalendarVisible && !isCalendarVisible;
+}
+
+// Global instance
+final TabChangeNotifier globalTabNotifier = TabChangeNotifier();
 
 class MyApp extends StatelessWidget {
   const MyApp({
@@ -198,6 +227,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onItemTapped(int index) {
+    final tabNames = ['Cash', 'Goals', 'Calendar', 'Suggestions'];
+    print('🔄🔄🔄 TAB NAVIGATION: User tapped tab $index (${tabNames[index]})');
+    print('  - Previous tab: $_selectedIndex (${tabNames[_selectedIndex]})');
+    print('  - New tab: $index (${tabNames[index]})');
+    
+    // Notify the global tab change notifier
+    globalTabNotifier.changeTab(index);
+    
     setState(() {
       _selectedIndex = index;
     });
@@ -217,9 +254,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         elevation: 0,
         height: 65,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        backgroundColor: DesignTokens.color('surface'),
-        indicatorColor: DesignTokens.color('primaryContainer'),
-        surfaceTintColor: DesignTokens.color('primary'),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.black 
+          : DesignTokens.color('surface'),
+        indicatorColor: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.grey.shade800 
+          : DesignTokens.color('primaryContainer'),
+        surfaceTintColor: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.white 
+          : DesignTokens.color('primary'),
       ),
     );
   }

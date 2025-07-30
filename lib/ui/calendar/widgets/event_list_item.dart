@@ -5,7 +5,9 @@ import '../../../data/database/database.dart';
 import '../../../data/repositories/saving_goal_repository.dart';
 import '../../../data/models/enums/repeat_option.dart';
 import '../../../core/di/injection.dart';
+import '../../../services/goal_update_notifier.dart';
 import '../../../theme/app_theme.dart';
+import '../../../theme/design_tokens.dart';
 
 class EventListItem extends StatefulWidget {
   final Event event;
@@ -36,21 +38,67 @@ class _EventListItemState extends State<EventListItem> {
   @override
   void initState() {
     super.initState();
+    print("🔍 EventListItem: initState for event ID: ${widget.event.id}, title: '${widget.event.title}'");
     _loadEventAllocations();
     _loadCategoryInfo();
+    
+    // 🎯 REAL-TIME UI: Listen for goal allocation updates
+    GoalUpdateNotifier().addListener(_handleGoalUpdate);
+  }
+
+  @override
+  void didUpdateWidget(EventListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload allocations if the event has changed
+    if (oldWidget.event.id != widget.event.id || 
+        oldWidget.event.amount != widget.event.amount ||
+        oldWidget.event.title != widget.event.title) {
+      print("🔍 EventListItem: didUpdateWidget triggered - reloading allocations for event ${widget.event.id}");
+      _loadEventAllocations();
+      _loadCategoryInfo();
+    }
+  }
+
+  // 🎯 REAL-TIME UI: Goal update handler
+  void _handleGoalUpdate() {
+    print('🔍 EventListItem: Received goal update notification - refreshing allocations for event ${widget.event.id}');
+    // Use postFrameCallback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) {
+        await _loadEventAllocations();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    GoalUpdateNotifier().removeListener(_handleGoalUpdate);
+    super.dispose();
   }
 
   Future<void> _loadEventAllocations() async {
-    if (widget.event.id == null) return;
+    if (widget.event.id == null) {
+      print("🔍 EventListItem: Skipping allocation load - event.id is null");
+      return;
+    }
     
+    print("🔍 EventListItem: Loading allocations for event ID: ${widget.event.id}, title: '${widget.event.title}'");
     setState(() => _isLoadingAllocations = true);
     
     try {
       final database = getIt<Database>();
       final goalRepository = getIt<ISavingGoalRepository>();
       
+      // Debug: Check all allocations in database
+      final allAllocations = await database.select(database.goalAllocations).get();
+      print("🔍 EventListItem: Total allocations in database: ${allAllocations.length}");
+      for (final alloc in allAllocations) {
+        print("🔍 EventListItem: Allocation - Event ID: ${alloc.eventId}, Goal ID: ${alloc.goalId}, Amount: ${alloc.allocationAmount}");
+      }
+      
       // Load allocations for this event
       final allocations = await database.getAllocationsForEvent(widget.event.id!);
+      print("🔍 EventListItem: Found ${allocations.length} allocations for event ${widget.event.id}");
       
       // Load goal titles
       final goalTitles = <int, String>{};
@@ -81,6 +129,7 @@ class _EventListItemState extends State<EventListItem> {
           _goalTitles = goalTitles;
           _isLoadingAllocations = false;
         });
+        print("🔍 EventListItem: Set ${_allocations.length} allocations for event ${widget.event.id}");
       }
     } catch (e) {
       print('Error loading event allocations: $e');
@@ -128,6 +177,9 @@ class _EventListItemState extends State<EventListItem> {
       ),
       child: Card(
         elevation: AppTheme.cardElevation,
+        color: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.black 
+          : null,
         child: InkWell(
           onTap: () => setState(() => _isExpanded = !_isExpanded),
           borderRadius: BorderRadius.circular(AppTheme.defaultRadius),
@@ -144,11 +196,37 @@ class _EventListItemState extends State<EventListItem> {
                         children: [
                           Text(
                             widget.event.title,
-                            style: theme.textTheme.titleMedium,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: Theme.of(context).brightness == Brightness.dark 
+                                ? DesignTokens.color('onPrimary') 
+                                : null,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           _buildCategoryInfo(theme),
-                          if (_allocations.isNotEmpty) ...[
+                          if (_isLoadingAllocations) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.5,
+                                    color: DesignTokens.color('income'),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Loading allocations...',
+                                  style: DesignTokens.textStyle('bodySmall').copyWith(
+                                    color: DesignTokens.color('textTertiary'),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else if (_allocations.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             _buildAllocationSummary(theme),
                           ],
@@ -166,12 +244,19 @@ class _EventListItemState extends State<EventListItem> {
                           ),
                         ),
                         if (_allocations.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Allocated: \$${_getTotalAllocatedAmount().toStringAsFixed(2)}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500,
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: DesignTokens.color('income').withOpacity(0.1),
+                              borderRadius: DesignTokens.radius('xs'),
+                            ),
+                            child: Text(
+                              '\$${_getTotalAllocatedAmount().toStringAsFixed(2)}',
+                              style: DesignTokens.textStyle('labelSmall').copyWith(
+                                color: DesignTokens.color('income'),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -198,12 +283,14 @@ class _EventListItemState extends State<EventListItem> {
                               Icon(
                                 Icons.repeat,
                                 size: 16,
-                                color: theme.textTheme.bodyMedium?.color,
+                                color: DesignTokens.color('income'),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 widget.event.repeatDescription,
-                                style: theme.textTheme.bodyMedium,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: DesignTokens.color('income'),
+                                ),
                               ),
                             ],
                           ),
@@ -219,18 +306,43 @@ class _EventListItemState extends State<EventListItem> {
                               Icon(
                                 Icons.calendar_today,
                                 size: 16,
-                                color: theme.textTheme.bodyMedium?.color,
+                                color: DesignTokens.color('income'),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 _getOccurrenceInfo(),
-                                style: theme.textTheme.bodyMedium,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: DesignTokens.color('income'),
+                                ),
                               ),
                             ],
                           ),
                           
                           // Allocation Details
-                          if (_allocations.isNotEmpty) ...[
+                          if (_isLoadingAllocations) ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: DesignTokens.color('income'),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Loading goal allocations...',
+                                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                                    color: DesignTokens.color('textTertiary'),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                          ] else if (_allocations.isNotEmpty) ...[
                             const SizedBox(height: 16),
                             _buildAllocationDetails(theme),
                             const SizedBox(height: 16),
@@ -292,7 +404,9 @@ class _EventListItemState extends State<EventListItem> {
           Text(
             'Loading category...',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.grey.shade500,
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? DesignTokens.color('onPrimary') 
+                : Colors.grey.shade500,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -434,14 +548,13 @@ class _EventListItemState extends State<EventListItem> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: widget.event.isPositiveCashflow 
-          ? Colors.green.shade50 
-          : Colors.orange.shade50,
+        color: Theme.of(context).brightness == Brightness.dark
+          ? DesignTokens.color('income').withOpacity(0.1)
+          : DesignTokens.color('incomeLight').withOpacity(0.3),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: widget.event.isPositiveCashflow 
-            ? Colors.green.shade200 
-            : Colors.orange.shade200,
+          color: DesignTokens.color('income').withOpacity(0.3),
+          width: 1,
         ),
       ),
       child: Row(
@@ -449,9 +562,7 @@ class _EventListItemState extends State<EventListItem> {
           Icon(
             Icons.category,
             size: 16,
-            color: widget.event.isPositiveCashflow 
-              ? Colors.green.shade700 
-              : Colors.orange.shade700,
+            color: DesignTokens.color('income'),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -472,9 +583,7 @@ class _EventListItemState extends State<EventListItem> {
                         _category!.name,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: widget.event.isPositiveCashflow 
-                            ? Colors.green.shade800 
-                            : Colors.orange.shade800,
+                          color: DesignTokens.color('income'),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -484,18 +593,14 @@ class _EventListItemState extends State<EventListItem> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: widget.event.isPositiveCashflow 
-                            ? Colors.green.shade100 
-                            : Colors.orange.shade100,
+                          color: DesignTokens.color('income').withOpacity(0.2),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           'Subcategory',
                           style: TextStyle(
                             fontSize: 10,
-                            color: widget.event.isPositiveCashflow 
-                              ? Colors.green.shade700 
-                              : Colors.orange.shade700,
+                            color: DesignTokens.color('income'),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -544,22 +649,34 @@ class _EventListItemState extends State<EventListItem> {
     final totalCount = _allocations.length;
     final totalAmount = _getTotalAllocatedAmount();
     
-    return Row(
-      children: [
-        Icon(
-          Icons.savings,
-          size: 14,
-          color: Colors.green.shade600,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: DesignTokens.color('incomeLight').withOpacity(0.2),
+        borderRadius: DesignTokens.radius('sm'),
+        border: Border.all(
+          color: DesignTokens.color('income').withOpacity(0.3),
+          width: 1,
         ),
-        const SizedBox(width: 4),
-        Text(
-          '$totalCount goal${totalCount == 1 ? '' : 's'} • \$${totalAmount.toStringAsFixed(2)}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: Colors.green.shade700,
-            fontWeight: FontWeight.w500,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.flag_outlined,
+            size: 14,
+            color: DesignTokens.color('income'),
           ),
-        ),
-      ],
+          const SizedBox(width: 4),
+          Text(
+            '$totalCount goal${totalCount == 1 ? '' : 's'} • \$${totalAmount.toStringAsFixed(2)}',
+            style: DesignTokens.textStyle('bodySmall').copyWith(
+              color: DesignTokens.color('income'),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -570,15 +687,15 @@ class _EventListItemState extends State<EventListItem> {
         Row(
           children: [
             Icon(
-              Icons.savings,
+              Icons.flag_outlined,
               size: 16,
-              color: Colors.green.shade600,
+              color: DesignTokens.color('income'),
             ),
             const SizedBox(width: 8),
             Text(
               'Goal Allocations',
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: Colors.green.shade700,
+              style: DesignTokens.textStyle('titleSmall').copyWith(
+                color: DesignTokens.color('income'),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -588,34 +705,56 @@ class _EventListItemState extends State<EventListItem> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.green.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.green.shade200),
+            color: Theme.of(context).brightness == Brightness.dark
+              ? DesignTokens.color('income').withOpacity(0.1)
+              : DesignTokens.color('incomeLight').withOpacity(0.3),
+            borderRadius: DesignTokens.radius('md'),
+            border: Border.all(
+              color: DesignTokens.color('income').withOpacity(0.3),
+              width: 1,
+            ),
           ),
           child: Column(
             children: _allocations.map((allocation) {
               final goalTitle = _goalTitles[allocation.goalId] ?? 'Unknown Goal';
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.flag,
-                      size: 14,
-                      color: Colors.green.shade600,
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: DesignTokens.color('income').withOpacity(0.2),
+                        borderRadius: DesignTokens.radius('xs'),
+                      ),
+                      child: Icon(
+                        Icons.flag,
+                        size: 12,
+                        color: DesignTokens.color('income'),
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         goalTitle,
-                        style: theme.textTheme.bodyMedium,
+                        style: DesignTokens.textStyle('bodyMedium').copyWith(
+                          color: DesignTokens.color('income'),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    Text(
-                      '\$${allocation.amount.toStringAsFixed(2)}',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.green.shade700,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: DesignTokens.color('income').withOpacity(0.15),
+                        borderRadius: DesignTokens.radius('sm'),
+                      ),
+                      child: Text(
+                        '\$${allocation.amount.toStringAsFixed(2)}',
+                        style: DesignTokens.textStyle('labelMedium').copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: DesignTokens.color('income'),
+                        ),
                       ),
                     ),
                   ],

@@ -9,8 +9,11 @@ import '../../../data/repositories/saving_goal_repository.dart';
 import '../../../data/database/database.dart';
 import '../../../services/settings_service.dart';
 import '../../../state/event_notifier.dart';
+import '../../../state/saving_goal_notifier.dart';
+import '../../../services/goal_update_notifier.dart';
 import '../../../theme/design_tokens.dart';
 import '../../components/cash_components.dart';
+import 'package:provider/provider.dart';
 
 class EnhancedCalendarWidget extends StatefulWidget {
   final DateTime focusedDay;
@@ -69,6 +72,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
     
     // 🎯 FLICKER FIX: Register for global suppression notifications
     _registerForGlobalSuppression();
+    
+    // 🎯 REAL-TIME UI: Listen for goal allocation updates
+    _setupGoalUpdateListener();
   }
 
   @override
@@ -366,6 +372,10 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
 
       if (mounted) {
         print("📅 CalendarWidget: _loadGoalData completed - triggering setState");
+        print("📅 CalendarWidget: Loaded ${goals.length} goals");
+        for (final goal in goals) {
+          print("📅   - Goal: ${goal.title}, Current: \$${goal.currentAmount}, Target: \$${goal.targetAmount}");
+        }
         _setStateIfAllowed(() {
           _goals = goals;
           _dailyAllocations = dailyAllocations;
@@ -528,7 +538,6 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildMonthSummaryCard(context),
-          if (_goals.isNotEmpty) _buildGoalsSummaryCard(context),
           VSpace('xs'),
           _buildCalendar(context),
           if (!_isLoading) _buildSavingsStreakIndicator(context),
@@ -552,7 +561,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             : FinancialContext.neutral;
 
     return CashCard(
-      onTap: () => setState(() => _isMonthlySummaryExpanded = !_isMonthlySummaryExpanded),
+      onTap: () => _showMonthlySummaryDialog(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -562,16 +571,18 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Expanded(
                 child: Text(
                   'Monthly Summary',
-                  style: DesignTokens.textStyle('titleMedium'),
+                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? DesignTokens.color('onPrimary') 
+                      : null,
+                  ),
                 ),
               ),
-              AnimatedRotation(
-                turns: _isMonthlySummaryExpanded ? 0.5 : 0,
-                duration: DesignTokens.duration('fast'),
-                child: Icon(
-                  Icons.expand_more,
-                  color: DesignTokens.color('textSecondary'),
-                ),
+              Icon(
+                Icons.open_in_new,
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? DesignTokens.color('onPrimary') 
+                  : DesignTokens.color('textSecondary'),
               ),
             ],
           ),
@@ -583,7 +594,11 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             children: [
               Text(
                 '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
-                style: DesignTokens.textStyle('titleLarge'),
+                style: DesignTokens.textStyle('titleLarge').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('onPrimary') 
+                    : null,
+                ),
               ),
               FinancialAmount(
                 amount: currentMonthTotal,
@@ -604,20 +619,6 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               height: 6,
             ),
           ),
-          
-          // Expanded content
-          ExpandTransition(
-            expanded: _isMonthlySummaryExpanded,
-            duration: 'normal',
-            child: _isMonthlySummaryExpanded 
-                ? Column(
-                    children: [
-                      VSpace('md'),
-                      _buildExpandedMonthlyContent(),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
         ],
       ),
     );
@@ -626,6 +627,90 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
   double _getProgressThreshold() {
     final settingsService = getIt<SettingsService>();
     return settingsService.monthlyProgressThreshold;
+  }
+
+  void _showMonthlySummaryDialog(BuildContext context) {
+    final currentMonthTotal = widget.monthSummary[DateTime(
+      widget.focusedDay.year,
+      widget.focusedDay.month,
+      1,
+    )] ?? 0.0;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark 
+            ? Colors.black 
+            : null,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Dialog Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Monthly Summary',
+                      style: DesignTokens.textStyle('titleLarge').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Month and Total
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
+                      style: DesignTokens.textStyle('titleMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                      ),
+                    ),
+                    FinancialAmount(
+                      amount: currentMonthTotal,
+                      size: FinancialAmountSize.large,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                
+                // Expanded Content in Dialog
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: _buildExpandedMonthlyContent(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildExpandedMonthlyContent() {
@@ -659,6 +744,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                       'Income',
                       style: DesignTokens.textStyle('labelMedium').copyWith(
                         fontWeight: FontWeight.w600,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('textPrimary') 
+                          : null,
                       ),
                     ),
                     FinancialAmount(
@@ -686,6 +774,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                       'Expenses',
                       style: DesignTokens.textStyle('labelMedium').copyWith(
                         fontWeight: FontWeight.w600,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('textPrimary') 
+                          : null,
                       ),
                     ),
                     FinancialAmount(
@@ -728,6 +819,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           'Transaction Details',
           style: DesignTokens.textStyle('titleMedium').copyWith(
             fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? DesignTokens.color('textPrimary') 
+              : null,
           ),
         ),
         VSpace('sm'),
@@ -789,6 +883,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                 title,
                 style: DesignTokens.textStyle('titleSmall').copyWith(
                   fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('textPrimary') 
+                    : null,
                 ),
               ),
             ],
@@ -803,7 +900,11 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   Expanded(
                     child: Text(
                       entry.key,
-                      style: DesignTokens.textStyle('bodySmall'),
+                      style: DesignTokens.textStyle('bodySmall').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('textPrimary') 
+                          : null,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -817,7 +918,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   Text(
                     '(${percentage.toStringAsFixed(1)}%)',
                     style: DesignTokens.textStyle('bodySmall').copyWith(
-                      color: DesignTokens.color('textTertiary'),
+                      color: Theme.of(context).brightness == Brightness.dark 
+                        ? DesignTokens.color('textPrimary') 
+                        : DesignTokens.color('textTertiary'),
                     ),
                   ),
                 ],
@@ -830,7 +933,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               child: Text(
                 '+ ${sortedEntries.length - 5} more categories',
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: DesignTokens.color('textTertiary'),
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('textPrimary') 
+                    : DesignTokens.color('textTertiary'),
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -855,13 +960,18 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               title,
               style: DesignTokens.textStyle('titleSmall').copyWith(
                 fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? DesignTokens.color('textPrimary') 
+                  : null,
               ),
             ),
             VSpace('sm'),
             Text(
               'No transactions this month',
               style: DesignTokens.textStyle('bodySmall').copyWith(
-                color: DesignTokens.color('textTertiary'),
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? DesignTokens.color('textPrimary') 
+                  : DesignTokens.color('textTertiary'),
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -887,6 +997,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               title,
               style: DesignTokens.textStyle('titleSmall').copyWith(
                 fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? DesignTokens.color('textPrimary') 
+                  : null,
               ),
               textAlign: TextAlign.center,
             ),
@@ -936,6 +1049,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   transaction.title,
                   style: DesignTokens.textStyle('bodyMedium').copyWith(
                     fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? DesignTokens.color('textPrimary') 
+                      : null,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -958,7 +1074,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                     return Text(
                       categoryName,
                       style: DesignTokens.textStyle('bodySmall').copyWith(
-                        color: DesignTokens.color('textTertiary'),
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? DesignTokens.color('textPrimary') 
+                          : DesignTokens.color('textTertiary'),
                       ),
                       overflow: TextOverflow.ellipsis,
                     );
@@ -968,7 +1086,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Text(
                 _formatTransactionDate(transaction.dateTime),
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: DesignTokens.color('textTertiary'),
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('textPrimary') 
+                    : DesignTokens.color('textTertiary'),
                 ),
               ),
             ],
@@ -1140,37 +1260,53 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           ),
           cellPadding: EdgeInsets.zero,
           defaultDecoration: BoxDecoration(
-            color: DesignTokens.color('surface'),
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.black 
+              : DesignTokens.color('surface'),
             borderRadius: DesignTokens.radius('sm'),
             border: Border.all(
-              color: DesignTokens.color('border'),
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.grey.shade700 
+                : DesignTokens.color('border'),
               width: 1,
             ),
           ),
           todayDecoration: BoxDecoration(
-            color: DesignTokens.color('primary').withOpacity(0.3),
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.black 
+              : DesignTokens.color('primary').withOpacity(0.3),
             borderRadius: DesignTokens.radius('sm'),
             border: Border.all(
-              color: DesignTokens.color('primary'),
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white 
+                : DesignTokens.color('primary'),
               width: 2,
             ),
           ),
           selectedDecoration: BoxDecoration(
-            color: DesignTokens.color('primary').withOpacity(0.7),
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.grey.shade800 
+              : DesignTokens.color('primary').withOpacity(0.7),
             borderRadius: DesignTokens.radius('sm'),
             border: Border.all(
-              color: DesignTokens.color('primary'),
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white 
+                : DesignTokens.color('primary'),
               width: 2,
             ),
           ),
         ),
         daysOfWeekStyle: DaysOfWeekStyle(
           weekdayStyle: DesignTokens.textStyle('labelMedium').copyWith(
-            color: DesignTokens.color('textSecondary'),
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : DesignTokens.color('textSecondary'),
             fontWeight: FontWeight.w600,
           ),
           weekendStyle: DesignTokens.textStyle('labelMedium').copyWith(
-            color: DesignTokens.color('textSecondary'),
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : DesignTokens.color('textSecondary'),
             fontWeight: FontWeight.w600,
           ),
           decoration: BoxDecoration(
@@ -1188,6 +1324,21 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           ),
           titleTextStyle: DesignTokens.textStyle('titleLarge').copyWith(
             fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : null,
+          ),
+          leftChevronIcon: Icon(
+            Icons.chevron_left,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : null,
+          ),
+          rightChevronIcon: Icon(
+            Icons.chevron_right,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : null,
           ),
         ),
         onDaySelected: widget.onDaySelected,
@@ -1243,7 +1394,9 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               style: DesignTokens.textStyle('bodyLarge').copyWith(
                 color: amount != 0 
                     ? (amount > 0 ? DesignTokens.color('income') : DesignTokens.color('expense'))
-                    : DesignTokens.color('textPrimary'),
+                    : (Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white 
+                        : DesignTokens.color('textPrimary')),
                 fontWeight: isMilestone ? FontWeight.bold : null,
               ),
             ),
@@ -1346,17 +1499,28 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
   // New goal-related methods
 
   Widget _buildGoalsSummaryCard(BuildContext context) {
-    final activeGoals = _goals.where((g) => g.currentAmount < g.targetAmount).length;
-    final totalSaved = _goals.fold<double>(0, (sum, goal) => sum + goal.currentAmount);
+    // Use SavingGoalNotifier for real-time progress like the Goals page
+    return Consumer<SavingGoalNotifier>(
+      builder: (context, goalNotifier, child) {
+        final goals = goalNotifier.goals;
+        final activeGoals = goals.where((g) => g.currentAmount < g.targetAmount).length;
+        final totalSaved = goals.fold<double>(0, (sum, goal) => sum + goal.currentAmount);
+        
+        print('📅 CalendarWidget: Goals Summary (Real-time) - ${goals.length} total goals, $activeGoals active, \$${totalSaved.toStringAsFixed(2)} total saved');
 
-    return CashCard(
-      financialContext: FinancialContext.income,
+        return CashCard(
+      financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.income,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Goals Summary',
-            style: DesignTokens.textStyle('titleMedium'),
+            style: DesignTokens.textStyle('titleMedium').copyWith(
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? DesignTokens.color('income') 
+                : DesignTokens.color('income'),
+            ),
           ),
           VSpace('sm'),
           Row(
@@ -1364,7 +1528,11 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
             children: [
               Text(
                 '$activeGoals Active Goals',
-                style: DesignTokens.textStyle('bodyLarge'),
+                style: DesignTokens.textStyle('bodyLarge').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('income') 
+                    : DesignTokens.color('income'),
+                ),
               ),
               FinancialAmount(
                 amount: totalSaved,
@@ -1376,6 +1544,8 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
         ],
       ),
     );
+      },
+    );
   }
 
   Widget _buildSavingsStreakIndicator(BuildContext context) {
@@ -1384,7 +1554,8 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
     if (currentStreak == 0) return const SizedBox();
 
     return CashCard(
-      financialContext: FinancialContext.neutral,
+      financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.neutral,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : null,
       child: Row(
         children: [
           Container(
@@ -1413,7 +1584,9 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
                 Text(
                   '$currentStreak ${currentStreak == 1 ? 'day' : 'days'} of consistent saving!',
                   style: DesignTokens.textStyle('bodyMedium').copyWith(
-                    color: DesignTokens.color('textSecondary'),
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white70 
+                      : DesignTokens.color('textSecondary'),
                   ),
                 ),
               ],
@@ -1431,31 +1604,81 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
     );
   }
 
+  // 🎯 REAL-TIME UI: Goal update listener setup
+  void _setupGoalUpdateListener() {
+    GoalUpdateNotifier().addListener(_handleGoalUpdate);
+  }
+
+  void _handleGoalUpdate() {
+    print('📅 CalendarWidget: Received goal update notification - refreshing allocation data');
+    // Use postFrameCallback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) {
+        await _loadGoalData();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    GoalUpdateNotifier().removeListener(_handleGoalUpdate);
+    super.dispose();
+  }
 
   Color _getDayCellBackgroundColor(bool isSelected, bool hasSavings, bool isMilestone) {
-    if (isMilestone) {
-      return DesignTokens.color('warning').withOpacity(0.1);
+    if (Theme.of(context).brightness == Brightness.dark) {
+      // Dark theme colors
+      if (isMilestone) {
+        return DesignTokens.color('warning').withOpacity(0.2);
+      }
+      if (hasSavings) {
+        return DesignTokens.color('income').withOpacity(0.1);
+      }
+      if (isSelected) {
+        return Colors.grey.shade800;
+      }
+      return Colors.black;
+    } else {
+      // Light theme colors (original)
+      if (isMilestone) {
+        return DesignTokens.color('warning').withOpacity(0.1);
+      }
+      if (hasSavings) {
+        return DesignTokens.color('income').withOpacity(0.05);
+      }
+      if (isSelected) {
+        return DesignTokens.color('primary').withOpacity(0.1);
+      }
+      return DesignTokens.color('surface');
     }
-    if (hasSavings) {
-      return DesignTokens.color('income').withOpacity(0.05);
-    }
-    if (isSelected) {
-      return DesignTokens.color('primary').withOpacity(0.1);
-    }
-    return DesignTokens.color('surface');
   }
 
   Color _getDayCellBorderColor(bool isSelected, bool hasSavings, bool isMilestone) {
-    if (isMilestone) {
-      return DesignTokens.color('warning');
+    if (Theme.of(context).brightness == Brightness.dark) {
+      // Dark theme colors
+      if (isMilestone) {
+        return DesignTokens.color('warning');
+      }
+      if (hasSavings) {
+        return DesignTokens.color('income').withOpacity(0.5);
+      }
+      if (isSelected) {
+        return Colors.white;
+      }
+      return Colors.grey.shade700;
+    } else {
+      // Light theme colors (original)
+      if (isMilestone) {
+        return DesignTokens.color('warning');
+      }
+      if (hasSavings) {
+        return DesignTokens.color('income').withOpacity(0.3);
+      }
+      if (isSelected) {
+        return DesignTokens.color('primary');
+      }
+      return DesignTokens.color('border');
     }
-    if (hasSavings) {
-      return DesignTokens.color('income').withOpacity(0.3);
-    }
-    if (isSelected) {
-      return DesignTokens.color('primary');
-    }
-    return DesignTokens.color('border');
   }
 
 

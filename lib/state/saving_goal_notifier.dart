@@ -94,15 +94,31 @@ class SavingGoalNotifier extends ChangeNotifier {
 
   // Update existing goal
   Future<void> updateGoal(SavingGoal updatedGoal) async {
+    print('🔍 DEBUG: SavingGoalNotifier.updateGoal called for goal ID: ${updatedGoal.id}, title: "${updatedGoal.title}"');
     _error = null;
     try {
-      await _service.updateGoal(updatedGoal);
-      final index = _goals.indexWhere((g) => g.id == updatedGoal.id);
-      if (index != -1) {
-        _goals[index] = updatedGoal;
-        notifyListeners();
-      }
+      final result = await _service.updateGoal(updatedGoal);
+      result.fold(
+        (failure) {
+          print('❌ ERROR: SavingGoalNotifier - Update failed: ${failure.message}');
+          _error = 'Failed to update goal: ${failure.message}';
+          notifyListeners();
+        },
+        (success) {
+          print('✅ SUCCESS: SavingGoalNotifier - Update succeeded: $success');
+          final index = _goals.indexWhere((g) => g.id == updatedGoal.id);
+          print('🔍 DEBUG: Found goal index: $index out of ${_goals.length} goals');
+          if (index != -1) {
+            _goals[index] = updatedGoal;
+            print('🔍 DEBUG: Updated goal in list - calling notifyListeners');
+            notifyListeners();
+          } else {
+            print('⚠️ WARNING: Goal with ID ${updatedGoal.id} not found in local list');
+          }
+        },
+      );
     } catch (e) {
+      print('❌ ERROR: SavingGoalNotifier - Exception: ${e.toString()}');
       _error = 'Failed to update goal: ${e.toString()}';
       notifyListeners();
     }
@@ -162,12 +178,20 @@ class SavingGoalNotifier extends ChangeNotifier {
 
   // Get monthly savings rate based on recent history
   double getMonthlyRate() {
-    // Implement based on your tracking logic
-    // This could use event history or a separate savings tracking system
-    return _goals.fold(0.0, (sum, goal) => 
-      sum + (goal.currentAmount / 
-        (DateTime.now().difference(goal.createdAt).inDays / 30))
-    );
+    if (_goals.isEmpty) return 0.0;
+    
+    return _goals.fold(0.0, (sum, goal) {
+      final daysSinceCreated = DateTime.now().difference(goal.createdAt).inDays;
+      final monthsSinceCreated = daysSinceCreated / 30;
+      
+      // Guard against division by zero for newly created goals
+      if (monthsSinceCreated <= 0.1) {
+        // For goals less than 3 days old, assume a minimal rate
+        return sum + 0.0;
+      }
+      
+      return sum + (goal.currentAmount / monthsSinceCreated);
+    });
   }
 DateTime getProjectedCompletion() {
     if (_goals.isEmpty) return DateTime.now();

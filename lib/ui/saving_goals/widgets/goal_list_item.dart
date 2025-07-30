@@ -30,14 +30,10 @@ class GoalListItem extends StatelessWidget {
     return AnimatedContainer(
       duration: DesignTokens.duration('normal'),
       decoration: BoxDecoration(
-        color: DesignTokens.color('surface'),
+        color: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.black 
+          : DesignTokens.color('surface'),
         borderRadius: DesignTokens.radius('md'),
-        border: Border(
-          left: BorderSide(
-            color: _getProgressColor(progress),
-            width: 4,
-          ),
-        ),
         boxShadow: isExpanded 
             ? DesignTokens.shadow('lg') 
             : DesignTokens.shadow('sm'),
@@ -59,19 +55,30 @@ class GoalListItem extends StatelessWidget {
                         children: [
                           Text(
                             goal.title,
-                            style: DesignTokens.textStyle('titleMedium'),
+                            style: DesignTokens.textStyle('titleMedium').copyWith(
+                              color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white 
+                                : null,
+                            ),
                           ),
                           Text(
                             'Target: ${FormatUtils.formatCurrency(goal.targetAmount)}',
                             style: DesignTokens.textStyle('bodySmall').copyWith(
-                              color: DesignTokens.color('textSecondary'),
+                              color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white70 
+                                : DesignTokens.color('textSecondary'),
                             ),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                      ),
                       onPressed: onEdit,
                     ),
                     AnimatedRotation(
@@ -79,7 +86,9 @@ class GoalListItem extends StatelessWidget {
                       turns: isExpanded ? 0.5 : 0,
                       child: Icon(
                         Icons.keyboard_arrow_down,
-                        color: DesignTokens.color('textSecondary'),
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white70 
+                          : DesignTokens.color('textSecondary'),
                       ),
                     ),
                   ],
@@ -100,16 +109,19 @@ class GoalListItem extends StatelessWidget {
                 if (isExpanded) ...[
                   VSpace('lg'),
                   _buildDetailRow(
+                    context,
                     'Remaining',
                     FormatUtils.formatCurrency(remainingAmount),
                   ),
                   VSpace('sm'),
                   _buildDetailRow(
+                    context,
                     'Required Monthly Savings',
                     FormatUtils.formatCurrency(requiredMonthly),
                   ),
                   VSpace('sm'),
                   _buildDetailRow(
+                    context,
                     'Deadline Date',
                     goal.deadlineDate != null 
                         ? FormatUtils.formatDate(goal.deadlineDate!)
@@ -117,6 +129,7 @@ class GoalListItem extends StatelessWidget {
                   ),
                   VSpace('sm'),
                   _buildDetailRow(
+                    context,
                     'Months Left',
                     '${monthsLeft.round()} months',
                   ),
@@ -138,18 +151,25 @@ class GoalListItem extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
-          style: DesignTokens.textStyle('bodyMedium'),
+          style: DesignTokens.textStyle('bodyMedium').copyWith(
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : null,
+          ),
         ),
         Text(
           value,
           style: DesignTokens.textStyle('bodyMedium').copyWith(
             fontWeight: FontWeight.w500,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white 
+              : null,
           ),
         ),
       ],
@@ -163,8 +183,7 @@ class GoalListItem extends StatelessWidget {
   }
   
   FinancialContext _getFinancialContext(double progress) {
-    if (progress >= 0.8) return FinancialContext.income;
-    if (progress >= 0.5) return FinancialContext.neutral;
-    return FinancialContext.expense;
+    // Always use income context (green) for goal progress
+    return FinancialContext.income;
   }
 }

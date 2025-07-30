@@ -492,6 +492,25 @@ class DesignTokens {
     return colors[token] ?? fallback ?? colors['textPrimary']!;
   }
 
+  /// Theme-aware color getter that returns appropriate colors for light/dark theme
+  /// Only overrides neutral text colors - preserves income/expense green/red colors
+  static Color themeColor(BuildContext context, String token, [Color? fallback]) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Only override neutral secondary text in dark theme for better contrast
+    // Preserve all financial colors (income/expense) unchanged
+    if (isDark) {
+      switch (token) {
+        case 'textSecondary':
+          return const Color(0xFFBDBDBD); // Light grey for dark theme
+        default:
+          break;
+      }
+    }
+    
+    return colors[token] ?? fallback ?? colors['textPrimary']!;
+  }
+
   // Spacing getter with fallback  
   static double space(String token, [double? fallback]) {
     return spacing[token] ?? componentSpacing[token] ?? fallback ?? spacing['md']!;

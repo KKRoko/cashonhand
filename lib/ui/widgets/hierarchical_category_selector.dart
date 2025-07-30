@@ -185,10 +185,14 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
         onTap: () => _selectMainCategory(category),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.black 
+              : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Theme.of(context).dividerColor,
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.transparent 
+                : Theme.of(context).dividerColor,
               width: 1,
             ),
             boxShadow: [
@@ -212,9 +216,12 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
               Text(
                 category.name,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white 
+                    : null, // White text in dark theme for readability on black cards
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -253,12 +260,16 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
             decoration: BoxDecoration(
               color: isSelected 
                 ? Theme.of(context).primaryColor.withOpacity(0.1)
-                : Theme.of(context).cardColor,
+                : (Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.black 
+                    : Theme.of(context).cardColor),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isSelected 
                   ? Theme.of(context).primaryColor
-                  : Theme.of(context).dividerColor,
+                  : (Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.transparent 
+                      : Theme.of(context).dividerColor),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -277,7 +288,11 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                      color: isSelected ? Theme.of(context).primaryColor : null,
+                      color: isSelected 
+                        ? Theme.of(context).primaryColor 
+                        : (Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white 
+                            : null), // White text in dark theme for readability on black cards
                     ),
                   ),
                 ),

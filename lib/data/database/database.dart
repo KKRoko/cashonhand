@@ -652,8 +652,8 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
     }
   }
 
-  Future<CategoryTableData> getCategoryById(int id) =>
-      (select(categories)..where((t) => t.id.equalsNullable(id))).getSingle();
+  Future<CategoryTableData?> getCategoryById(int id) =>
+      (select(categories)..where((t) => t.id.equalsNullable(id))).getSingleOrNull();
 
   Future<int> createCategory(CategoriesCompanion category) =>
       into(categories).insert(category);
@@ -684,8 +684,8 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
   // Events CRUD operations
   Future<List<EventTableData>> getAllEvents() => select(events).get();
 
-  Future<EventTableData> getEventById(int id) =>
-      (select(events)..where((t) => t.id.equals(id))).getSingle();
+  Future<EventTableData?> getEventById(int id) =>
+      (select(events)..where((t) => t.id.equals(id))).getSingleOrNull();
 
 Future<EventTableData> createEvent(EventsCompanion event, {bool generateRecurring = false}) async {
    print('Creating event with customRecurrence: ${event.customRecurrence}');
@@ -705,7 +705,11 @@ Future<EventTableData> createEvent(EventsCompanion event, {bool generateRecurrin
      
      // Get the final event with correct originalEventId
      final updatedEvent = await getEventById(id);
-     print('Event after update - ID: ${updatedEvent.id}, OriginalID: ${updatedEvent.originalEventId}');
+     if (updatedEvent != null) {
+       print('Event after update - ID: ${updatedEvent.id}, OriginalID: ${updatedEvent.originalEventId}');
+     } else {
+       throw Exception('Failed to retrieve created event with ID: $id');
+     }
 
      // Only generate recurring instances if explicitly requested
      if (event.isRecurring.value && generateRecurring) {
@@ -727,6 +731,10 @@ Future<void> _generateAndInsertFutureInstances(EventsCompanion event, int origin
   print('Generating future instances with customRecurrence: ${event.customRecurrence}');
   
   final baseEvent = await getEventById(originalId);
+  if (baseEvent == null) {
+    print('Error: Base event with ID $originalId not found');
+    return;
+  }
   print('Base event retrieved with customRecurrence: ${baseEvent.customRecurrence?.toJson()}');
   
   final instances = _generateYearInstances(baseEvent)
@@ -777,7 +785,7 @@ Future<void> _generateAndInsertFutureInstances(EventsCompanion event, int origin
   // Query methods with fixed DateTime comparisons
   Future<List<SavingGoalTableData>> getActiveGoals() async {
     final goals = await (select(savingGoalsTable)
-            ..where((t) => t.isCompleted.equalsNullable(false))
+            ..where((t) => t.isCompleted.equals(false) | t.isCompleted.isNull())
             ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
           .get();
     

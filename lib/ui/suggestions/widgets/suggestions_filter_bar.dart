@@ -24,8 +24,16 @@ class SuggestionsFilterBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.black 
+          : Colors.grey.shade50,
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.grey.shade800 
+              : Colors.grey.shade200,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,18 +41,28 @@ class SuggestionsFilterBar extends StatelessWidget {
           // Filter title and clear button
           Row(
             children: [
-              const Text(
+              Text(
                 'Filters',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white 
+                    : Colors.black,
                 ),
               ),
               const Spacer(),
               if (_hasActiveFilters)
                 TextButton(
                   onPressed: _clearAllFilters,
-                  child: const Text('Clear All'),
+                  child: Text(
+                    'Clear All',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white 
+                        : null,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -52,12 +70,14 @@ class SuggestionsFilterBar extends StatelessWidget {
           const SizedBox(height: 12),
           
           // Type filters
-          const Text(
+          Text(
             'Type',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white 
+                : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
@@ -67,7 +87,14 @@ class SuggestionsFilterBar extends StatelessWidget {
             children: SuggestionType.values.map((type) {
               final isSelected = selectedTypes.contains(type);
               return FilterChip(
-                label: Text(_getTypeLabel(type)),
+                label: Text(
+                  _getTypeLabel(type),
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                      ? (isSelected ? Colors.black : Colors.white)
+                      : null,
+                  ),
+                ),
                 selected: isSelected,
                 onSelected: (selected) {
                   final newTypes = Set<SuggestionType>.from(selectedTypes);
@@ -80,6 +107,9 @@ class SuggestionsFilterBar extends StatelessWidget {
                 },
                 selectedColor: _getTypeColor(type).withOpacity(0.2),
                 checkmarkColor: _getTypeColor(type),
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade800
+                  : null,
               );
             }).toList(),
           ),
@@ -87,12 +117,14 @@ class SuggestionsFilterBar extends StatelessWidget {
           const SizedBox(height: 16),
           
           // Priority filters
-          const Text(
+          Text(
             'Priority',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.white 
+                : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
@@ -102,7 +134,14 @@ class SuggestionsFilterBar extends StatelessWidget {
             children: SuggestionPriority.values.map((priority) {
               final isSelected = selectedPriorities.contains(priority);
               return FilterChip(
-                label: Text(_getPriorityLabel(priority)),
+                label: Text(
+                  _getPriorityLabel(priority),
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                      ? (isSelected ? Colors.black : Colors.white)
+                      : null,
+                  ),
+                ),
                 selected: isSelected,
                 onSelected: (selected) {
                   final newPriorities = Set<SuggestionPriority>.from(selectedPriorities);
@@ -115,6 +154,9 @@ class SuggestionsFilterBar extends StatelessWidget {
                 },
                 selectedColor: _getPriorityColor(priority).withOpacity(0.2),
                 checkmarkColor: _getPriorityColor(priority),
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade800
+                  : null,
               );
             }).toList(),
           ),
@@ -124,21 +166,33 @@ class SuggestionsFilterBar extends StatelessWidget {
           // Active filter
           Row(
             children: [
-              const Text(
+              Text(
                 'Status',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white 
+                    : Colors.black87,
                 ),
               ),
               const SizedBox(width: 16),
               FilterChip(
-                label: const Text('Active Only'),
+                label: Text(
+                  'Active Only',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                      ? (showOnlyActive ? Colors.black : Colors.white)
+                      : null,
+                  ),
+                ),
                 selected: showOnlyActive,
                 onSelected: onActiveFilterChanged,
                 selectedColor: Colors.green.withOpacity(0.2),
                 checkmarkColor: Colors.green,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade800
+                  : null,
               ),
             ],
           ),

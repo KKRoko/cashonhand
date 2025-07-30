@@ -8,6 +8,7 @@ class EditScopeDialog extends StatefulWidget {
   final int? totalEventsInSeries;
   final int? futureEventsCount;
   final int? pastEventsCount;
+  final bool hasAllocationChanges;
 
   const EditScopeDialog({
     super.key,
@@ -16,6 +17,7 @@ class EditScopeDialog extends StatefulWidget {
     this.totalEventsInSeries,
     this.futureEventsCount,
     this.pastEventsCount,
+    this.hasAllocationChanges = false,
   });
 
   @override
@@ -47,12 +49,41 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Choose what to edit:',
+            widget.hasAllocationChanges 
+              ? 'Choose which events to update with your allocation changes:'
+              : 'Choose what to edit:',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
             ),
           ),
+          if (widget.hasAllocationChanges) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.savings, color: Colors.blue.shade600, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Goal allocation changes will be applied to the selected events',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           ...EditOption.values.map((option) => _buildEditOptionTile(option)),
         ],
@@ -147,7 +178,11 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
     
     switch (option) {
       case EditOption.thisInstance:
-        impactText = _formatDate(widget.selectedDate);
+        if (widget.hasAllocationChanges) {
+          impactText = 'Update allocation for ${_formatDate(widget.selectedDate)} only';
+        } else {
+          impactText = _formatDate(widget.selectedDate);
+        }
         break;
       case EditOption.allInstances:
         final total = widget.totalEventsInSeries ?? 0;
@@ -155,7 +190,11 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
           impactText = 'Not applicable for single events';
           impactColor = Colors.grey[400]!;
         } else {
-          impactText = total > 0 ? 'Affects $total events' : 'Affects entire series';
+          if (widget.hasAllocationChanges) {
+            impactText = total > 0 ? 'Update allocations for all $total events' : 'Update allocations for entire series';
+          } else {
+            impactText = total > 0 ? 'Affects $total events' : 'Affects entire series';
+          }
           impactColor = isDisabled ? Colors.grey[400]! : (total > 10 ? Colors.orange[600]! : Colors.blue[600]!);
         }
         break;
@@ -165,7 +204,11 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
           impactText = 'No future events';
           impactColor = Colors.grey[400]!;
         } else {
-          impactText = 'Affects $future future events';
+          if (widget.hasAllocationChanges) {
+            impactText = 'Update allocations for $future future events';
+          } else {
+            impactText = 'Affects $future future events';
+          }
           impactColor = isDisabled ? Colors.grey[400]! : (future > 5 ? Colors.orange[600]! : Colors.blue[600]!);
         }
         break;
@@ -175,7 +218,11 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
           impactText = 'No past events';
           impactColor = Colors.grey[400]!;
         } else {
-          impactText = 'Affects $past past events';
+          if (widget.hasAllocationChanges) {
+            impactText = 'Update allocations for $past past events';
+          } else {
+            impactText = 'Affects $past past events';
+          }
           impactColor = isDisabled ? Colors.grey[400]! : (past > 5 ? Colors.orange[600]! : Colors.blue[600]!);
         }
         break;
@@ -215,6 +262,7 @@ Future<EditOption?> showEditScopeDialog({
   int? totalEventsInSeries,
   int? futureEventsCount,
   int? pastEventsCount,
+  bool hasAllocationChanges = false,
 }) {
   return showDialog<EditOption>(
     context: context,
@@ -224,6 +272,7 @@ Future<EditOption?> showEditScopeDialog({
       totalEventsInSeries: totalEventsInSeries,
       futureEventsCount: futureEventsCount,
       pastEventsCount: pastEventsCount,
+      hasAllocationChanges: hasAllocationChanges,
     ),
   );
 }

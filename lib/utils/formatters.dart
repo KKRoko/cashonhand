@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 /// Formatters for currency and dates
 class FormatUtils {
   static final NumberFormat _currencyFormatter = NumberFormat.currency(symbol: '\$');
-  static final DateFormat _dateFormatter = DateFormat('EEEE, MMMM d, y');
+  static final DateFormat _dateFormatter = DateFormat('EEE, MMMM d, y');
 
   /// Formats a number as currency
   static String formatCurrency(double amount) {

@@ -214,49 +214,55 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
       );
     }
 
-    return Column(
-      children: [
-        // Filter bar
-        SuggestionsFilterBar(
-          selectedTypes: _selectedTypes,
-          selectedPriorities: _selectedPriorities,
-          showOnlyActive: _showOnlyActive,
-          onTypesChanged: (types) {
-            setState(() => _selectedTypes = types);
-            _applyFilters();
-          },
-          onPrioritiesChanged: (priorities) {
-            setState(() => _selectedPriorities = priorities);
-            _applyFilters();
-          },
-          onActiveFilterChanged: (active) {
-            setState(() => _showOnlyActive = active);
-            _applyFilters();
-          },
-        ),
-        
-        // Suggestions list
-        Expanded(
-          child: _filteredSuggestions.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: ListView.builder(
-                    padding: EdgeInsets.all(DesignTokens.space('lg')),
-                    itemCount: _filteredSuggestions.length,
-                    itemBuilder: (context, index) {
-                      final suggestion = _filteredSuggestions[index];
-                      return SuggestionCard(
-                        suggestion: suggestion,
-                        onTap: () => _showSuggestionDetail(suggestion),
-                        onDismiss: () => _dismissSuggestion(suggestion),
-                        onAction: () => _takeSuggestionAction(suggestion),
-                      );
-                    },
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: CustomScrollView(
+        slivers: [
+          // Filter bar as a sliver - always show
+          SliverToBoxAdapter(
+            child: SuggestionsFilterBar(
+              selectedTypes: _selectedTypes,
+              selectedPriorities: _selectedPriorities,
+              showOnlyActive: _showOnlyActive,
+              onTypesChanged: (types) {
+                setState(() => _selectedTypes = types);
+                _applyFilters();
+              },
+              onPrioritiesChanged: (priorities) {
+                setState(() => _selectedPriorities = priorities);
+                _applyFilters();
+              },
+              onActiveFilterChanged: (active) {
+                setState(() => _showOnlyActive = active);
+                _applyFilters();
+              },
+            ),
+          ),
+          
+          // Suggestions list as a sliver or empty state
+          _filteredSuggestions.isEmpty
+              ? SliverFillRemaining(
+                  child: _buildEmptyState(),
+                )
+              : SliverPadding(
+                  padding: EdgeInsets.all(DesignTokens.space('md')),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final suggestion = _filteredSuggestions[index];
+                        return SuggestionCard(
+                          suggestion: suggestion,
+                          onTap: () => _showSuggestionDetail(suggestion),
+                          onDismiss: () => _dismissSuggestion(suggestion),
+                          onAction: () => _takeSuggestionAction(suggestion),
+                        );
+                      },
+                      childCount: _filteredSuggestions.length,
+                    ),
                   ),
                 ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

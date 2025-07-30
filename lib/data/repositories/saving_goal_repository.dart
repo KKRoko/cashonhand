@@ -105,6 +105,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
 
   @override
   Future<Either<Failure, bool>> updateGoal(SavingGoal goal) async {
+    print('🔍 DEBUG: SavingGoalRepository.updateGoal called for goal ID: ${goal.id}');
     try {
       final data = SavingGoalTableData(
         id: goal.id,
@@ -123,9 +124,12 @@ class SavingGoalRepository implements ISavingGoalRepository {
             ? jsonEncode(goal.checkpoints!.map((date) => date.toIso8601String()).toList())
             : null,
       );
-     final result = await _db.updateSavingGoal(data);
+      print('🔍 DEBUG: About to call _db.updateSavingGoal');
+      final result = await _db.updateSavingGoal(data);
+      print('✅ SUCCESS: Database updateSavingGoal returned: $result');
       return Right(result);
     } catch (e) {
+      print('❌ ERROR: SavingGoalRepository.updateGoal failed: $e');
       return Left(DatabaseFailure('Failed to update saving goal: $e'));
     }
   }
@@ -202,6 +206,7 @@ class SavingGoalRepository implements ISavingGoalRepository {
         try {
           // Get the event details for each allocation
           final event = await _db.getEventById(allocation.eventId);
+          if (event == null) continue; // Skip if event not found
           
           history.add(GoalAllocationHistory(
             allocationId: allocation.id,

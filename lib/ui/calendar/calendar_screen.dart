@@ -4,10 +4,12 @@ import 'package:flutter/physics.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../core/di/injection.dart';
+import '../../app.dart'; // Import for TabChangeNotifier
 import '../../data/database/database.dart';
 import '../../data/models/enums/category_type.dart';
 import '../../data/models/enums/edit_option.dart';
 import '../../data/models/freezed/event.dart';
+import '../../data/models/freezed/goal_allocation.dart';
 import '../../data/models/event_creation_result.dart';
 import '../../theme/design_tokens.dart';
 import '../components/cash_components.dart';
@@ -16,6 +18,7 @@ import '../dialogs/delete_event_dialog.dart' show showDeleteEventDialog;
 import '../dialogs/edit_scope_dialog.dart';
 import '../../state/event_notifier.dart';
 import '../../state/category_notifier.dart';
+import '../../state/saving_goal_notifier.dart';
 import 'widgets/index.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -26,13 +29,16 @@ class CalendarScreen extends StatefulWidget {
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
+class _CalendarScreenState extends State<CalendarScreen> with WidgetsBindingObserver {
   final CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isLoading = false;
   bool _isDatabaseInitialized = false;
   late Database _database;
+  bool _hasBeenInitialized = false;
+  DateTime _lastResetCheck = DateTime.now();
+  bool _isUserScrolling = false;
   
   // 🎯 FLICKER FIX: Key to access CalendarWidget state
   final GlobalKey<EnhancedCalendarWidgetState> _calendarWidgetKey = GlobalKey<EnhancedCalendarWidgetState>();
@@ -40,9 +46,110 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedDay = _focusedDay;
+    print('🏁 CALENDAR INIT: CalendarScreen initState called');
+    
+    // Always reset to current date when initializing calendar
+    final now = DateTime.now();
+    _focusedDay = now;
+    _selectedDay = now;
     _database = getIt<Database>();
+    _hasBeenInitialized = true;
+    
+    print('🏁 CALENDAR INIT: Initialized to ${now.day}/${now.month}/${now.year}');
+    
+    // Add this screen as observer for app lifecycle changes
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Listen to tab changes for proper navigation detection
+    globalTabNotifier.addListener(_onTabChanged);
+    
     _initializeDatabase();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    print('🔄 APP LIFECYCLE DEBUG: State changed to $state');
+    print('  - Has been initialized: $_hasBeenInitialized');
+    print('  - Current focused day: ${_focusedDay.day}/${_focusedDay.month}/${_focusedDay.year}');
+    print('  - Today: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}');
+    
+    // Reset calendar when app becomes active (covers navigation between pages)
+    if (state == AppLifecycleState.resumed && _hasBeenInitialized) {
+      print('  - ✅ App resumed and initialized - triggering calendar reset');
+      _resetCalendarToCurrentDate();
+    } else {
+      print('  - ❌ No reset needed for this lifecycle change');
+    }
+  }
+  
+  
+  // Handle tab change notifications from the global tab notifier
+  void _onTabChanged() {
+    if (!mounted) return;
+    
+    final now = DateTime.now();
+    final isCalendarNowVisible = globalTabNotifier.isCalendarVisible;
+    final didNavigateToCalendar = globalTabNotifier.didNavigateToCalendar;
+    
+    print('🔄 TAB CHANGE CALLBACK: Tab change detected');
+    print('  - Is calendar now visible: $isCalendarNowVisible');
+    print('  - Did navigate TO calendar: $didNavigateToCalendar');
+    print('  - Current tab: ${globalTabNotifier.currentTabIndex}');
+    print('  - Previous tab: ${globalTabNotifier.previousTabIndex}');
+    print('  - Current focused day: ${_focusedDay.day}/${_focusedDay.month}/${_focusedDay.year}');
+    print('  - Today: ${now.day}/${now.month}/${now.year}');
+    
+    // Only reset when navigating TO the calendar (not away from it)
+    if (didNavigateToCalendar && _hasBeenInitialized) {
+      final needsReset = (_focusedDay.day != now.day || _focusedDay.month != now.month || _focusedDay.year != now.year);
+      
+      print('  - Needs reset: $needsReset');
+      print('  - Is user scrolling: $_isUserScrolling');
+      
+      if (needsReset && !_isUserScrolling) {
+        print('  - ✅ TAB NAVIGATION TO CALENDAR - Resetting to current date');
+        _resetCalendarToCurrentDate();
+      } else {
+        print('  - ❌ No reset needed (already current date or user scrolling)');
+      }
+    } else {
+      print('  - ❌ Not navigating to calendar or not initialized, no action needed');
+    }
+  }
+
+  void _resetCalendarToCurrentDate() {
+    if (!mounted) {
+      print('🔄 CALENDAR RESET: Widget not mounted, skipping reset');
+      return;
+    }
+    
+    final now = DateTime.now();
+    final needsReset = _focusedDay.day != now.day || _focusedDay.month != now.month || _focusedDay.year != now.year;
+    
+    print('🔄 CALENDAR RESET: Executing reset');
+    print('  - Current focused: ${_focusedDay.day}/${_focusedDay.month}/${_focusedDay.year}');
+    print('  - Resetting to: ${now.day}/${now.month}/${now.year}');
+    print('  - Needs reset: $needsReset');
+    
+    if (needsReset) {
+      print('  - ✅ RESETTING calendar to current date');
+      setState(() {
+        _focusedDay = now;
+        _selectedDay = now;
+      });
+      
+      // Load events for today when resetting
+      if (_isDatabaseInitialized) {
+        print('  - 📅 Loading events for today');
+        context.read<EventNotifier>().loadEventsForDay(now);
+      } else {
+        print('  - ⏳ Database not initialized, skipping event loading');
+      }
+    } else {
+      print('  - ℹ️ Calendar already on current date, no reset needed');
+    }
   }
 
   Future<void> _initializeDatabase() async {
@@ -113,6 +220,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _onPageChanged(DateTime focusedDay) {
+    print('🔄 MONTH SCROLL DEBUG: Calendar page changed');
+    print('  - From: ${_focusedDay.month}/${_focusedDay.year}');
+    print('  - To: ${focusedDay.month}/${focusedDay.year}');
+    print('  - Setting user scrolling flag to prevent reset');
+    
+    _isUserScrolling = true;
+    _lastResetCheck = DateTime.now(); // Update last check to prevent reset during scrolling
+    
     setState(() {
       _focusedDay = focusedDay;
       
@@ -127,13 +242,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
         final validDay = currentSelectedDay <= daysInNewMonth ? currentSelectedDay : daysInNewMonth;
         
         _selectedDay = DateTime(newYear, newMonth, validDay);
-        print('Selected day updated to: ${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year}');
+        
+        print('  - Updated selected day to: ${_selectedDay!.day}/${_selectedDay!.month}/${_selectedDay!.year}');
+        print('  - Loading events for new selected day');
         
         // Load events for the new selected day
         context.read<EventNotifier>().loadEventsForDay(_selectedDay!);
       }
     });
-    print('Calendar page changed to: ${focusedDay.month}/${focusedDay.year}');
+    
+    // Clear the scrolling flag after a delay
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      print('  - 🔄 Clearing user scrolling flag - resets now allowed again');
+      _isUserScrolling = false;
+    });
   }
 
   Future<void> _showAddEventDialog({required bool isPositiveCashflow}) async {
@@ -303,14 +425,15 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
 
     if (result != null) {
       final editedEvent = result.event;
+      final allocations = result.allocations;
       
-      // TODO: Handle allocation updates in edit scenario
+      // Handle allocation updates in edit scenario
       // Always show scope dialog for all events (both single and recurring)
-      await _handleEventEdit(event, editedEvent);
+      await _handleEventEdit(event, editedEvent, allocations);
     }
   }
 
-  Future<void> _handleEventEdit(Event originalEvent, Event editedEvent) async {
+  Future<void> _handleEventEdit(Event originalEvent, Event editedEvent, List<GoalAllocation> allocations) async {
     final eventNotifier = context.read<EventNotifier>();
     
     // Get edit impact counts for the dialog (works for both single and recurring events)
@@ -329,6 +452,7 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
     );
 
     // Show edit scope dialog for all events (single and recurring)
+    final hasAllocationChanges = allocations.isNotEmpty;
     final editOption = await showEditScopeDialog(
       context: context,
       event: originalEvent,
@@ -336,15 +460,30 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       totalEventsInSeries: impactCounts['total'] ?? 1,
       futureEventsCount: impactCounts['future'] ?? 0,
       pastEventsCount: impactCounts['past'] ?? 0,
+      hasAllocationChanges: hasAllocationChanges,
     );
 
     if (editOption != null) {
       if (originalEvent.isRecurring || impactCounts['total']! > 1) {
         // Use scoped update for recurring events
-        await eventNotifier.updateEventWithScope(_selectedDay!, originalEvent, editedEvent, editOption);
+        if (allocations.isNotEmpty) {
+          // Use the new method that handles allocations
+          await eventNotifier.updateEventWithScopeAndAllocations(_selectedDay!, originalEvent, editedEvent, editOption, allocations);
+        } else {
+          // Use existing method for events without allocations
+          await eventNotifier.updateEventWithScope(_selectedDay!, originalEvent, editedEvent, editOption);
+        }
       } else {
-        // For single events, use regular update regardless of scope selection
-        await eventNotifier.updateEvent(_selectedDay!, originalEvent, editedEvent);
+        // For single events, check if we have allocations to handle
+        if (allocations.isNotEmpty) {
+          print('🔍 DEBUG: Single event with allocations - using scoped update with thisInstance');
+          // Use the scoped method with thisInstance to handle allocations properly
+          await eventNotifier.updateEventWithScopeAndAllocations(_selectedDay!, originalEvent, editedEvent, EditOption.thisInstance, allocations);
+        } else {
+          print('🔍 DEBUG: Single event without allocations - using regular update');
+          // For single events without allocations, use regular update
+          await eventNotifier.updateEvent(_selectedDay!, originalEvent, editedEvent);
+        }
       }
     }
   }
@@ -381,7 +520,23 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
   }
 
   @override
+  void dispose() {
+    print('🏁 CALENDAR DISPOSE: CalendarScreen dispose called');
+    // Remove the observer to prevent memory leaks
+    WidgetsBinding.instance.removeObserver(this);
+    // Remove tab change listener
+    globalTabNotifier.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final needsReset = (_focusedDay.day != now.day || _focusedDay.month != now.month || _focusedDay.year != now.year);
+    
+    print('🏗️ BUILD: Calendar build() - focused: ${_focusedDay.day}/${_focusedDay.month}/${_focusedDay.year}, today: ${now.day}/${now.month}/${now.year}, needs reset: $needsReset');
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendar'),
@@ -422,6 +577,18 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
                           onEditEvent: _showEditEventDialog,
                         ),
                       ),
+                      // Goals Summary Section - moved below calendar
+                      Consumer<SavingGoalNotifier>(
+                        builder: (context, goalNotifier, child) {
+                          final goals = goalNotifier.goals;
+                          if (goals.isEmpty) return const SizedBox.shrink();
+                          
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                            child: _buildGoalsSummaryCard(goalNotifier),
+                          );
+                        },
+                      ),
                       // Add some bottom padding for the action buttons
                       const SizedBox(height: 80),
                     ],
@@ -438,10 +605,14 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
             child: Container(
               padding: EdgeInsets.all(DesignTokens.space('lg')),
               decoration: BoxDecoration(
-                color: DesignTokens.color('surface'),
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.black 
+                  : DesignTokens.color('surface'),
                 border: Border(
                   top: BorderSide(
-                    color: DesignTokens.color('border'),
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white30 
+                      : DesignTokens.color('border'),
                     width: 1.0,
                   ),
                 ),
@@ -480,6 +651,51 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       ),
     );
   }
+
+  Widget _buildGoalsSummaryCard(SavingGoalNotifier goalNotifier) {
+    final goals = goalNotifier.goals;
+    final activeGoals = goals.where((g) => g.currentAmount < g.targetAmount).length;
+    final totalSaved = goals.fold<double>(0, (sum, goal) => sum + goal.currentAmount);
+    
+    print('📅 CalendarScreen: Goals Summary (Real-time) - ${goals.length} total goals, $activeGoals active, \$${totalSaved.toStringAsFixed(2)} total saved');
+
+    return CashCard(
+      financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.income,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Goals Summary',
+            style: DesignTokens.textStyle('titleMedium').copyWith(
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? DesignTokens.color('income') 
+                : DesignTokens.color('income'),
+            ),
+          ),
+          VSpace('sm'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$activeGoals Active Goals',
+                style: DesignTokens.textStyle('bodyLarge').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? DesignTokens.color('income') 
+                    : DesignTokens.color('income'),
+                ),
+              ),
+              FinancialAmount(
+                amount: totalSaved,
+                size: FinancialAmountSize.medium,
+                showSign: false,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CalendarScrollWrapper extends StatelessWidget {
@@ -489,8 +705,6 @@ class _CalendarScrollWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("🚀 CalendarScrollWrapper: Building wrapper");
-    
     return RawGestureDetector(
       gestures: <Type, GestureRecognizerFactory>{
         // Create a custom pan recognizer that beats TableCalendar's internal ones
@@ -500,25 +714,19 @@ class _CalendarScrollWrapper extends StatelessWidget {
           (_VerticalPanGestureRecognizer instance) {
             instance
               ..onStart = (DragStartDetails details) {
-                print("👆 CalendarScrollWrapper: Vertical pan started at ${details.localPosition}");
+                // Vertical pan started
               }
               ..onUpdate = (DragUpdateDetails details) {
-                print("🖱️ CalendarScrollWrapper: Vertical pan update - delta: ${details.delta}, dy: ${details.delta.dy}");
-                
                 // Forward vertical pan gestures to the parent ScrollView
                 final scrollableState = Scrollable.of(context);
                 if (scrollableState != null) {
                   final position = scrollableState.position;
-                  final oldOffset = position.pixels;
                   final newOffset = position.pixels - details.delta.dy;
-                  print("📊 CalendarScrollWrapper: Moving scroll from $oldOffset to $newOffset");
                   position.moveTo(newOffset);
-                } else {
-                  print("❌ CalendarScrollWrapper: No scrollable found in context!");
                 }
               }
               ..onEnd = (DragEndDetails details) {
-                print("🛑 CalendarScrollWrapper: Vertical pan ended");
+                // Vertical pan ended
               };
           },
         ),
@@ -536,34 +744,26 @@ class _VerticalPanGestureRecognizer extends OneSequenceGestureRecognizer {
   
   @override
   void addAllowedPointer(PointerDownEvent event) {
-    print("🎯 VerticalPanGestureRecognizer: Pointer added");
     startTrackingPointer(event.pointer, event.transform);
     _initialPosition = event.localPosition;
     _hasDragged = false;
-    print("👇 VerticalPanGestureRecognizer: Waiting to see if this is a tap or drag...");
   }
 
   @override
   void handleEvent(PointerEvent event) {
-    print("🎯 VerticalPanGestureRecognizer: Handling event ${event.runtimeType}");
-    
     if (event is PointerMoveEvent) {
       if (_initialPosition != null) {
         final delta = event.localPosition - _initialPosition!;
         final distance = delta.distance;
         
-        print("📏 Movement distance: $distance, delta: $delta");
-        
         // Only claim the gesture if there's significant movement
         if (!_hasDragged && distance > _kTouchSlop) {
           final isVertical = delta.dy.abs() > delta.dx.abs();
-          print("📐 Movement analysis - isVertical: $isVertical, dy: ${delta.dy.abs()}, dx: ${delta.dx.abs()}");
           
           if (isVertical) {
             // This is a vertical drag - claim it!
             resolve(GestureDisposition.accepted);
             _hasDragged = true;
-            print("⚡ VerticalPanGestureRecognizer: CLAIMING VERTICAL DRAG!");
             
             if (onStart != null) {
               onStart!(DragStartDetails(
@@ -575,14 +775,12 @@ class _VerticalPanGestureRecognizer extends OneSequenceGestureRecognizer {
           } else {
             // This is horizontal or unclear - reject it
             resolve(GestureDisposition.rejected);
-            print("❌ VerticalPanGestureRecognizer: REJECTING horizontal movement");
             return;
           }
         }
         
         // If we've claimed the gesture, send updates
         if (_hasDragged && onUpdate != null) {
-          print("🖱️ SMART Vertical pan update - delta: ${event.delta}, dy: ${event.delta.dy}");
           onUpdate!(DragUpdateDetails(
             sourceTimeStamp: event.timeStamp,
             delta: event.delta,
@@ -594,10 +792,8 @@ class _VerticalPanGestureRecognizer extends OneSequenceGestureRecognizer {
     } else if (event is PointerUpEvent || event is PointerCancelEvent) {
       if (!_hasDragged) {
         // This was a tap - reject so other widgets can handle it
-        print("👆 VerticalPanGestureRecognizer: REJECTING tap - letting date selection work");
         resolve(GestureDisposition.rejected);
       } else {
-        print("🛑 SMART Vertical pan ended");
         if (onEnd != null) {
           onEnd!(DragEndDetails(
             velocity: Velocity.zero,
@@ -610,7 +806,6 @@ class _VerticalPanGestureRecognizer extends OneSequenceGestureRecognizer {
 
   @override
   void didStopTrackingLastPointer(int pointer) {
-    print("🎯 VerticalPanGestureRecognizer: Stopped tracking pointer");
     _initialPosition = null;
     _hasDragged = false;
   }

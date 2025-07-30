@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../settings/settings_view.dart';
 import '../../state/event_notifier.dart';
 import '../../state/category_notifier.dart';
+import '../../state/achievement_state.dart';
 import '../../core/di/injection.dart';
 import '../../data/database/database.dart';
 import '../../data/models/enums/category_type.dart';
@@ -183,7 +184,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         if (!eventDate.isAfter(_endOfMonth)) {
           _updateTotals('month', amount.abs(), amount >= 0);
         }
-        if (!eventDate.isAfter(_endOfYear)) {
+        if (!eventDate.isAfter(nowDate)) {
           _updateTotals('year', amount.abs(), amount >= 0);
         }
       }
@@ -248,7 +249,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           if (!eventDate.isAfter(_endOfMonth)) {
             _totals['month']!['goalAllocations'] = (_totals['month']!['goalAllocations'] ?? 0) + allocationAmount;
           }
-          if (!eventDate.isAfter(_endOfYear)) {
+          if (!eventDate.isAfter(nowDate)) {
             _totals['year']!['goalAllocations'] = (_totals['year']!['goalAllocations'] ?? 0) + allocationAmount;
           }
         }
@@ -276,37 +277,61 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     if (_eventNotifier == null) return;
     
     try {
-      // Get all events from the current year
+      // Define recent days range (today and past few days, but exclude future)
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final pastWeek = today.subtract(const Duration(days: 7));
+      
+      print("🔍 DEBUG: Recent transactions debug info:");
+      print("🔍 Now: ${now.toIso8601String()}");
+      print("🔍 Today boundary: ${today.toIso8601String()}");
+      print("🔍 Past week boundary: ${pastWeek.toIso8601String()}");
+      
+      // Get events from the past week to today (no future dates)
       final allEvents = _eventNotifier!.getEventsForDateRange(
-        DateTime(_now.year, 1, 1),
-        _endOfYear,
+        pastWeek,
+        today.add(const Duration(hours: 23, minutes: 59, seconds: 59)), // End of today
       );
       
-      // Sort by date (most recent first), then by creation time for same-day events
-      final sortedEvents = allEvents.toList()
-        ..sort((a, b) {
-          // First compare by event date (most recent first)
-          final dateComparison = b.dateTime.compareTo(a.dateTime);
-          if (dateComparison != 0) {
-            return dateComparison;
-          }
-          // If same date, sort by creation time (most recently created first)
-          return b.createdAt.compareTo(a.createdAt);
-        });
+      print("🔍 Total events in range: ${allEvents.length}");
       
-      // Debug: Print sorting verification
-      print("📅 Recent transactions sorted by date (most recent first):");
-      for (int i = 0; i < sortedEvents.take(5).length; i++) {
-        final event = sortedEvents[i];
-        print("  ${i + 1}. ${event.title} - Event: ${event.dateTime.toIso8601String()}, Created: ${event.createdAt.toIso8601String()}");
+      // Filter to only include past transactions (no future dates from recurring events)
+      final recentEvents = allEvents.where((event) {
+        final eventDate = DateTime(event.dateTime.year, event.dateTime.month, event.dateTime.day);
+        final isPastOrToday = eventDate.isBefore(today) || eventDate.isAtSameMomentAs(today);
+        final isNotFuture = !eventDate.isAfter(today);
+        
+        print("🔍 Checking ${event.title}: eventDate=${eventDate.toIso8601String()}, isPastOrToday=$isPastOrToday, isNotFuture=$isNotFuture");
+        
+        return isPastOrToday && isNotFuture;
+      }).toList();
+      
+      print("🔍 Filtered recent events (past transactions only): ${recentEvents.length}");
+      
+      // Sort by date (most recent first), then by creation time for same-day events
+      recentEvents.sort((a, b) {
+        // First compare by event date (most recent first)
+        final dateComparison = b.dateTime.compareTo(a.dateTime);
+        if (dateComparison != 0) {
+          return dateComparison;
+        }
+        // If same date, sort by creation time (most recently created first)
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      
+      // Debug: Print final recent transactions
+      print("📅 Final recent transactions (past week, no future):");
+      for (int i = 0; i < recentEvents.take(5).length; i++) {
+        final event = recentEvents[i];
+        print("  ${i + 1}. ${event.title} - Event: ${event.dateTime.toIso8601String()}");
       }
       
-      // Take only the most recent 5 transactions  
-      final recentEvents = sortedEvents.take(5).toList();
+      // Take only the most recent 5 transactions from the past week
+      final finalRecentEvents = recentEvents.take(5).toList();
       
       if (mounted) {
         _setStateIfAllowed(() {
-          _recentTransactions = recentEvents;
+          _recentTransactions = finalRecentEvents;
         });
       }
     } catch (e) {
@@ -446,7 +471,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
   // Hero Balance Section with large current balance and trend
   Widget _buildHeroBalanceSection() {
-    final currentBalance = _totals['month']!['positive']! - _totals['month']!['negative']!;
+    final currentBalance = _totals['year']!['positive']! - _totals['year']!['negative']!;
     final previousBalance = currentBalance * 0.85; // Mock previous month data
     final trend = currentBalance - previousBalance;
     final trendPercentage = previousBalance != 0 ? ((trend / previousBalance) * 100) : 0;
@@ -461,7 +486,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             'Current Balance',
             styleToken: 'titleMedium',
             style: DesignTokens.textStyle('titleMedium').copyWith(
-              color: DesignTokens.color('textSecondary'),
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? DesignTokens.color('textPrimary') 
+                : (currentBalance == 0 
+                    ? Colors.black 
+                    : DesignTokens.color('textSecondary')),
             ),
             textAlign: TextAlign.center,
           ),
@@ -487,13 +516,18 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               FinancialAmount(
                 amount: trend,
                 size: FinancialAmountSize.small,
+                style: currentBalance == 0 
+                  ? DesignTokens.textStyle('amountSmall').copyWith(color: Colors.black)
+                  : null,
               ),
               HSpace('xs'),
               ResponsiveText(
                 '(${trendPercentage.toStringAsFixed(1)}%)',
                 styleToken: 'bodySmall',
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense'),
+                  color: currentBalance == 0 
+                    ? Colors.black 
+                    : (trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense')),
                 ),
                 maxWidth: 80,
               ),
@@ -504,7 +538,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             'vs last month',
             styleToken: 'bodySmall',
             style: DesignTokens.textStyle('bodySmall').copyWith(
-              color: DesignTokens.color('textTertiary'),
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? DesignTokens.color('textPrimary') 
+                : (currentBalance == 0 
+                    ? Colors.black 
+                    : DesignTokens.color('textTertiary')),
             ),
             textAlign: TextAlign.center,
           ),
@@ -602,6 +640,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           maxLines: 1,
                           minFontSize: 12,
                           maxFontSize: 16,
+                          style: DesignTokens.textStyle('titleSmall').copyWith(
+                            color: Theme.of(context).brightness == Brightness.dark 
+                              ? DesignTokens.color('textPrimary') 
+                              : null,
+                          ),
                         ),
                         SizedBox(height: DesignTokens.space('xs') / 2), // Reduced spacing
                         Flexible(
@@ -675,14 +718,18 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       Icon(
                         Icons.receipt_long_outlined,
                         size: 48,
-                        color: DesignTokens.color('textTertiary'),
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : DesignTokens.color('textTertiary'),
                       ),
                       VSpace('md'),
                       ResponsiveText(
                         'No recent transactions',
                         styleToken: 'bodyMedium',
                         style: DesignTokens.textStyle('bodyMedium').copyWith(
-                          color: DesignTokens.color('textSecondary'),
+                          color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white 
+                            : DesignTokens.color('textSecondary'),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -691,7 +738,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         'Add your first transaction using the buttons above',
                         styleToken: 'bodySmall',
                         style: DesignTokens.textStyle('bodySmall').copyWith(
-                          color: DesignTokens.color('textTertiary'),
+                          color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white70 
+                            : DesignTokens.color('textTertiary'),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -787,6 +836,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   styleToken: 'bodyMedium',
                   style: DesignTokens.textStyle('bodyMedium').copyWith(
                     fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white 
+                      : Colors.black,
                   ),
                   maxLines: 1,
                 ),
@@ -798,7 +850,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       '$categoryName • ${formatRelativeDate(transaction.dateTime)}',
                       styleToken: 'bodySmall',
                       style: DesignTokens.textStyle('bodySmall').copyWith(
-                        color: DesignTokens.color('textSecondary'),
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white70
+                          : Colors.black54,
                       ),
                       maxLines: 1,
                     );
@@ -830,12 +884,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   
   // Achievement Highlights (Horizontal Chips)
   Widget _buildAchievementHighlights() {
-    final achievements = [
-      {'title': 'Saving Starter', 'icon': Icons.savings, 'obtained': true},
-      {'title': 'Goal Achiever', 'icon': Icons.flag, 'obtained': true},
-      {'title': 'Streak Master', 'icon': Icons.local_fire_department, 'obtained': false},
-      {'title': 'Budget Pro', 'icon': Icons.timeline, 'obtained': false},
-    ];
+    final achievementNotifier = getIt<AchievementNotifier>();
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -866,26 +915,53 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         VSpace('md'),
         SizedBox(
           height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: achievements.length,
-            itemBuilder: (context, index) {
-              final achievement = achievements[index];
-              final obtained = achievement['obtained'] as bool;
+          child: ListenableBuilder(
+            listenable: achievementNotifier,
+            builder: (context, _) {
+              if (achievementNotifier.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
               
-              return Container(
-                margin: EdgeInsets.only(
-                  right: index < achievements.length - 1 ? DesignTokens.space('sm') : 0,
-                ),
-                child: CategoryChip(
-                  name: achievement['title'] as String,
-                  icon: _getIconString(achievement['icon'] as IconData),
-                  financialContext: obtained 
-                      ? FinancialContext.income 
-                      : FinancialContext.neutral,
-                  selected: obtained,
-                  size: ChipSize.medium,
-                ),
+              // Get the most recent achievements (mix of unlocked and in-progress)
+              final recentAchievements = [
+                ...achievementNotifier.unlockedAchievements.take(2),
+                ...achievementNotifier.inProgressAchievements.take(2),
+              ].take(4).toList();
+              
+              if (recentAchievements.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No achievements yet',
+                    style: DesignTokens.textStyle('bodyMedium').copyWith(
+                      color: Theme.of(context).brightness == Brightness.dark 
+                        ? Colors.white70 
+                        : DesignTokens.color('textSecondary'),
+                    ),
+                  ),
+                );
+              }
+              
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: recentAchievements.length,
+                itemBuilder: (context, index) {
+                  final achievement = recentAchievements[index];
+                  
+                  return Container(
+                    margin: EdgeInsets.only(
+                      right: index < recentAchievements.length - 1 ? DesignTokens.space('sm') : 0,
+                    ),
+                    child: CategoryChip(
+                      name: achievement.title,
+                      icon: _getAchievementIcon(achievement.title),
+                      financialContext: achievement.isUnlocked 
+                          ? FinancialContext.income 
+                          : FinancialContext.neutral,
+                      selected: achievement.isUnlocked,
+                      size: ChipSize.medium,
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -894,12 +970,22 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     );
   }
   
-  String _getIconString(IconData icon) {
-    if (icon == Icons.savings) return '💰';
-    if (icon == Icons.flag) return '🏁';
-    if (icon == Icons.local_fire_department) return '🔥';
-    if (icon == Icons.timeline) return '📈';
-    return '⭐';
+  String _getAchievementIcon(String achievementTitle) {
+    // Map achievement titles to appropriate emoji icons
+    final title = achievementTitle.toLowerCase();
+    
+    if (title.contains('saving') || title.contains('saver')) return '💰';
+    if (title.contains('goal') || title.contains('target')) return '🎯';
+    if (title.contains('streak') || title.contains('consistent')) return '🔥';
+    if (title.contains('budget') || title.contains('pro')) return '📈';
+    if (title.contains('first') || title.contains('starter')) return '🌟';
+    if (title.contains('monthly') || title.contains('month')) return '📅';
+    if (title.contains('milestone') || title.contains('achievement')) return '🏆';
+    if (title.contains('discipline') || title.contains('master')) return '💪';
+    if (title.contains('income') || title.contains('earn')) return '💵';
+    if (title.contains('expense') || title.contains('spend')) return '💳';
+    
+    return '⭐'; // Default icon
   }
   
   void _toggleExpanded(String periodKey) {
@@ -915,8 +1001,20 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     final amounts = _totals[periodKey]!;
     showModalBottomSheet(
       context: context,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark 
+        ? Colors.black 
+        : null,
       builder: (context) => Container(
         padding: EdgeInsets.all(DesignTokens.space('lg')),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark 
+            ? Colors.black 
+            : null,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -924,6 +1022,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               '${periodKey.toUpperCase()} BREAKDOWN',
               styleToken: 'titleLarge',
               textAlign: TextAlign.center,
+              style: DesignTokens.textStyle('titleLarge').copyWith(
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.white 
+                  : null,
+              ),
             ),
             VSpace('lg'),
             Row(
@@ -931,21 +1034,48 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               children: [
                 Column(
                   children: [
-                    ResponsiveText('Income', styleToken: 'labelMedium', textAlign: TextAlign.center),
+                    ResponsiveText(
+                      'Income', 
+                      styleToken: 'labelMedium', 
+                      textAlign: TextAlign.center,
+                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                      ),
+                    ),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['positive']!, showSign: false),
                   ],
                 ),
                 Column(
                   children: [
-                    ResponsiveText('Expenses', styleToken: 'labelMedium', textAlign: TextAlign.center),
+                    ResponsiveText(
+                      'Expenses', 
+                      styleToken: 'labelMedium', 
+                      textAlign: TextAlign.center,
+                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                      ),
+                    ),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['negative']!, showSign: false),
                   ],
                 ),
                 Column(
                   children: [
-                    ResponsiveText('Net', styleToken: 'labelMedium', textAlign: TextAlign.center),
+                    ResponsiveText(
+                      'Net', 
+                      styleToken: 'labelMedium', 
+                      textAlign: TextAlign.center,
+                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : null,
+                      ),
+                    ),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['positive']! - amounts['negative']!),
                   ],

@@ -41,7 +41,10 @@ class FinancialAmount extends StatelessWidget {
     // Determine color based on amount
     Color color;
     if (isZero) {
-      color = financial.neutralColor;
+      // Use green for zero amounts in dark theme, black in light theme
+      color = Theme.of(context).brightness == Brightness.dark 
+          ? financial.incomeColor 
+          : Colors.black;
     } else if (isPositive) {
       color = financial.incomeColor;
     } else {
@@ -241,9 +244,13 @@ class CashCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final financial = context.financial;
     
-    // Determine background color based on financial context
-    Color bgColor = backgroundColor ?? DesignTokens.color('surface');
-    Color border = borderColor ?? DesignTokens.color('border');
+    // Determine background color based on financial context and theme
+    Color bgColor = backgroundColor ?? (Theme.of(context).brightness == Brightness.dark 
+      ? Colors.black 
+      : DesignTokens.color('surface'));
+    Color border = borderColor ?? (Theme.of(context).brightness == Brightness.dark 
+      ? Colors.transparent 
+      : DesignTokens.color('border'));
     
     if (financialContext != null) {
       switch (financialContext!) {

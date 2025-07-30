@@ -73,6 +73,18 @@ class EventService {
     return eventRepository.updateEventWithScope(day, oldEvent, newEvent, editOption);
   }
 
+  /// Updates events with scope and goal allocations (for recurring events)
+  Future<Either<Failure, int>> updateEventWithScopeAndAllocations(
+      DateTime day, Event oldEvent, Event newEvent, EditOption editOption, List<GoalAllocation> allocations) {
+    print('🔍 DEBUG: EventService.updateEventWithScopeAndAllocations called');
+    print('🔍 DEBUG: Event - ID: ${oldEvent.id}, Title: "${oldEvent.title}", Date: ${day.toIso8601String()}');
+    print('🔍 DEBUG: EditOption: $editOption, Allocations: ${allocations.length}');
+    
+    // Cast to EventRepository to access the new method
+    final eventRepository = _repository as dynamic;
+    return eventRepository.updateEventWithScopeAndAllocations(day, oldEvent, newEvent, editOption, allocations);
+  }
+
   /// Gets edit impact counts for preview
   Future<Either<Failure, Map<String, int>>> getEditImpactCounts(
       Event event, DateTime cutoffDate) {

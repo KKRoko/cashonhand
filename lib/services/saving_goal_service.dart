@@ -42,7 +42,10 @@ class SavingGoalService {
         
         // Check achievements if goal was just completed
         if (!wasCompleted && isNowCompleted) {
+          print('🏆 ACHIEVEMENT: Goal "${updatedGoal.title}" just completed! Triggering achievement check...');
           await _achievementService.checkSavingGoalsAchievements();
+        } else {
+          print('🔍 ACHIEVEMENT DEBUG: Goal "${updatedGoal.title}" - wasCompleted: $wasCompleted, isNowCompleted: $isNowCompleted');
         }
         
         return result;
@@ -158,24 +161,34 @@ class SavingGoalService {
 
   // Sync goal progress with allocations - useful for maintenance/sync operations
   Future<Either<Failure, bool>> syncGoalProgressWithAllocations(int goalId) async {
-    final progressResult = await _repository.getGoalProgressFromAllocations(goalId);
+    // Get the goal with real-time progress calculation
+    final goalWithProgressResult = await getGoalWithRealTimeProgress(goalId);
     
-    return progressResult.fold(
+    return goalWithProgressResult.fold(
       (failure) => Left(failure),
-      (realTimeAmount) async {
-        final goalResult = await _repository.getGoalById(goalId);
+      (goalWithProgress) async {
+        // Get the original goal to compare
+        final originalGoalResult = await _repository.getGoalById(goalId);
         
-        return goalResult.fold(
+        return originalGoalResult.fold(
           (failure) => Left(failure),
-          (goal) async {
-            if (goal == null) return const Left(DatabaseFailure('Goal not found'));
+          (originalGoal) async {
+            if (originalGoal == null) return const Left(DatabaseFailure('Goal not found'));
             
-            // Update goal with real allocation-based amount
-            final syncedGoal = goal.copyWith(
-              currentAmount: realTimeAmount,
-            );
-            
-            return await _repository.updateGoal(syncedGoal);
+            // Only update if the calculated progress is different from stored progress
+            if (goalWithProgress.currentAmount != originalGoal.currentAmount) {
+              print('Debug Service: Syncing goal $goalId - Original: \$${originalGoal.currentAmount.toStringAsFixed(2)}, Calculated: \$${goalWithProgress.currentAmount.toStringAsFixed(2)}');
+              
+              // Update goal with the calculated total progress
+              final syncedGoal = originalGoal.copyWith(
+                currentAmount: goalWithProgress.currentAmount,
+              );
+              
+              return await _repository.updateGoal(syncedGoal);
+            } else {
+              print('Debug Service: Goal $goalId already in sync - no update needed');
+              return const Right(true);
+            }
           }
         );
       }

@@ -107,7 +107,8 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
 
   Widget _buildOverallProgress() {
     return CashCard(
-      financialContext: FinancialContext.income,
+      financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.income,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : null,
       padding: EdgeInsets.all(DesignTokens.space('lg')),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,14 +117,18 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
             children: [
               Icon(
                 Icons.savings, 
-                color: DesignTokens.color('income'),
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? Colors.white 
+                  : DesignTokens.color('income'),
               ),
               HSpace('md'),
               Expanded(
                 child: Text(
                   'Overall Savings Progress',
                   style: DesignTokens.textStyle('titleMedium').copyWith(
-                    color: DesignTokens.color('income'),
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white 
+                      : DesignTokens.color('income'),
                   ),
                 ),
               ),
@@ -174,20 +179,23 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                 _buildOverallProgress(),
                 VSpace('xl'),
                 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Your Goals',
-                      style: DesignTokens.textStyle('titleLarge'),
-                    ),
-                    PrimaryButton(
-                      onPressed: () => _showAddEditGoalDialog(),
-                      icon: Icons.add,
-                      size: ButtonSize.medium,
-                      child: const Text('Add Goal'),
-                    ),
-                  ],
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: DesignTokens.space('lg')),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Your Goals',
+                        style: DesignTokens.textStyle('titleLarge'),
+                      ),
+                      PrimaryButton(
+                        onPressed: () => _showAddEditGoalDialog(),
+                        icon: Icons.add,
+                        size: ButtonSize.medium,
+                        child: const Text('Add Goal'),
+                      ),
+                    ],
+                  ),
                 ),
                 VSpace('lg'),
                 
@@ -213,13 +221,17 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                           Icon(
                             Icons.savings_outlined,
                             size: 48,
-                            color: DesignTokens.color('textTertiary'),
+                            color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white 
+                              : DesignTokens.color('textTertiary'),
                           ),
                           VSpace('lg'),
                           Text(
                             'No saving goals yet',
                             style: DesignTokens.textStyle('bodyLarge').copyWith(
-                              color: DesignTokens.color('textSecondary'),
+                              color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white 
+                                : DesignTokens.color('textSecondary'),
                             ),
                           ),
                           VSpace('sm'),

@@ -7,6 +7,7 @@ import '../data/models/enums/repeat_option.dart';
 import '../data/models/freezed/event.dart';
 import '../data/models/freezed/goal_allocation.dart';
 import '../services/event_service.dart';
+import '../services/goal_update_notifier.dart';
 import '../core/error/failures.dart';
 import 'package:dartz/dartz.dart';
 import '../utils/event_date_utils.dart';
@@ -135,6 +136,12 @@ class EventNotifier extends ChangeNotifier {
         final startDate = DateTime(DateTime.now().year, 1, 1);
         final endDate = DateTime(DateTime.now().year, 12, 31);
         await loadEventsForRange(startDate, endDate);
+        
+        // 🎯 AUTO-UPDATE: Notify goal system that allocations have been added
+        if (allocations.isNotEmpty) {
+          print('🔍 DEBUG: EventNotifier - Notifying goal system of ${allocations.length} new allocations');
+          GoalUpdateNotifier().notifyGoalsUpdated();
+        }
       }
     );
 
@@ -182,9 +189,12 @@ class EventNotifier extends ChangeNotifier {
       (updatedCount) {
         print('🔍 DEBUG: EventNotifier - Scoped update success: $updatedCount events updated');
         if (updatedCount > 0) {
-          // For now, don't automatically clear cache to avoid recursion issues
-          // User can manually refresh by navigating away and back
-          print('🔍 DEBUG: EventNotifier - Update successful, cache preserved to avoid recursion');
+          print('🔍 DEBUG: EventNotifier - Update successful, refreshing UI');
+          // Clear event cache and reload to show updated data
+          _events.clear();
+          final startDate = DateTime(DateTime.now().year, 1, 1);
+          final endDate = DateTime(DateTime.now().year, 12, 31);
+          loadEventsForRange(startDate, endDate);
         } else {
           print('⚠️ WARNING: EventNotifier - Scoped update returned 0 (no events updated)');
         }
@@ -193,6 +203,43 @@ class EventNotifier extends ChangeNotifier {
 
     _setLoading(false);
     print('🔍 DEBUG: EventNotifier.updateEventWithScope completed');
+  }
+
+  Future<void> updateEventWithScopeAndAllocations(DateTime day, Event oldEvent, Event newEvent, EditOption editOption, List<GoalAllocation> allocations) async {
+    print('🔍 DEBUG: EventNotifier.updateEventWithScopeAndAllocations called');
+    print('🔍 DEBUG: Event - ID: ${oldEvent.id}, Title: "${oldEvent.title}", OriginalID: ${oldEvent.originalEventId}');
+    print('🔍 DEBUG: Date: ${day.toIso8601String()}, EditOption: $editOption, Allocations: ${allocations.length}');
+    
+    _setLoading(true);
+
+    final result = await eventService.updateEventWithScopeAndAllocations(day, oldEvent, newEvent, editOption, allocations);
+    result.fold(
+      (failure) {
+        print('❌ ERROR: EventNotifier - Scoped update with allocations failed: ${failure.message}');
+        _setError(failure.message);
+      },
+      (updatedCount) {
+        print('🔍 DEBUG: EventNotifier - Scoped update with allocations success: $updatedCount events updated');
+        if (updatedCount > 0) {
+          print('🔍 DEBUG: EventNotifier - Update with allocations successful, refreshing UI');
+          
+          // 🎯 AUTO-UPDATE: Notify goal system that allocations have been updated
+          print('🔍 DEBUG: EventNotifier - Notifying goal system of allocation updates affecting $updatedCount events');
+          GoalUpdateNotifier().notifyGoalsUpdated();
+          
+          // Clear event cache and reload to show updated data
+          _events.clear();
+          final startDate = DateTime(DateTime.now().year, 1, 1);
+          final endDate = DateTime(DateTime.now().year, 12, 31);
+          loadEventsForRange(startDate, endDate);
+        } else {
+          print('⚠️ WARNING: EventNotifier - Scoped update with allocations returned 0 (no events updated)');
+        }
+      }
+    );
+
+    _setLoading(false);
+    print('🔍 DEBUG: EventNotifier.updateEventWithScopeAndAllocations completed');
   }
 
   Future<Either<Failure, Map<String, int>>> getEditImpactCounts(Event event, DateTime cutoffDate) async {

@@ -210,6 +210,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     styleToken: 'titleSmall',
                     style: DesignTokens.textStyle('titleSmall').copyWith(
                       fontWeight: FontWeight.w600,
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.black 
+                          : null,
                     ),
                     maxLines: 2,
                   ),
@@ -314,7 +317,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             'Total: ',
                             styleToken: 'bodyMedium',
                             style: DesignTokens.textStyle('bodyMedium').copyWith(
-                              color: DesignTokens.color('textSecondary'),
+                              color: Theme.of(context).brightness == Brightness.dark 
+                                  ? Colors.white 
+                                  : DesignTokens.color('textSecondary'),
                             ),
                           ),
                       ],
