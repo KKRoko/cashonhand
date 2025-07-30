@@ -97,13 +97,36 @@ class FinancialAmount extends StatelessWidget {
     
     displayText += formattedAmount;
 
+    // Create accessible label for screen readers
+    String accessibleLabel = '';
+    if (amount == 0) {
+      accessibleLabel = 'Zero dollars';
+    } else if (amount > 0) {
+      accessibleLabel = 'Income: $displayText';
+    } else {
+      accessibleLabel = 'Expense: ${currency}${_formatAmount(amount.abs())}';
+    }
+
     // Use FittedBox to prevent overflow and ensure text fits
-    return maxWidth != null
-        ? SizedBox(
-            width: maxWidth,
-            child: FittedBox(
+    return Semantics(
+      label: accessibleLabel,
+      value: displayText,
+      child: maxWidth != null
+          ? SizedBox(
+              width: maxWidth,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Text(
+                  displayText,
+                  style: (style ?? textStyle).copyWith(color: color),
+                  maxLines: 1,
+                  overflow: TextOverflow.visible,
+                ),
+              ),
+            )
+          : FittedBox(
               fit: BoxFit.scaleDown,
-              alignment: Alignment.center,
               child: Text(
                 displayText,
                 style: (style ?? textStyle).copyWith(color: color),
@@ -111,16 +134,8 @@ class FinancialAmount extends StatelessWidget {
                 overflow: TextOverflow.visible,
               ),
             ),
-          )
-        : FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              displayText,
-              style: (style ?? textStyle).copyWith(color: color),
-              maxLines: 1,
-              overflow: TextOverflow.visible,
-            ),
-          );
+      ),
+    );
   }
 
   /// Smart number formatting that abbreviates large amounts
@@ -435,6 +450,7 @@ class SecondaryButton extends StatelessWidget {
               ),
               child: child,
             ),
+      ),
     );
   }
 
@@ -519,11 +535,24 @@ class FinancialButton extends StatelessWidget {
         break;
     }
 
-    return SizedBox(
-      width: fullWidth ? double.infinity : null,
-      height: _getHeight(size),
-      child: icon != null
-          ? FilledButton.icon(
+    // Create accessible hint based on button type
+    String accessibilityHint = '';
+    switch (financialType) {
+      case FinancialButtonType.income:
+        accessibilityHint = 'Add income transaction to increase your balance';
+        break;
+      case FinancialButtonType.expense:
+        accessibilityHint = 'Add expense transaction to track spending';
+        break;
+    }
+
+    return Semantics(
+      hint: accessibilityHint,
+      child: SizedBox(
+        width: fullWidth ? double.infinity : null,
+        height: _getHeight(size),
+        child: icon != null
+            ? FilledButton.icon(
               onPressed: onPressed,
               icon: Icon(icon, size: _getIconSize(size)),
               label: child,
@@ -550,6 +579,7 @@ class FinancialButton extends StatelessWidget {
               ),
               child: child,
             ),
+      ),
     );
   }
 

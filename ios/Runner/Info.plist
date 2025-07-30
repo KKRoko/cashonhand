@@ -45,5 +45,38 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Privacy Usage Descriptions for App Store Compliance -->
+	<key>NSFileProtectionCompleteUntilFirstUserAuthenticationWhenOpenFiles</key>
+	<string>This app stores your financial data locally on your device for security and privacy. Your data never leaves your device.</string>
+	
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app does not access network resources. All financial data is stored locally on your device.</string>
+	
+	<!-- Financial Data Usage Description -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeFinancialInfo</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Data Collection Practices -->
+	<key>NSPrivacyTrackingDomains</key>
+	<array>
+		<!-- No tracking domains - app works offline -->
+	</array>
+	
+	<key>NSPrivacyAccessibilityServices</key>
+	<false/>
 </dict>
 </plist>

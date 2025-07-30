@@ -40,10 +40,14 @@ class GoalListItem extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: DesignTokens.radius('md'),
-          child: Padding(
+        child: Semantics(
+          label: 'Saving goal: ${goal.title}',
+          hint: 'Progress: ${(progress * 100).toInt()}% complete. Current amount: ${FormatUtils.formatCurrency(goal.currentAmount)} of ${FormatUtils.formatCurrency(goal.targetAmount)}',
+          button: true,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: DesignTokens.radius('md'),
+            child: Padding(
             padding: EdgeInsets.all(DesignTokens.space('lg')),
             child: Column(
               children: [
