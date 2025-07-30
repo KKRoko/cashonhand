@@ -9,6 +9,7 @@ import '../models/enums/category_type.dart';
 import '../models/enums/allocation_type.dart';
 import '../models/enums/trigger_type.dart';
 import '../models/enums/allocation_method.dart';
+import '../../utils/money.dart';
 import 'dart:convert';
 
 class CustomRecurrenceConverter
@@ -152,5 +153,21 @@ class AllocationMethodConverter extends TypeConverter<AllocationMethod, String> 
   @override
   String toSql(AllocationMethod value) {
     return value.toString().split('.').last;
+  }
+}
+
+/// Converter for Money type - stores as double in database for compatibility
+/// but provides precise decimal arithmetic in the application
+class MoneyConverter extends TypeConverter<Money, double> {
+  const MoneyConverter();
+
+  @override
+  Money fromSql(double fromDb) {
+    return Money.fromDouble(fromDb);
+  }
+
+  @override
+  double toSql(Money value) {
+    return value.toDouble;
   }
 }

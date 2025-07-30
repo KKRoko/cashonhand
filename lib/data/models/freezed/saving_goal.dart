@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/goal_type.dart';
 import '../enums/recurring_period.dart';
+import '../../utils/money.dart';
 
 part 'saving_goal.freezed.dart';
 part 'saving_goal.g.dart';
@@ -30,6 +31,23 @@ class SavingGoal with _$SavingGoal {
 
   double get progressPercentage => 
       (currentAmount / targetAmount * 100).clamp(0, 100);
+
+  /// Precise progress percentage using Money arithmetic (recommended)
+  double get progressPercentagePrecise {
+    final current = Money.fromDouble(currentAmount);
+    final target = Money.fromDouble(targetAmount);
+    if (target.isZero) return 0.0;
+    return (current.divideBy(target) * 100).clamp(0.0, 100.0);
+  }
+
+  /// Get current amount as Money for precise arithmetic
+  Money get currentAmountMoney => Money.fromDouble(currentAmount);
+  
+  /// Get target amount as Money for precise arithmetic
+  Money get targetAmountMoney => Money.fromDouble(targetAmount);
+  
+  /// Get remaining amount as Money with precise calculation
+  Money get remainingAmountMoney => targetAmountMoney - currentAmountMoney;
 
   bool get isOverdue {
     if (deadlineDate == null) return false;
