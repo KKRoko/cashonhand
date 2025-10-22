@@ -93,3 +93,27 @@ class AutoAllocationRules extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
+
+@DataClassName('BudgetTableData')
+class Budgets extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  RealColumn get monthlyIncome => real()();
+  IntColumn get cycleStartDay => integer().withDefault(const Constant(1))(); // 1-31
+  RealColumn get needsPercentage => real().withDefault(const Constant(0.50))(); // 50%
+  RealColumn get wantsPercentage => real().withDefault(const Constant(0.30))(); // 30%
+  RealColumn get savingsPercentage => real().withDefault(const Constant(0.20))(); // 20%
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+@DataClassName('CategoryBudgetTableData')
+class CategoryBudgets extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get budgetId => integer().references(Budgets, #id, onDelete: KeyAction.cascade)();
+  IntColumn get categoryId => integer().references(Categories, #id, onDelete: KeyAction.cascade)();
+  RealColumn get allocatedAmount => real()(); // monthly dollar amount
+  TextColumn get bucketType => text().map(const BucketTypeConverter())(); // needs, wants, savings
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}

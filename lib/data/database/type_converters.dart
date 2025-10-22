@@ -9,6 +9,7 @@ import '../models/enums/category_type.dart';
 import '../models/enums/allocation_type.dart';
 import '../models/enums/trigger_type.dart';
 import '../models/enums/allocation_method.dart';
+import '../models/enums/bucket_type.dart';
 import '../../utils/money.dart';
 import 'dart:convert';
 
@@ -152,6 +153,22 @@ class AllocationMethodConverter extends TypeConverter<AllocationMethod, String> 
 
   @override
   String toSql(AllocationMethod value) {
+    return value.toString().split('.').last;
+  }
+}
+
+class BucketTypeConverter extends TypeConverter<BucketType, String> {
+  const BucketTypeConverter();
+
+  @override
+  BucketType fromSql(String fromDb) {
+    return BucketType.values.firstWhere(
+      (e) => e.toString().split('.').last == fromDb,
+    );
+  }
+
+  @override
+  String toSql(BucketType value) {
     return value.toString().split('.').last;
   }
 }

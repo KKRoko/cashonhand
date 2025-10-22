@@ -15,6 +15,7 @@ import '../models/freezed/custom_recurrence.dart';
 import '../models/enums/allocation_type.dart';
 import '../models/enums/trigger_type.dart';
 import '../models/enums/allocation_method.dart';
+import '../models/enums/bucket_type.dart';
 import '/utils/event_date_utils.dart';
 import '../../services/recurrence_calculation_service.dart';
 import 'tables.dart';
@@ -26,13 +27,13 @@ enum UpdateType { single, allEvents, futureEvents, pastEvents }
 
 
 
-@DriftDatabase(tables: [Categories, Events, SavingGoalsTable, Achievements, GoalAllocations, AutoAllocationRules])
+@DriftDatabase(tables: [Categories, Events, SavingGoalsTable, Achievements, GoalAllocations, AutoAllocationRules, Budgets, CategoryBudgets])
 @singleton
 class Database extends _$Database {
   Database() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -76,8 +77,15 @@ class Database extends _$Database {
           // Migration from v3 to v4: Ensure hierarchical categories are properly populated
           await customStatement('DELETE FROM categories');
           await _addDefaultCategories();
-          
+
           print('Database migrated to v4: Refreshed hierarchical categories');
+        }
+        if (from < 5) {
+          // Migration from v4 to v5: Add budget tables
+          await m.createTable(budgets);
+          await m.createTable(categoryBudgets);
+
+          print('Database migrated to v5: Added budget tables');
         }
       },
     );

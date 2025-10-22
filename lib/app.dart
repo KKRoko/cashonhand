@@ -11,6 +11,7 @@ import 'ui/achievements/achievement_screen.dart';
 import 'ui/cash_on_hand/cash_on_hand_screen.dart';
 import 'ui/calendar/calendar_screen.dart';
 import 'ui/saving_goals/saving_goals_screen.dart';  // Add this
+import 'ui/budget/budget_screen.dart';
 import 'ui/transactions/transactions_screen.dart';
 import 'ui/settings/round_up_settings_screen.dart';
 import 'ui/round_up/round_up_history_screen.dart';
@@ -32,16 +33,16 @@ class TabChangeNotifier extends ChangeNotifier {
     if (_currentTabIndex != newIndex) {
       _previousTabIndex = _currentTabIndex;
       _currentTabIndex = newIndex;
-      
-      final tabNames = ['Cash', 'Goals', 'Calendar', 'Suggestions'];  
+
+      final tabNames = ['Cash', 'Goals', 'Budget', 'Calendar', 'Insights'];
       print('🔄 TAB CHANGE NOTIFIER: Tab changed from ${tabNames[_previousTabIndex]} to ${tabNames[newIndex]}');
-      
+
       notifyListeners();
     }
   }
-  
-  bool get isCalendarVisible => _currentTabIndex == 2;
-  bool get wasCalendarVisible => _previousTabIndex == 2;
+
+  bool get isCalendarVisible => _currentTabIndex == 3;
+  bool get wasCalendarVisible => _previousTabIndex == 3;
   bool get didNavigateToCalendar => !wasCalendarVisible && isCalendarVisible;
   bool get didNavigateAwayFromCalendar => wasCalendarVisible && !isCalendarVisible;
 }
@@ -72,7 +73,8 @@ class MyApp extends StatelessWidget {
         listenable: settingsController,
         builder: (BuildContext context, Widget? child) {
           return MaterialApp(
-          restorationScopeId: 'app',
+            debugShowCheckedModeBanner: false,
+            restorationScopeId: 'app',
           
           localizationsDelegates: const [
             AppLocalizations.delegate,
@@ -128,6 +130,8 @@ class MyApp extends StatelessWidget {
                     return const AchievementsScreen();
                   case SavingGoalsScreen.routeName:
                     return const SavingGoalsScreen();
+                  case BudgetScreen.routeName:
+                    return const BudgetScreen();
                   case TransactionsScreen.routeName:
                     return const TransactionsScreen();
                   case RoundUpSettingsScreen.routeName:
@@ -166,6 +170,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = const [
     CashOnHandScreen(),
     SavingGoalsScreen(),
+    BudgetScreen(),
     CalendarScreen(),
     SuggestionsScreen(),
   ];
@@ -192,6 +197,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         color: DesignTokens.color('primary'),
       ),
       label: 'Goals',
+    ),
+    NavigationDestination(
+      icon: Icon(
+        Icons.account_balance_outlined,
+        color: DesignTokens.color('textSecondary'),
+      ),
+      selectedIcon: Icon(
+        Icons.account_balance,
+        color: DesignTokens.color('primary'),
+      ),
+      label: 'Budget',
     ),
     NavigationDestination(
       icon: Icon(
@@ -227,14 +243,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onItemTapped(int index) {
-    final tabNames = ['Cash', 'Goals', 'Calendar', 'Suggestions'];
+    final tabNames = ['Cash', 'Goals', 'Budget', 'Calendar', 'Insights'];
     print('🔄🔄🔄 TAB NAVIGATION: User tapped tab $index (${tabNames[index]})');
     print('  - Previous tab: $_selectedIndex (${tabNames[_selectedIndex]})');
     print('  - New tab: $index (${tabNames[index]})');
-    
+
     // Notify the global tab change notifier
     globalTabNotifier.changeTab(index);
-    
+
     setState(() {
       _selectedIndex = index;
     });
