@@ -33,7 +33,7 @@ class Database extends _$Database {
   Database() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
@@ -86,6 +86,30 @@ class Database extends _$Database {
           await m.createTable(categoryBudgets);
 
           print('Database migrated to v5: Added budget tables');
+        }
+        if (from < 6) {
+          // Migration from v5 to v6: Add isActive and isSystem fields to categories
+          await _addColumnIfNotExists('categories', 'is_active', 'INTEGER NOT NULL DEFAULT 1');
+          await _addColumnIfNotExists('categories', 'is_system', 'INTEGER NOT NULL DEFAULT 0');
+
+          // Mark all existing categories as system categories
+          await customStatement('UPDATE categories SET is_system = 1 WHERE is_system IS NULL OR is_system = 0');
+
+          print('Database migrated to v6: Added isActive and isSystem fields to categories');
+        }
+        if (from < 7) {
+          // Migration from v6 to v7: Add month and year fields to budgets
+          await _addColumnIfNotExists('budgets', 'month', 'INTEGER');
+          await _addColumnIfNotExists('budgets', 'year', 'INTEGER');
+
+          // Set existing budgets to current month/year
+          final now = DateTime.now();
+          await customStatement(
+            'UPDATE budgets SET month = ?, year = ? WHERE month IS NULL OR year IS NULL',
+            [now.month, now.year],
+          );
+
+          print('Database migrated to v7: Added month and year fields to budgets');
         }
       },
     );
@@ -566,19 +590,21 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
         type: CategoryType.income,
         icon: const Value('💰'),
         sortOrder: const Value(1),
+        isSystem: const Value(true),
       ));
 
       // Income subcategories
       final incomeSubcategories = [
         'Salary', 'Investment', 'Freelance', 'Side Business', 'Rental Income', 'Other Income'
       ];
-      
+
       for (int i = 0; i < incomeSubcategories.length; i++) {
         await into(categories).insert(CategoriesCompanion.insert(
           name: incomeSubcategories[i],
           type: CategoryType.income,
           parentCategoryId: Value(incomeId),
           sortOrder: Value(i + 1),
+          isSystem: const Value(true),
         ));
       }
 
@@ -648,6 +674,7 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
       type: CategoryType.expense,
       icon: Value(icon),
       sortOrder: Value(sortOrder),
+      isSystem: const Value(true),
     ));
 
     for (int i = 0; i < subcategories.length; i++) {
@@ -656,6 +683,7 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
         type: CategoryType.expense,
         parentCategoryId: Value(categoryId),
         sortOrder: Value(i + 1),
+        isSystem: const Value(true),
       ));
     }
   }
@@ -687,6 +715,23 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
       (select(categories)..orderBy([
         (c) => OrderingTerm.asc(c.sortOrder),
         (c) => OrderingTerm.asc(c.parentCategoryId),
+      ])).get();
+
+  // User category management
+  Future<List<CategoryTableData>> getUserCategories() =>
+      (select(categories)..where((t) => t.isSystem.equals(false))
+      ..orderBy([(c) => OrderingTerm.asc(c.name)])).get();
+
+  Future<List<CategoryTableData>> getSystemCategories() =>
+      (select(categories)..where((t) => t.isSystem.equals(true))
+      ..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
+
+  Future<List<CategoryTableData>> getActiveCategories() =>
+      (select(categories)..where((t) => t.isActive.equals(true))
+      ..orderBy([
+        (c) => OrderingTerm.asc(c.isSystem),  // User categories first (false < true)
+        (c) => OrderingTerm.asc(c.sortOrder),
+        (c) => OrderingTerm.asc(c.name),
       ])).get();
 
   // Events CRUD operations
@@ -992,6 +1037,141 @@ Future<Map<String, double>> getSpendingByCategory(DateTime start, DateTime end) 
   return Map.fromEntries(
     results.map((row) => MapEntry(
       row.data['name'] as String,
+      row.data['total'] as double,
+    )),
+  );
+}
+
+// Budget CRUD operations
+Future<BudgetTableData?> getActiveBudget() =>
+    (select(budgets)..where((b) => b.isActive.equals(true))).getSingleOrNull();
+
+Future<BudgetTableData?> getBudgetById(int id) =>
+    (select(budgets)..where((b) => b.id.equals(id))).getSingleOrNull();
+
+Future<BudgetTableData?> getBudgetByMonth(int month, int year) =>
+    (select(budgets)..where((b) => b.month.equals(month) & b.year.equals(year))).getSingleOrNull();
+
+Future<int> createBudget(BudgetsCompanion budget) =>
+    into(budgets).insert(budget);
+
+Future<bool> updateBudget(BudgetsCompanion budget) =>
+    update(budgets).replace(budget);
+
+Future<void> deactivateAllBudgets() async {
+  await (update(budgets)
+    ..where((b) => b.isActive.equals(true)))
+    .write(const BudgetsCompanion(isActive: Value(false)));
+}
+
+// CategoryBudget CRUD operations
+Future<List<Map<String, dynamic>>> getCategoryBudgets(int budgetId) async {
+  final query = await customSelect(
+    '''
+    SELECT cb.*, c.name as category_name
+    FROM category_budgets cb
+    LEFT JOIN categories c ON cb.category_id = c.id
+    WHERE cb.budget_id = ?
+    ORDER BY c.name
+    ''',
+    variables: [Variable.withInt(budgetId)],
+    readsFrom: {categoryBudgets, categories},
+  ).get();
+
+  return query.map((row) => row.data).toList();
+}
+
+Future<List<Map<String, dynamic>>> getCategoryBudgetsByBucket(int budgetId, BucketType bucketType) async {
+  final bucketString = bucketType.toString().split('.').last;
+  final query = await customSelect(
+    '''
+    SELECT cb.*, c.name as category_name
+    FROM category_budgets cb
+    LEFT JOIN categories c ON cb.category_id = c.id
+    WHERE cb.budget_id = ? AND cb.bucket_type = ?
+    ORDER BY c.name
+    ''',
+    variables: [Variable.withInt(budgetId), Variable.withString(bucketString)],
+    readsFrom: {categoryBudgets, categories},
+  ).get();
+
+  return query.map((row) => row.data).toList();
+}
+
+Future<int> createCategoryBudget(CategoryBudgetsCompanion categoryBudget) =>
+    into(categoryBudgets).insert(categoryBudget);
+
+Future<bool> updateCategoryBudget(CategoryBudgetsCompanion categoryBudget) =>
+    update(categoryBudgets).replace(categoryBudget);
+
+Future<int> deleteCategoryBudget(int categoryBudgetId) =>
+    (delete(categoryBudgets)..where((cb) => cb.id.equals(categoryBudgetId))).go();
+
+// Clean up category budgets that reference income categories (migration/fix)
+Future<int> deleteIncomeCategoryBudgets() async {
+  // First, get all income category IDs
+  final incomeCategories = await (select(categories)
+    ..where((c) => c.type.equals('income'))
+  ).get();
+
+  final incomeCategoryIds = incomeCategories.map((c) => c.id).toList();
+
+  if (incomeCategoryIds.isEmpty) {
+    return 0;
+  }
+
+  // Delete category budgets that reference these income categories
+  return await (delete(categoryBudgets)
+    ..where((cb) => cb.categoryId.isIn(incomeCategoryIds))
+  ).go();
+}
+
+// Budget spending analysis methods
+Future<Map<int, double>> getActualSpendingByCategory(DateTime start, DateTime end) async {
+  final query = '''
+    SELECT category_id, SUM(ABS(amount)) as total
+    FROM events
+    WHERE date BETWEEN ? AND ?
+      AND amount < 0
+    GROUP BY category_id
+  ''';
+
+  final results = await customSelect(
+    query,
+    variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
+  ).get();
+
+  return Map.fromEntries(
+    results.map((row) => MapEntry(
+      row.data['category_id'] as int,
+      row.data['total'] as double,
+    )),
+  );
+}
+
+Future<Map<String, double>> getActualSpendingByBucket(int budgetId, DateTime start, DateTime end) async {
+  final query = '''
+    SELECT cb.bucket_type, SUM(ABS(e.amount)) as total
+    FROM events e
+    JOIN category_budgets cb ON e.category_id = cb.category_id
+    WHERE cb.budget_id = ?
+      AND e.date BETWEEN ? AND ?
+      AND e.amount < 0
+    GROUP BY cb.bucket_type
+  ''';
+
+  final results = await customSelect(
+    query,
+    variables: [
+      Variable.withInt(budgetId),
+      Variable.withDateTime(start),
+      Variable.withDateTime(end),
+    ],
+  ).get();
+
+  return Map.fromEntries(
+    results.map((row) => MapEntry(
+      row.data['bucket_type'] as String,
       row.data['total'] as double,
     )),
   );

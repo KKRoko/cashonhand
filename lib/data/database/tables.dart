@@ -11,6 +11,8 @@ class Categories extends Table {
   IntColumn get parentCategoryId => integer().nullable().references(Categories, #id)();
   TextColumn get icon => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  BoolColumn get isSystem => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -97,6 +99,8 @@ class AutoAllocationRules extends Table {
 @DataClassName('BudgetTableData')
 class Budgets extends Table {
   IntColumn get id => integer().autoIncrement()();
+  IntColumn get month => integer()(); // 1-12
+  IntColumn get year => integer()(); // e.g., 2025
   RealColumn get monthlyIncome => real()();
   IntColumn get cycleStartDay => integer().withDefault(const Constant(1))(); // 1-31
   RealColumn get needsPercentage => real().withDefault(const Constant(0.50))(); // 50%
@@ -105,6 +109,11 @@ class Budgets extends Table {
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {month, year}, // Each month/year combination must be unique
+  ];
 }
 
 @DataClassName('CategoryBudgetTableData')

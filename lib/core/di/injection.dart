@@ -9,11 +9,13 @@ import '../../data/repositories/i_event_repository.dart';
 import '../../services/category_service.dart';
 import '../../services/saving_goal_service.dart';
 import '../../services/event_service.dart';
+import '../../services/budget_service.dart';
 import '../../settings/settings_controller.dart';
 import '../../settings/settings_service.dart';
 import '../../state/category_notifier.dart';
 import '../../state/saving_goal_notifier.dart';
 import '../../state/event_notifier.dart';
+import '../../state/budget_notifier.dart';
 import '../../services/achievement_service.dart';
 import '../../services/allocation_service.dart';
 import '../../services/round_up_service.dart';
@@ -201,6 +203,13 @@ Future<void> configureDependencies() async {
   if (!getIt.isRegistered<SmartCategorizationService>()) {
     getIt.registerLazySingleton<SmartCategorizationService>(
       () => SmartCategorizationService(getIt<Database>()),
+    );
+  }
+
+  // Add Budget Notifier registration
+  if (!getIt.isRegistered<BudgetNotifier>()) {
+    getIt.registerFactory<BudgetNotifier>(
+      () => BudgetNotifier(getIt<BudgetService>()),
     );
   }
 }

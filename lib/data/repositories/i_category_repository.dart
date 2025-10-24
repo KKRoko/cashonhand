@@ -9,4 +9,15 @@ abstract class ICategoryRepository {
   Future<Either<Failure, Category>> updateCategory(Category category);
   Future<Either<Failure, bool>> deleteCategory(int id);
   Future<Either<Failure, List<Category>>> getCategoriesByType(CategoryType type);
+
+  // User category management
+  Future<Either<Failure, List<Category>>> getUserCategories();
+  Future<Either<Failure, List<Category>>> getSystemCategories();
+  Future<Either<Failure, Category>> createUserCategory({
+    required String name,
+    required CategoryType type,
+    required int parentCategoryId,
+  });
+  Future<Either<Failure, bool>> softDeleteCategory(int id);
+  Future<Either<Failure, List<Category>>> getActiveCategories();
 }

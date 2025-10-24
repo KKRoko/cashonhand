@@ -48,10 +48,12 @@ class CategoryRepository extends BaseRepository<Category> implements ICategoryRe
         parentCategoryId: null,
         icon: null,
         sortOrder: 0,
+        isActive: true,
+        isSystem: false,
         createdAt: DateTime.now(), // You might want to preserve the original createdAt
         updatedAt: DateTime.now(),
       );
-      
+
       final success = await _database.updateCategory(categoryData);
       if (success) {
         return category;
@@ -73,6 +75,66 @@ class CategoryRepository extends BaseRepository<Category> implements ICategoryRe
   Future<Either<Failure, List<Category>>> getCategoriesByType(CategoryType type) {
     return catchError(() async {
       final categories = await _database.getCategories(type: type);
+      return _convertToCategories(categories);
+    });
+  }
+
+  @override
+  Future<Either<Failure, List<Category>>> getUserCategories() {
+    return catchError(() async {
+      final categories = await _database.getUserCategories();
+      return _convertToCategories(categories);
+    });
+  }
+
+  @override
+  Future<Either<Failure, List<Category>>> getSystemCategories() {
+    return catchError(() async {
+      final categories = await _database.getSystemCategories();
+      return _convertToCategories(categories);
+    });
+  }
+
+  @override
+  Future<Either<Failure, Category>> createUserCategory({
+    required String name,
+    required CategoryType type,
+    required int parentCategoryId,
+  }) {
+    return catchError(() async {
+      final categoryCompanion = CategoriesCompanion.insert(
+        name: name,
+        type: type,
+        parentCategoryId: Value(parentCategoryId),
+        isSystem: const Value(false),
+        isActive: const Value(true),
+      );
+
+      final id = await _database.createCategory(categoryCompanion);
+      return Category(id: id, name: name, type: type);
+    });
+  }
+
+  @override
+  Future<Either<Failure, bool>> softDeleteCategory(int id) {
+    return catchError(() async {
+      // Get the category first to preserve its data
+      final category = await _database.getCategoryById(id);
+      if (category == null) {
+        throw const DatabaseException('Category not found');
+      }
+
+      // Update to set isActive = false
+      final updated = category.copyWith(isActive: false, updatedAt: DateTime.now());
+      final success = await _database.updateCategory(updated);
+      return success;
+    });
+  }
+
+  @override
+  Future<Either<Failure, List<Category>>> getActiveCategories() {
+    return catchError(() async {
+      final categories = await _database.getActiveCategories();
       return _convertToCategories(categories);
     });
   }

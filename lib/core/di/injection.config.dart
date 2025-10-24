@@ -14,6 +14,7 @@ import 'package:injectable/injectable.dart' as _i526;
 import '../../data/database/database.dart' as _i495;
 import '../../data/repositories/achievement_repository.dart' as _i434;
 import '../../data/repositories/base_achievement_repository.dart' as _i812;
+import '../../data/repositories/budget_repository.dart' as _i931;
 import '../../data/repositories/category_repository.dart' as _i282;
 import '../../data/repositories/event_repository.dart' as _i655;
 import '../../data/repositories/i_category_repository.dart' as _i269;
@@ -24,6 +25,8 @@ import '../../services/achievement_sharing_service.dart' as _i16;
 import '../../services/allocation_service.dart' as _i114;
 import '../../services/analytics_service.dart' as _i155;
 import '../../services/auto_allocation_rules_engine.dart' as _i294;
+import '../../services/budget_service.dart' as _i460;
+import '../../services/category_bucket_mapper.dart' as _i147;
 import '../../services/category_service.dart' as _i576;
 import '../../services/event_service.dart' as _i762;
 import '../../services/financial_suggestions_engine.dart' as _i991;
@@ -52,6 +55,8 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i16.AchievementSharingService());
     gh.singleton<_i495.Database>(() => _i495.Database());
     gh.singleton<_i583.SettingsService>(() => _i583.SettingsService());
+    gh.singleton<_i147.CategoryBucketMapper>(
+        () => _i147.CategoryBucketMapper());
     gh.factory<_i114.AllocationService>(
         () => _i114.AllocationService(gh<_i495.Database>()));
     gh.factory<_i229.SmartCategorizationService>(
@@ -64,6 +69,8 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i434.AchievementRepository(gh<_i495.Database>()));
     gh.factory<_i38.ISavingGoalRepository>(
         () => _i38.SavingGoalRepository(gh<_i495.Database>()));
+    gh.factory<_i931.IBudgetRepository>(
+        () => _i931.BudgetRepository(gh<_i495.Database>()));
     gh.factory<_i930.CategoryNotifier>(
         () => _i930.CategoryNotifier(gh<_i576.CategoryService>()));
     gh.factory<_i682.AchievementNotifier>(
@@ -95,6 +102,11 @@ extension GetItInjectableX on _i174.GetIt {
         ));
     gh.factory<_i78.RoundUpService>(
         () => _i78.RoundUpService(gh<_i38.ISavingGoalRepository>()));
+    gh.singleton<_i460.BudgetService>(() => _i460.BudgetService(
+          gh<_i931.IBudgetRepository>(),
+          gh<_i269.ICategoryRepository>(),
+          gh<_i147.CategoryBucketMapper>(),
+        ));
     gh.factory<_i561.IEventRepository>(() => _i655.EventRepository(
           gh<_i495.Database>(),
           gh<_i78.RoundUpService>(),
