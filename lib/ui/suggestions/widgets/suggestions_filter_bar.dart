@@ -22,7 +22,7 @@ class SuggestionsFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark 
           ? Colors.black 
@@ -37,6 +37,7 @@ class SuggestionsFilterBar extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Filter title and clear button
           Row(
@@ -67,132 +68,145 @@ class SuggestionsFilterBar extends StatelessWidget {
             ],
           ),
           
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           
-          // Type filters
-          Text(
-            'Type',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white 
-                : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: SuggestionType.values.map((type) {
-              final isSelected = selectedTypes.contains(type);
-              return FilterChip(
-                label: Text(
-                  _getTypeLabel(type),
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                      ? (isSelected ? Colors.black : Colors.white)
-                      : null,
-                  ),
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  final newTypes = Set<SuggestionType>.from(selectedTypes);
-                  if (selected) {
-                    newTypes.add(type);
-                  } else {
-                    newTypes.remove(type);
-                  }
-                  onTypesChanged(newTypes);
-                },
-                selectedColor: _getTypeColor(type).withOpacity(0.2),
-                checkmarkColor: _getTypeColor(type),
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade800
-                  : null,
-              );
-            }).toList(),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Priority filters
-          Text(
-            'Priority',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white 
-                : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: SuggestionPriority.values.map((priority) {
-              final isSelected = selectedPriorities.contains(priority);
-              return FilterChip(
-                label: Text(
-                  _getPriorityLabel(priority),
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                      ? (isSelected ? Colors.black : Colors.white)
-                      : null,
-                  ),
-                ),
-                selected: isSelected,
-                onSelected: (selected) {
-                  final newPriorities = Set<SuggestionPriority>.from(selectedPriorities);
-                  if (selected) {
-                    newPriorities.add(priority);
-                  } else {
-                    newPriorities.remove(priority);
-                  }
-                  onPrioritiesChanged(newPriorities);
-                },
-                selectedColor: _getPriorityColor(priority).withOpacity(0.2),
-                checkmarkColor: _getPriorityColor(priority),
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade800
-                  : null,
-              );
-            }).toList(),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Active filter
+          // Type filters row
           Row(
             children: [
               Text(
-                'Status',
+                'TYPE',
                 style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? Colors.white 
                     : Colors.black87,
                 ),
               ),
               const SizedBox(width: 16),
-              FilterChip(
-                label: Text(
-                  'Active Only',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                      ? (showOnlyActive ? Colors.black : Colors.white)
-                      : null,
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: SuggestionType.values.map((type) {
+                      final isSelected = selectedTypes.contains(type);
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(
+                            _getTypeLabel(type),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                ? (isSelected ? Colors.black : Colors.white)
+                                : null,
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            final newTypes = Set<SuggestionType>.from(selectedTypes);
+                            if (selected) {
+                              newTypes.add(type);
+                            } else {
+                              newTypes.remove(type);
+                            }
+                            onTypesChanged(newTypes);
+                          },
+                          selectedColor: _getTypeColor(type).withOpacity(0.2),
+                          checkmarkColor: _getTypeColor(type),
+                          backgroundColor: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade800
+                            : null,
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
-                selected: showOnlyActive,
-                onSelected: onActiveFilterChanged,
-                selectedColor: Colors.green.withOpacity(0.2),
-                checkmarkColor: Colors.green,
-                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey.shade800
-                  : null,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // Priority and Status row
+          Row(
+            children: [
+              Text(
+                'PRIORITY',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.white 
+                    : Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      // Priority filters
+                      ...SuggestionPriority.values.map((priority) {
+                        final isSelected = selectedPriorities.contains(priority);
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: FilterChip(
+                            label: Text(
+                              _getPriorityLabel(priority),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                  ? (isSelected ? Colors.black : Colors.white)
+                                  : null,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              final newPriorities = Set<SuggestionPriority>.from(selectedPriorities);
+                              if (selected) {
+                                newPriorities.add(priority);
+                              } else {
+                                newPriorities.remove(priority);
+                              }
+                              onPrioritiesChanged(newPriorities);
+                            },
+                            selectedColor: _getPriorityColor(priority).withOpacity(0.2),
+                            checkmarkColor: _getPriorityColor(priority),
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : null,
+                          ),
+                        );
+                      }).toList(),
+                      
+                      const SizedBox(width: 8),
+                      
+                      // Active only filter
+                      FilterChip(
+                        label: Text(
+                          'Active Only',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).brightness == Brightness.dark
+                              ? (showOnlyActive ? Colors.black : Colors.white)
+                              : null,
+                          ),
+                        ),
+                        selected: showOnlyActive,
+                        onSelected: onActiveFilterChanged,
+                        selectedColor: Colors.green.withOpacity(0.2),
+                        checkmarkColor: Colors.green,
+                        backgroundColor: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade800
+                          : null,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

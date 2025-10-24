@@ -283,6 +283,8 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
           parentCategoryId: null,
           icon: null,
           sortOrder: 0,
+          isActive: true,
+          isSystem: false,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ))
@@ -393,6 +395,8 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
               parentCategoryId: null,
               icon: null,
               sortOrder: 0,
+              isActive: true,
+              isSystem: false,
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),
             ))

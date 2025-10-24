@@ -149,11 +149,17 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildSuggestionsTab(),
-          _buildNotificationsTab(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildSuggestionsTab(),
+                _buildNotificationsTab(),
+              ],
+            ),
+          ),
         ],
       ),
     );

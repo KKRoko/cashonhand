@@ -104,7 +104,7 @@ class FinancialAmount extends StatelessWidget {
     } else if (amount > 0) {
       accessibleLabel = 'Income: $displayText';
     } else {
-      accessibleLabel = 'Expense: ${currency}${_formatAmount(amount.abs())}';
+      accessibleLabel = 'Expense: $currency${_formatAmount(amount.abs())}';
     }
 
     // Use FittedBox to prevent overflow and ensure text fits
@@ -133,8 +133,7 @@ class FinancialAmount extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.visible,
               ),
-            ),
-      ),
+            )
     );
   }
 
@@ -271,15 +270,15 @@ class CashCard extends StatelessWidget {
       switch (financialContext!) {
         case FinancialContext.income:
           bgColor = financial.incomeBackground;
-          border = financial.incomeColor.withOpacity(0.3);
+          border = financial.incomeColor.withValues(alpha: 0.3);
           break;
         case FinancialContext.expense:
           bgColor = financial.expenseBackground;
-          border = financial.expenseColor.withOpacity(0.3);
+          border = financial.expenseColor.withValues(alpha: 0.3);
           break;
         case FinancialContext.neutral:
           bgColor = financial.neutralBackground;
-          border = financial.neutralColor.withOpacity(0.3);
+          border = financial.neutralColor.withValues(alpha: 0.3);
           break;
       }
     }
@@ -449,8 +448,7 @@ class SecondaryButton extends StatelessWidget {
                 textStyle: _getTextStyle(size),
               ),
               child: child,
-            ),
-      ),
+            )
     );
   }
 
@@ -773,15 +771,15 @@ class CategoryChip extends StatelessWidget {
       switch (financialContext!) {
         case FinancialContext.income:
           backgroundColor = financial.incomeBackground;
-          borderColor = financial.incomeColor.withOpacity(0.3);
+          borderColor = financial.incomeColor.withValues(alpha: 0.3);
           break;
         case FinancialContext.expense:
           backgroundColor = financial.expenseBackground;
-          borderColor = financial.expenseColor.withOpacity(0.3);
+          borderColor = financial.expenseColor.withValues(alpha: 0.3);
           break;
         case FinancialContext.neutral:
           backgroundColor = financial.neutralBackground;
-          borderColor = financial.neutralColor.withOpacity(0.3);
+          borderColor = financial.neutralColor.withValues(alpha: 0.3);
           break;
       }
     }
