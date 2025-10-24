@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/goal_type.dart';
 import '../enums/recurring_period.dart';
-import '../../utils/money.dart';
+import '../../../utils/money.dart';
 
 part 'saving_goal.freezed.dart';
 part 'saving_goal.g.dart';

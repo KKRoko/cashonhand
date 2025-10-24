@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../settings/settings_view.dart';
 import '../../state/event_notifier.dart';
 import '../../state/category_notifier.dart';
@@ -35,6 +36,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   String? _expandedTileId;
   bool _isLoading = false;
   List<Event> _recentTransactions = [];
+  double? _yearEndGoal;
+  bool _isYearEndGoalLoading = true;
 
   // Animation controller for progress bars
   late AnimationController _progressController;
@@ -74,6 +77,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       // 🎯 FLICKER FIX: Add manual listener with suppression check
       _eventNotifier!.addListener(_onEventNotifierChanged);
       _eventNotifier!.loadInitialEvents();
+      _loadYearEndGoal();
     });
   }
 
@@ -272,6 +276,95 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       _totals[period]!['availableAfterGoals'] = availableAfterGoals;
     }
   }
+  
+  Future<void> _loadYearEndGoal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final goalAmount = prefs.getDouble('year_end_goal');
+      if (mounted) {
+        setState(() {
+          _yearEndGoal = goalAmount;
+          _isYearEndGoalLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isYearEndGoalLoading = false;
+        });
+      }
+    }
+  }
+  
+  Future<void> _showYearEndGoalDialog() async {
+    final controller = TextEditingController(
+      text: _yearEndGoal?.toStringAsFixed(0) ?? '',
+    );
+    
+    final result = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Year-End Goal'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('How much cash do you want to have on hand by the end of 2025?'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Goal amount',
+                prefixText: '\$',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          if (_yearEndGoal != null)
+            TextButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('year_end_goal');
+                Navigator.pop(context, -1.0); // Special value to indicate removal
+              },
+              child: const Text('Remove Goal'),
+            ),
+          TextButton(
+            onPressed: () {
+              final amount = double.tryParse(controller.text);
+              if (amount != null && amount > 0) {
+                Navigator.pop(context, amount);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    
+    if (result != null) {
+      final prefs = await SharedPreferences.getInstance();
+      if (result == -1.0) {
+        // Remove goal
+        await prefs.remove('year_end_goal');
+        setState(() {
+          _yearEndGoal = null;
+        });
+      } else {
+        // Save new goal
+        await prefs.setDouble('year_end_goal', result);
+        setState(() {
+          _yearEndGoal = result;
+        });
+      }
+    }
+  }
 
   Future<void> _loadRecentTransactions() async {
     if (_eventNotifier == null) return;
@@ -364,6 +457,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 parentCategoryId: null,
                 icon: null,
                 sortOrder: 0,
+                isActive: true,
+                isSystem: false,
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
               ))
@@ -469,89 +564,191 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     }
   }
 
-  // Hero Balance Section with large current balance and trend
+  // Hero Balance Section with year-end goal tracking and motivation
   Widget _buildHeroBalanceSection() {
     final currentBalance = _totals['year']!['positive']! - _totals['year']!['negative']!;
-    final previousBalance = currentBalance * 0.85; // Mock previous month data
-    final trend = currentBalance - previousBalance;
-    final trendPercentage = previousBalance != 0 ? ((trend / previousBalance) * 100) : 0;
+    
+    // Use dynamic goal from state
+    final yearEndGoal = _yearEndGoal ?? 0.0;
+    final goalProgress = yearEndGoal > 0 ? currentBalance / yearEndGoal : 0.0;
+    final goalDifference = currentBalance - yearEndGoal;
     
     return CashCard(
       financialContext: currentBalance >= 0 ? FinancialContext.income : FinancialContext.expense,
       elevation: 'lg',
-      child: Column(
-        children: [
-          // Current Balance
-          ResponsiveText(
-            'Current Balance',
-            styleToken: 'titleMedium',
-            style: DesignTokens.textStyle('titleMedium').copyWith(
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? DesignTokens.color('textPrimary') 
-                : (currentBalance == 0 
-                    ? Colors.black 
-                    : DesignTokens.color('textSecondary')),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          VSpace('sm'),
-          FinancialAmount(
-            amount: currentBalance,
-            size: FinancialAmountSize.large,
-            style: DesignTokens.responsiveTextStyle('displayMedium', context),
-            adaptive: true,
-          ),
-          VSpace('md'),
-          
-          // Trend Indicator
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                trend >= 0 ? Icons.trending_up : Icons.trending_down,
-                color: trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense'),
-                size: 20,
-              ),
-              HSpace('xs'),
-              FinancialAmount(
-                amount: trend,
-                size: FinancialAmountSize.small,
-                style: currentBalance == 0 
-                  ? DesignTokens.textStyle('amountSmall').copyWith(color: Colors.black)
-                  : null,
-              ),
-              HSpace('xs'),
-              ResponsiveText(
-                '(${trendPercentage.toStringAsFixed(1)}%)',
-                styleToken: 'bodySmall',
-                style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: currentBalance == 0 
-                    ? Colors.black 
-                    : (trend >= 0 ? DesignTokens.color('income') : DesignTokens.color('expense')),
+      onTap: () => _showYearEndGoalDialog(),
+      child: Container(
+        padding: EdgeInsets.all(DesignTokens.space('lg')),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Main Cash on Hand display
+            Column(
+              children: [
+                ResponsiveText(
+                  'Cash on Hand by End of Year',
+                  styleToken: 'titleMedium',
+                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? DesignTokens.color('textPrimary')
+                      : DesignTokens.color('primaryDark'),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  adaptive: true,
                 ),
-                maxWidth: 80,
+                VSpace('md'),
+                FinancialAmount(
+                  amount: currentBalance,
+                  size: FinancialAmountSize.large,
+                  style: DesignTokens.responsiveTextStyle('displayLarge', context).copyWith(
+                    fontSize: DesignTokens.responsiveTextStyle('displayLarge', context).fontSize! * 1.2,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  adaptive: true,
+                ),
+              ],
+            ),
+            
+            if (yearEndGoal > 0) ...[
+              VSpace('lg'),
+              // Goal progress section
+              Container(
+                padding: EdgeInsets.all(DesignTokens.space('md')),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                    ? DesignTokens.color('income').withOpacity(0.1)
+                    : DesignTokens.color('incomeLight'),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: DesignTokens.color('income').withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Goal info header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.flag_outlined,
+                              color: DesignTokens.color('income'),
+                              size: 18,
+                            ),
+                            HSpace('xs'),
+                            ResponsiveText(
+                              'Year-End Goal',
+                              styleToken: 'labelMedium',
+                              style: DesignTokens.textStyle('labelMedium').copyWith(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                  ? DesignTokens.color('textPrimary')
+                                  : DesignTokens.color('textPrimary'),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        FinancialAmount(
+                          amount: yearEndGoal,
+                          size: FinancialAmountSize.medium,
+                          showSign: false,
+                          adaptive: true,
+                        ),
+                      ],
+                    ),
+                    VSpace('md'),
+                    
+                    // Progress bar
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ResponsiveText(
+                              goalProgress >= 1.0 ? 'Goal Achieved! 🎉' : 'Progress',
+                              styleToken: 'labelSmall',
+                              style: DesignTokens.textStyle('labelSmall').copyWith(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                  ? DesignTokens.color('textSecondary')
+                                  : DesignTokens.color('textSecondary'),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            ResponsiveText(
+                              '${(goalProgress * 100).toStringAsFixed(0)}%',
+                              styleToken: 'labelSmall',
+                              style: DesignTokens.textStyle('labelSmall').copyWith(
+                                color: currentBalance >= 0 
+                                    ? DesignTokens.color('income') 
+                                    : DesignTokens.color('expense'),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        VSpace('xs'),
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade700
+                              : DesignTokens.color('backgroundSecondary'),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: (goalProgress > 1.0 ? 1.0 : goalProgress.abs()).clamp(0.0, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                gradient: LinearGradient(
+                                  colors: currentBalance < 0 
+                                      ? [DesignTokens.color('expense'), DesignTokens.color('expense').withOpacity(0.8)]
+                                      : goalProgress >= 1.0
+                                          ? [DesignTokens.color('income'), DesignTokens.color('income').withOpacity(0.8)]
+                                          : goalProgress >= 0.75
+                                              ? [Colors.blue.shade500, Colors.blue.shade400]
+                                              : goalProgress >= 0.50
+                                                  ? [Colors.orange.shade500, Colors.orange.shade400]
+                                                  : [Colors.red.shade500, Colors.red.shade400],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
-          ),
-          VSpace('sm'),
-          ResponsiveText(
-            'vs last month',
-            styleToken: 'bodySmall',
-            style: DesignTokens.textStyle('bodySmall').copyWith(
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? DesignTokens.color('textPrimary') 
-                : (currentBalance == 0 
-                    ? Colors.black 
-                    : DesignTokens.color('textTertiary')),
+            
+            VSpace('md'),
+            // Tap hint
+            Center(
+              child: ResponsiveText(
+                yearEndGoal > 0 ? 'Tap to change your goal' : 'Tap to set year-end goal',
+                styleToken: 'labelSmall',
+                style: DesignTokens.textStyle('labelSmall').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                    ? DesignTokens.color('textSecondary')
+                    : DesignTokens.color('textSecondary'),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
   
-  // Quick Action Buttons
+  // Quick Action Buttons"}]
   Widget _buildQuickActions() {
     return Row(
       children: [
@@ -1125,7 +1322,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Hero Balance Section with Trend
+                  // Hero Balance Section with Year-End Goal
                   _buildHeroBalanceSection(),
                   VSpace('xl'),
                   

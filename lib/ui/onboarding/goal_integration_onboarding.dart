@@ -52,7 +52,10 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
   late Animation<Offset> _slideAnimation;
   
   int _currentPage = 0;
-  static const int _totalPages = 4;
+  static const int _totalPages = 5;
+  
+  final TextEditingController _yearEndGoalController = TextEditingController();
+  bool _hasYearEndGoal = false;
 
   @override
   void initState() {
@@ -88,6 +91,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
     _pageController.dispose();
     _fadeController.dispose();
     _slideController.dispose();
+    _yearEndGoalController.dispose();
     super.dispose();
   }
 
@@ -121,6 +125,12 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
   }
 
   void _completeOnboarding() async {
+    // Save year-end goal if set
+    if (_hasYearEndGoal && _yearEndGoalController.text.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('year_end_goal', double.tryParse(_yearEndGoalController.text) ?? 0.0);
+    }
+    
     await GoalIntegrationOnboarding.markOnboardingCompleted();
     if (mounted) {
       Navigator.of(context).pop();
@@ -194,6 +204,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                       _buildSmartSavingsPage(),
                       _buildTrackingPage(),
                       _buildCelebrationPage(),
+                      _buildYearEndGoalPage(),
                     ],
                   ),
                 ),
@@ -590,6 +601,129 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
         child: Icon(Icons.auto_awesome, size: 18, color: Colors.amber.shade500),
       ),
     ];
+  }
+
+  Widget _buildYearEndGoalPage() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Year-end goal illustration
+          Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    size: 50,
+                    color: Colors.green.shade600,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '2025',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          Text(
+            'Set Your Year-End Goal',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.green.shade700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Text(
+            'How much cash do you want to have on hand by the end of 2025?',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Colors.grey.shade600,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Goal toggle
+          Row(
+            children: [
+              Checkbox(
+                value: _hasYearEndGoal,
+                onChanged: (value) {
+                  setState(() {
+                    _hasYearEndGoal = value ?? false;
+                    if (!_hasYearEndGoal) {
+                      _yearEndGoalController.clear();
+                    }
+                  });
+                },
+                activeColor: Colors.green,
+              ),
+              Expanded(
+                child: Text(
+                  'Set a year-end cash goal',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          if (_hasYearEndGoal) ...[
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _yearEndGoalController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Year-end goal amount',
+                prefixText: '\$',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.green.shade400, width: 2),
+                ),
+                hintText: 'e.g., 10000',
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'This goal will help you track your progress throughout the year and celebrate when you reach it!',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
