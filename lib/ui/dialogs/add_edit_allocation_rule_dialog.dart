@@ -7,8 +7,9 @@ import '../../data/models/enums/allocation_method.dart';
 import '../../services/category_service.dart';
 import '../../state/saving_goal_notifier.dart';
 import '../../data/models/freezed/saving_goal.dart';
+import '../../theme/design_tokens.dart';
 
-class AddEditAllocationRuleDialog extends StatefulWidget {
+class AddEditAllocationRuleDialog extends StatefulWidget{
   final AutoAllocationRule? existingRule;
   final Function(AutoAllocationRule) onSave;
 
@@ -252,10 +253,10 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -265,7 +266,7 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonHideUnderline(
@@ -321,7 +322,7 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonHideUnderline(
@@ -480,18 +481,18 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.info_outline, color: Colors.grey),
-            SizedBox(width: 12),
+            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Complete the required fields to preview your rule',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
           ],
@@ -511,22 +512,22 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: DesignTokens.color('info').withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.shade200),
+        border: Border.all(color: DesignTokens.color('info').withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.preview, color: Colors.blue.shade700),
+              Icon(Icons.preview, color: DesignTokens.color('info')),
               const SizedBox(width: 8),
               Text(
                 'Rule Preview',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Colors.blue.shade700,
+                  color: DesignTokens.color('info'),
                 ),
               ),
             ],

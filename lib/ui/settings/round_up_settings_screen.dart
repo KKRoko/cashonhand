@@ -1,3 +1,4 @@
+import '../../theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/settings_service.dart';
@@ -69,15 +70,15 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: DesignTokens.color('info').withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
+                      border: Border.all(color: DesignTokens.color('info').withOpacity(0.3)),
                     ),
                     child: Column(
                       children: [
                         Icon(
                           Icons.auto_awesome,
-                          color: Colors.blue.shade600,
+                          color: DesignTokens.color('info'),
                           size: 48,
                         ),
                         const SizedBox(height: 12),
@@ -85,7 +86,7 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
                           'Automatic Round-Up Savings',
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade800,
+                                color: DesignTokens.color('info'),
                               ),
                           textAlign: TextAlign.center,
                         ),
@@ -93,7 +94,7 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
                         Text(
                           'Round up your purchases to the nearest dollar and automatically save the difference',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.blue.shade700,
+                                color: DesignTokens.color('info'),
                               ),
                           textAlign: TextAlign.center,
                         ),
@@ -119,7 +120,7 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
                       onChanged: (value) {
                         _updatePreferences(_preferences.copyWith(isEnabled: value));
                       },
-                      activeColor: Colors.green,
+                      activeColor: DesignTokens.color('success'),
                     ),
                   ),
 
@@ -299,7 +300,7 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
       title: Text(title),
       subtitle: Text(
         example,
-        style: TextStyle(color: Colors.grey.shade600),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       value: strategy,
       groupValue: _preferences.strategy,
@@ -347,7 +348,7 @@ class _RoundUpSettingsScreenState extends State<RoundUpSettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonHideUnderline(

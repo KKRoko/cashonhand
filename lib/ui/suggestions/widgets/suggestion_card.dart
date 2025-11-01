@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import '../../../data/models/freezed/financial_suggestion.dart';
 
 class SuggestionCard extends StatelessWidget {
@@ -35,12 +36,12 @@ class SuggestionCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getPriorityColor(suggestion.priority).withOpacity(0.1),
+                      color: _getPriorityColor(context, suggestion.priority).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       _getIconData(suggestion.iconName),
-                      color: _getPriorityColor(suggestion.priority),
+                      color: _getPriorityColor(context, suggestion.priority),
                       size: 20,
                     ),
                   ),
@@ -57,7 +58,7 @@ class SuggestionCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: _getPriorityColor(suggestion.priority),
+                            color: _getPriorityColor(context, suggestion.priority),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -66,7 +67,7 @@ class SuggestionCard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: _getPriorityColor(suggestion.priority),
+                                color: _getPriorityColor(context, suggestion.priority),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -83,13 +84,13 @@ class SuggestionCard extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.shade100,
+                                  color: DesignTokens.color('success'),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   'Save \$${suggestion.potentialSavings!.toStringAsFixed(0)}',
                                   style: TextStyle(
-                                    color: Colors.green.shade700,
+                                    color: DesignTokens.color('success'),
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -137,7 +138,7 @@ class SuggestionCard extends StatelessWidget {
                 suggestion.description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   height: 1.4,
                 ),
               ),
@@ -152,7 +153,7 @@ class SuggestionCard extends StatelessWidget {
                     _formatTimestamp(suggestion.createdAt),
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade500,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     ),
                   ),
                   
@@ -163,7 +164,7 @@ class SuggestionCard extends StatelessWidget {
                     TextButton(
                       onPressed: onAction,
                       style: TextButton.styleFrom(
-                        foregroundColor: _getPriorityColor(suggestion.priority),
+                        foregroundColor: _getPriorityColor(context, suggestion.priority),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       ),
                       child: Text(
@@ -194,16 +195,16 @@ class SuggestionCard extends StatelessWidget {
     }
   }
 
-  Color _getPriorityColor(SuggestionPriority priority) {
+  Color _getPriorityColor(BuildContext context, SuggestionPriority priority) {
     switch (priority) {
       case SuggestionPriority.low:
-        return Colors.grey;
+        return Theme.of(context).colorScheme.surfaceContainerHighest;
       case SuggestionPriority.medium:
-        return Colors.blue;
+        return DesignTokens.color('info');
       case SuggestionPriority.high:
-        return Colors.orange;
+        return DesignTokens.color('warning');
       case SuggestionPriority.urgent:
-        return Colors.red;
+        return DesignTokens.color('error');
     }
   }
 

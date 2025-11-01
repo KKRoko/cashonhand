@@ -139,6 +139,22 @@ class CategoryRepository extends BaseRepository<Category> implements ICategoryRe
     });
   }
 
+  @override
+  Future<Either<Failure, List<Category>>> getExpenseChildCategories() {
+    return catchError(() async {
+      // Get all active categories
+      final categories = await _database.getActiveCategories();
+
+      // Filter to only expense child categories (those with a parent)
+      final expenseChildren = categories.where((c) =>
+        c.type == CategoryType.expense &&
+        c.parentCategoryId != null
+      ).toList();
+
+      return _convertToCategories(expenseChildren);
+    });
+  }
+
   // Helper method to convert database categories to domain categories
   List<Category> _convertToCategories(List<CategoryTableData> categoryData) {
     return categoryData.map((c) => Category(

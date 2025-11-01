@@ -1,3 +1,4 @@
+import '../../theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
@@ -158,14 +159,14 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                         'Cash on Hand',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade700,
+                          color: DesignTokens.color('success'),
                         ),
                       ),
                       TextButton(
                         onPressed: _skipOnboarding,
                         child: Text(
                           'Skip',
-                          style: TextStyle(color: Colors.grey.shade600),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ),
                     ],
@@ -186,8 +187,8 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
                           color: _currentPage == index 
-                            ? Colors.green 
-                            : Colors.grey.shade300,
+                            ? DesignTokens.color('success')
+                            : Theme.of(context).colorScheme.outline,
                         ),
                       );
                     }),
@@ -219,12 +220,12 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                           child: OutlinedButton(
                             onPressed: _previousPage,
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.green.shade300),
+                              side: BorderSide(color: DesignTokens.color('success').withOpacity(0.3)),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                             child: Text(
                               'Previous',
-                              style: TextStyle(color: Colors.green.shade700),
+                              style: TextStyle(color: DesignTokens.color('success')),
                             ),
                           ),
                         )
@@ -237,7 +238,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                         child: ElevatedButton(
                           onPressed: _nextPage,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: DesignTokens.color('success'),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: Text(
@@ -271,14 +272,14 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.green.shade50,
+              color: DesignTokens.color('success').withOpacity(0.1),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Center(
               child: Icon(
                 Icons.savings,
                 size: 80,
-                color: Colors.green.shade600,
+                color: DesignTokens.color('success'),
               ),
             ),
           ),
@@ -289,7 +290,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             'Welcome to Smart Savings!',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.green.shade700,
+              color: DesignTokens.color('success'),
             ),
             textAlign: TextAlign.center,
           ),
@@ -299,7 +300,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           Text(
             'Transform your spending into smart savings with our integrated goal system. Let\'s show you how!',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -321,25 +322,25 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             height: 200,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: DesignTokens.color('info').withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.flash_on, size: 40, color: Colors.blue.shade600),
+                Icon(Icons.flash_on, size: 40, color: DesignTokens.color('info')),
                 const SizedBox(height: 8),
                 Text(
                   'Smart Allocation',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
+                    color: DesignTokens.color('info'),
                   ),
                 ),
                 const Divider(),
                 Row(
                   children: [
-                    Icon(Icons.flag, size: 16, color: Colors.green.shade600),
+                    Icon(Icons.flag, size: 16, color: DesignTokens.color('success')),
                     const SizedBox(width: 4),
                     const Expanded(child: Text('Emergency Fund')),
                     const Text('\$50'),
@@ -348,7 +349,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.flag, size: 16, color: Colors.orange.shade600),
+                    Icon(Icons.flag, size: 16, color: DesignTokens.color('warning')),
                     const SizedBox(width: 4),
                     const Expanded(child: Text('Vacation')),
                     const Text('\$30'),
@@ -373,7 +374,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           Text(
             'Every transaction can automatically contribute to your savings goals. Set up rules for round-ups, percentage allocations, and more!',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -402,28 +403,28 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             height: 200,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.purple.shade50,
+              color: DesignTokens.color('primary').withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.analytics, size: 40, color: Colors.purple.shade600),
+                Icon(Icons.analytics, size: 40, color: DesignTokens.color('primary')),
                 const SizedBox(height: 8),
                 Text(
                   'Advanced Analytics',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.purple.shade700,
+                    color: DesignTokens.color('primary'),
                   ),
                 ),
                 const SizedBox(height: 12),
                 // Mock progress bars
-                _buildMiniProgressBar(0.7, Colors.green),
+                _buildMiniProgressBar(0.7, DesignTokens.color('success')),
                 const SizedBox(height: 4),
-                _buildMiniProgressBar(0.4, Colors.blue),
+                _buildMiniProgressBar(0.4, DesignTokens.color('info')),
                 const SizedBox(height: 4),
-                _buildMiniProgressBar(0.9, Colors.orange),
+                _buildMiniProgressBar(0.9, DesignTokens.color('warning')),
               ],
             ),
           ),
@@ -443,7 +444,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           Text(
             'Get powerful insights into your savings velocity, goal predictions, and spending vs. savings balance to make informed decisions.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -470,7 +471,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.amber.shade50,
+              color: DesignTokens.color('warning').withOpacity(0.1),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Stack(
@@ -479,7 +480,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                 Icon(
                   Icons.celebration,
                   size: 80,
-                  color: Colors.amber.shade600,
+                  color: DesignTokens.color('warning'),
                 ),
                 // Animated sparkles
                 ..._buildSparkles(),
@@ -493,7 +494,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             'Celebrate Your Success!',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.amber.shade700,
+              color: DesignTokens.color('warning'),
             ),
             textAlign: TextAlign.center,
           ),
@@ -503,7 +504,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           Text(
             'Unlock achievements, track streaks, and celebrate milestones! Share your progress and stay motivated on your savings journey.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -520,14 +521,14 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.shade50,
+              color: DesignTokens.color('success').withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.green.shade200),
+              border: Border.all(color: DesignTokens.color('success').withOpacity(0.3)),
             ),
             child: Text(
               '🎉 You\'re ready to start your smart savings journey!',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.green.shade700,
+                color: DesignTokens.color('success'),
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -543,13 +544,13 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.green.shade600),
+          Icon(icon, size: 20, color: DesignTokens.color('success')),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -562,7 +563,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
     return Container(
       height: 4,
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: Theme.of(context).colorScheme.outline,
         borderRadius: BorderRadius.circular(2),
       ),
       child: FractionallySizedBox(
@@ -583,22 +584,22 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
       Positioned(
         top: 40,
         left: 40,
-        child: Icon(Icons.auto_awesome, size: 16, color: Colors.amber.shade400),
+        child: Icon(Icons.auto_awesome, size: 16, color: DesignTokens.color('warning')),
       ),
       Positioned(
         top: 60,
         right: 30,
-        child: Icon(Icons.auto_awesome, size: 12, color: Colors.yellow.shade600),
+        child: Icon(Icons.auto_awesome, size: 12, color: DesignTokens.color('warning')),
       ),
       Positioned(
         bottom: 50,
         left: 30,
-        child: Icon(Icons.auto_awesome, size: 14, color: Colors.orange.shade400),
+        child: Icon(Icons.auto_awesome, size: 14, color: DesignTokens.color('warning').withOpacity(0.5)),
       ),
       Positioned(
         bottom: 40,
         right: 40,
-        child: Icon(Icons.auto_awesome, size: 18, color: Colors.amber.shade500),
+        child: Icon(Icons.auto_awesome, size: 18, color: DesignTokens.color('warning').withOpacity(0.5)),
       ),
     ];
   }
@@ -614,7 +615,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              color: Colors.green.shade50,
+              color: DesignTokens.color('success').withOpacity(0.1),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Center(
@@ -624,7 +625,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                   Icon(
                     Icons.calendar_today,
                     size: 50,
-                    color: Colors.green.shade600,
+                    color: DesignTokens.color('success'),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -632,7 +633,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green.shade700,
+                      color: DesignTokens.color('success'),
                     ),
                   ),
                 ],
@@ -646,7 +647,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             'Set Your Year-End Goal',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.green.shade700,
+              color: DesignTokens.color('success'),
             ),
             textAlign: TextAlign.center,
           ),
@@ -656,7 +657,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           Text(
             'How much cash do you want to have on hand by the end of 2025?',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -677,13 +678,13 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                     }
                   });
                 },
-                activeColor: Colors.green,
+                activeColor: DesignTokens.color('success'),
               ),
               Expanded(
                 child: Text(
                   'Set a year-end cash goal',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey.shade700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -703,7 +704,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.green.shade400, width: 2),
+                  borderSide: BorderSide(color: DesignTokens.color('success').withOpacity(0.5), width: 2),
                 ),
                 hintText: 'e.g., 10000',
               ),
@@ -715,7 +716,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             Text(
               'This goal will help you track your progress throughout the year and celebrate when you reach it!',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,

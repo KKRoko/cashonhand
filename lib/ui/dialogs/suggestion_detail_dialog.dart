@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
 import '../../data/models/freezed/financial_suggestion.dart';
 
 class SuggestionDetailDialog extends StatelessWidget {
@@ -24,13 +25,13 @@ class SuggestionDetailDialog extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: _getPriorityColor(suggestion.priority),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: BorderRadius.vertical(top: (DesignTokens.borderRadius['md']!).topLeft),
               ),
               child: Row(
                 children: [
                   Icon(
                     _getIconData(suggestion.iconName),
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     size: 24,
                   ),
                   const SizedBox(width: 12),
@@ -40,8 +41,8 @@ class SuggestionDetailDialog extends StatelessWidget {
                       children: [
                         Text(
                           suggestion.typeDisplayName,
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -49,8 +50,8 @@ class SuggestionDetailDialog extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           suggestion.title,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -60,7 +61,7 @@ class SuggestionDetailDialog extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary),
                   ),
                 ],
               ),
@@ -80,12 +81,12 @@ class SuggestionDetailDialog extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: _getPriorityColor(suggestion.priority),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: DesignTokens.borderRadius['full']!,
                           ),
                           child: Text(
                             _getPriorityLabel(suggestion.priority),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -96,8 +97,9 @@ class SuggestionDetailDialog extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.green.shade100,
-                              borderRadius: BorderRadius.circular(16),
+                              color: DesignTokens.color('success').withOpacity(0.1),
+                              borderRadius: DesignTokens.borderRadius['full']!,
+                              border: Border.all(color: DesignTokens.color('success').withOpacity(0.3)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -105,13 +107,13 @@ class SuggestionDetailDialog extends StatelessWidget {
                                 Icon(
                                   Icons.savings,
                                   size: 14,
-                                  color: Colors.green.shade700,
+                                  color: DesignTokens.color('success'),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '\$${suggestion.potentialSavings!.toStringAsFixed(2)}/month',
                                   style: TextStyle(
-                                    color: Colors.green.shade700,
+                                    color: DesignTokens.color('success'),
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -131,7 +133,6 @@ class SuggestionDetailDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -140,7 +141,6 @@ class SuggestionDetailDialog extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 15,
                         height: 1.5,
-                        color: Colors.black87,
                       ),
                     ),
                     
@@ -149,27 +149,30 @@ class SuggestionDetailDialog extends StatelessWidget {
                     // Additional info sections
                     if (suggestion.potentialSavings != null) ...[
                       _buildInfoSection(
+                        context,
                         'Potential Savings',
                         [
                           'Monthly: \$${suggestion.potentialSavings!.toStringAsFixed(2)}',
                           'Annually: \$${(suggestion.potentialSavings! * 12).toStringAsFixed(2)}',
                         ],
                         Icons.trending_up,
-                        Colors.green,
+                        DesignTokens.color('success'),
                       ),
                       const SizedBox(height: 16),
                     ],
-                    
+
                     // Action steps from actionData if available
                     if (suggestion.actionData?['actionSteps'] != null) ...[
                       _buildActionStepsSection(
+                        context,
                         suggestion.actionData!['actionSteps'] as List<String>,
                       ),
                       const SizedBox(height: 16),
                     ],
-                    
+
                     // Metadata
                     _buildInfoSection(
+                      context,
                       'Information',
                       [
                         'Created: ${_formatDateTime(suggestion.createdAt)}',
@@ -178,7 +181,7 @@ class SuggestionDetailDialog extends StatelessWidget {
                         'Status: ${suggestion.isActive ? 'Active' : 'Inactive'}',
                       ],
                       Icons.info_outline,
-                      Colors.grey,
+                      DesignTokens.color('info'),
                     ),
                     
                     const SizedBox(height: 24),
@@ -191,7 +194,7 @@ class SuggestionDetailDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
               ),
               child: Row(
@@ -223,7 +226,7 @@ class SuggestionDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSection(String title, List<String> items, IconData icon, Color color) {
+  Widget _buildInfoSection(BuildContext context, String title, List<String> items, IconData icon, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -247,7 +250,7 @@ class SuggestionDetailDialog extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: color.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: DesignTokens.borderRadius['sm']!,
             border: Border.all(color: color.withOpacity(0.2)),
           ),
           child: Column(
@@ -265,20 +268,21 @@ class SuggestionDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildActionStepsSection(List<String> actionSteps) {
+  Widget _buildActionStepsSection(BuildContext context, List<String> actionSteps) {
+    final actionColor = DesignTokens.color('info');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.list_alt, size: 18, color: Colors.blue),
-            SizedBox(width: 8),
+            Icon(Icons.list_alt, size: 18, color: actionColor),
+            const SizedBox(width: 8),
             Text(
               'Recommended Actions',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.blue,
+                color: actionColor,
               ),
             ),
           ],
@@ -288,9 +292,9 @@ class SuggestionDetailDialog extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.withOpacity(0.2)),
+            color: actionColor.withOpacity(0.05),
+            borderRadius: DesignTokens.borderRadius['sm']!,
+            border: Border.all(color: actionColor.withOpacity(0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,14 +310,14 @@ class SuggestionDetailDialog extends StatelessWidget {
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(10),
+                        color: actionColor,
+                        borderRadius: DesignTokens.borderRadius['full']!,
                       ),
                       child: Center(
                         child: Text(
                           index.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -355,13 +359,13 @@ class SuggestionDetailDialog extends StatelessWidget {
   Color _getPriorityColor(SuggestionPriority priority) {
     switch (priority) {
       case SuggestionPriority.low:
-        return Colors.grey;
+        return DesignTokens.color('info');
       case SuggestionPriority.medium:
-        return Colors.blue;
+        return DesignTokens.color('primary');
       case SuggestionPriority.high:
-        return Colors.orange;
+        return DesignTokens.color('warning');
       case SuggestionPriority.urgent:
-        return Colors.red;
+        return DesignTokens.color('error');
     }
   }
 

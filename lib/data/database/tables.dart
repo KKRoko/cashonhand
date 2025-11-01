@@ -126,3 +126,53 @@ class CategoryBudgets extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
+
+@DataClassName('BudgetTemplateTableData')
+class BudgetTemplates extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get description => text()();
+  RealColumn get needsPercentage => real().withDefault(const Constant(0.50))(); // 50%
+  RealColumn get wantsPercentage => real().withDefault(const Constant(0.30))(); // 30%
+  RealColumn get savingsPercentage => real().withDefault(const Constant(0.20))(); // 20%
+  BoolColumn get isPreset => boolean().withDefault(const Constant(false))(); // true for system presets
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
+}
+
+@DataClassName('YearEndGoalTableData')
+class YearEndGoals extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get year => integer()(); // e.g., 2025
+  RealColumn get needsPercentage => real()(); // annual percentage goal for needs bucket (0.0-1.0)
+  RealColumn get wantsPercentage => real()(); // annual percentage goal for wants bucket (0.0-1.0)
+  RealColumn get savingsPercentage => real()(); // annual percentage goal for savings bucket (0.0-1.0)
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {year}, // Each year must have only one goal
+  ];
+}
+
+@DataClassName('AllocationTemplateTableData')
+class AllocationTemplates extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get description => text().nullable()();
+  RealColumn get totalAmount => real()(); // Total allocation amount in this template
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+@DataClassName('AllocationTemplateItemTableData')
+class AllocationTemplateItems extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get templateId => integer().references(AllocationTemplates, #id, onDelete: KeyAction.cascade)();
+  IntColumn get categoryId => integer().references(Categories, #id, onDelete: KeyAction.cascade)();
+  RealColumn get allocatedAmount => real()();
+  TextColumn get bucketType => text().map(const BucketTypeConverter())(); // needs, wants, savings
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}

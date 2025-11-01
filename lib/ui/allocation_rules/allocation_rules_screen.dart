@@ -132,7 +132,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
             Icon(
               Icons.auto_awesome,
               size: 80,
-              color: Colors.grey.shade400,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 24),
             Text(
@@ -140,7 +140,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
@@ -149,7 +149,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 height: 1.5,
               ),
             ),
@@ -282,13 +282,17 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
               ),
               child: Text(
                 ruleWithInfo.humanReadableDescription,
-                style: const TextStyle(fontSize: 14, height: 1.4),
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.4,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
           ),

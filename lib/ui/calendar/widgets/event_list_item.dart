@@ -198,7 +198,7 @@ class _EventListItemState extends State<EventListItem> {
                             widget.event.title,
                             style: theme.textTheme.titleMedium?.copyWith(
                               color: Theme.of(context).brightness == Brightness.dark 
-                                ? DesignTokens.color('onPrimary') 
+                                ? Theme.of(context).colorScheme.onPrimary 
                                 : null,
                             ),
                           ),
@@ -220,7 +220,7 @@ class _EventListItemState extends State<EventListItem> {
                                 Text(
                                   'Loading allocations...',
                                   style: DesignTokens.textStyle('bodySmall').copyWith(
-                                    color: DesignTokens.color('textTertiary'),
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),
@@ -335,7 +335,7 @@ class _EventListItemState extends State<EventListItem> {
                                 Text(
                                   'Loading goal allocations...',
                                   style: DesignTokens.textStyle('bodyMedium').copyWith(
-                                    color: DesignTokens.color('textTertiary'),
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),
@@ -405,8 +405,8 @@ class _EventListItemState extends State<EventListItem> {
             'Loading category...',
             style: theme.textTheme.bodySmall?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark 
-                ? DesignTokens.color('onPrimary') 
-                : Colors.grey.shade500,
+                ? Theme.of(context).colorScheme.onPrimary 
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -420,13 +420,13 @@ class _EventListItemState extends State<EventListItem> {
           Icon(
             Icons.help_outline,
             size: 14,
-            color: Colors.grey.shade400,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
           const SizedBox(width: 4),
           Text(
             'Unknown category',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.grey.shade500,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -447,7 +447,7 @@ class _EventListItemState extends State<EventListItem> {
           Icon(
             widget.event.isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
             size: 14,
-            color: widget.event.isPositiveCashflow ? Colors.green : Colors.orange.shade700,
+            color: widget.event.isPositiveCashflow ? DesignTokens.color('income') : Colors.orange.shade700,
           ),
           const SizedBox(width: 4),
         ],
@@ -457,7 +457,7 @@ class _EventListItemState extends State<EventListItem> {
           child: Text(
             _category!.name,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.grey.shade700,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               fontWeight: FontWeight.w500,
             ),
             overflow: TextOverflow.ellipsis,
@@ -470,14 +470,14 @@ class _EventListItemState extends State<EventListItem> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               'Sub',
               style: TextStyle(
                 fontSize: 9,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -538,7 +538,7 @@ class _EventListItemState extends State<EventListItem> {
           Text(
             'Category: Unknown',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
           ),
         ],
@@ -617,7 +617,7 @@ class _EventListItemState extends State<EventListItem> {
                         return Text(
                           'Part of: ${snapshot.data!.icon ?? '📁'} ${snapshot.data!.name}',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             fontStyle: FontStyle.italic,
                           ),
                         );

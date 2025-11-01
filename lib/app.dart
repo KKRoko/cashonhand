@@ -33,16 +33,12 @@ class TabChangeNotifier extends ChangeNotifier {
     if (_currentTabIndex != newIndex) {
       _previousTabIndex = _currentTabIndex;
       _currentTabIndex = newIndex;
-
-      final tabNames = ['Cash', 'Goals', 'Budget', 'Calendar', 'Insights'];
-      print('🔄 TAB CHANGE NOTIFIER: Tab changed from ${tabNames[_previousTabIndex]} to ${tabNames[newIndex]}');
-
       notifyListeners();
     }
   }
 
-  bool get isCalendarVisible => _currentTabIndex == 3;
-  bool get wasCalendarVisible => _previousTabIndex == 3;
+  bool get isCalendarVisible => _currentTabIndex == 2;
+  bool get wasCalendarVisible => _previousTabIndex == 2;
   bool get didNavigateToCalendar => !wasCalendarVisible && isCalendarVisible;
   bool get didNavigateAwayFromCalendar => wasCalendarVisible && !isCalendarVisible;
 }
@@ -167,12 +163,13 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    CashOnHandScreen(),
-    SavingGoalsScreen(),
-    BudgetScreen(),
-    CalendarScreen(),
-    SuggestionsScreen(),
+  // Remove const so screens can rebuild when notifiers change
+  List<Widget> get _screens => [
+    const CashOnHandScreen(),
+    const SavingGoalsScreen(),
+    const CalendarScreen(),
+    const BudgetScreen(),
+    const SuggestionsScreen(),
   ];
 
   List<NavigationDestination> get _destinations => [
@@ -200,17 +197,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ),
     NavigationDestination(
       icon: Icon(
-        Icons.account_balance_outlined,
-        color: DesignTokens.color('textSecondary'),
-      ),
-      selectedIcon: Icon(
-        Icons.account_balance,
-        color: DesignTokens.color('primary'),
-      ),
-      label: 'Budget',
-    ),
-    NavigationDestination(
-      icon: Icon(
         Icons.calendar_today_outlined,
         color: DesignTokens.color('textSecondary'),
       ),
@@ -219,6 +205,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         color: DesignTokens.color('primary'),
       ),
       label: 'Calendar',
+    ),
+    NavigationDestination(
+      icon: Icon(
+        Icons.account_balance_outlined,
+        color: DesignTokens.color('textSecondary'),
+      ),
+      selectedIcon: Icon(
+        Icons.account_balance,
+        color: DesignTokens.color('primary'),
+      ),
+      label: 'Budget',
     ),
     NavigationDestination(
       icon: Icon(
@@ -243,11 +240,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   void _onItemTapped(int index) {
-    final tabNames = ['Cash', 'Goals', 'Budget', 'Calendar', 'Insights'];
-    print('🔄🔄🔄 TAB NAVIGATION: User tapped tab $index (${tabNames[index]})');
-    print('  - Previous tab: $_selectedIndex (${tabNames[_selectedIndex]})');
-    print('  - New tab: $index (${tabNames[index]})');
-
     // Notify the global tab change notifier
     globalTabNotifier.changeTab(index);
 

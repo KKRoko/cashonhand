@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -61,37 +62,6 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _deadlineDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 3650)),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: Theme.of(context).brightness == Brightness.dark
-            ? ThemeData.dark().copyWith(
-                colorScheme: const ColorScheme.dark(
-                  primary: Colors.white,
-                  onPrimary: Colors.black,
-                  surface: Colors.black,
-                  onSurface: Colors.white,
-                  surfaceContainerHighest: Color(0xFF333333),
-                ),
-                dialogBackgroundColor: Colors.black,
-              )
-            : Theme.of(context),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _deadlineDate) {
-      setState(() {
-        _deadlineDate = picked;
-      });
-      _updateCalculations(); // Update calculations when date changes
-    }
-  }
 
   Future<void> _saveGoal() async {
     print('🔍 DEBUG: AddEditGoalDialog._saveGoal called');
@@ -136,11 +106,9 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: DesignTokens.borderRadius['lg']!,
       ),
       child: SingleChildScrollView(
         child: Padding(
@@ -153,11 +121,7 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
               children: [
                 Text(
                   widget.goal != null ? 'Edit Goal' : 'Create New Goal',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 24),
                 
@@ -166,46 +130,30 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
                   controller: _titleController,
                   textCapitalization: TextCapitalization.words,
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Goal Name',
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
-                    filled: false, // Remove any background fill
+                    filled: false,
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         width: 2,
                       ),
                     ),
-                    prefixIcon: Icon(
-                      Icons.bookmark_outline,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
+                    prefixIcon: const Icon(Icons.bookmark_outline),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -220,46 +168,30 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
                   controller: _descriptionController,
                   textCapitalization: TextCapitalization.sentences,
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Description',
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
-                    filled: false, // Remove any background fill
+                    filled: false,
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         width: 2,
                       ),
                     ),
-                    prefixIcon: Icon(
-                      Icons.description_outlined,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
+                    prefixIcon: const Icon(Icons.description_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -275,46 +207,30 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
                 TextFormField(
                   controller: _targetAmountController,
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Target Amount',
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
-                    filled: false, // Remove any background fill
+                    filled: false,
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         width: 2,
                       ),
                     ),
-                    prefixIcon: Icon(
-                      Icons.attach_money,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
+                    prefixIcon: const Icon(Icons.attach_money),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
@@ -337,46 +253,30 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
                 TextFormField(
                   controller: _currentAmountController,
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                   decoration: InputDecoration(
                     labelText: 'Current Amount Saved',
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
-                    filled: false, // Remove any background fill
+                    filled: false,
                     border: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : Colors.grey,
+                        color: Theme.of(context).colorScheme.outline,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         width: 2,
                       ),
                     ),
-                    prefixIcon: Icon(
-                      Icons.savings_outlined,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : null,
-                    ),
+                    prefixIcon: const Icon(Icons.savings_outlined),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
@@ -398,68 +298,49 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Target Date
-                InkWell(
-                  onTap: () => _selectDate(context),
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'Target Date',
-                      labelStyle: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : null,
-                      ),
-                      filled: false, // Remove any background fill
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : Colors.grey,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : Colors.grey,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : Theme.of(context).primaryColor,
-                          width: 2,
-                        ),
-                      ),
-                      prefixIcon: Icon(
-                        Icons.calendar_today,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : null,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Target Date',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          FormatUtils.formatDate(_deadlineDate),
-                          style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white 
-                              : null,
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        borderRadius: DesignTokens.borderRadius['md']!,
+                      ),
+                      child: SizedBox(
+                        height: 300,
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: Theme.of(context).colorScheme.copyWith(
+                              primary: DesignTokens.color('success'),
+                            ),
+                          ),
+                          child: CalendarDatePicker(
+                            initialDate: _deadlineDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(const Duration(days: 3650)),
+                            onDateChanged: (DateTime newDate) {
+                              FocusScope.of(context).unfocus();
+                              setState(() {
+                                _deadlineDate = newDate;
+                              });
+                              _updateCalculations();
+                            },
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_drop_down,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : null,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 
@@ -467,21 +348,15 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.black 
-                      : Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: DesignTokens.borderRadius['sm']!,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Required Monthly Savings',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : null,
-                        ),
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const SizedBox(height: 8),
                       _buildMonthlySavingsCalculation(),
@@ -532,33 +407,17 @@ class _AddEditGoalDialogState extends State<AddEditGoalDialog> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'You\'ll need to save',
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white 
-              : null,
-          ),
-        ),
+        const Text('You\'ll need to save'),
         Text(
           monthsLeft > 0 && requiredMonthly >= 0
               ? FormatUtils.formatCurrency(requiredMonthly)
               : '---',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.green 
-              : Theme.of(context).primaryColor,
+            color: DesignTokens.color('success'),
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(
-          'monthly',
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white 
-              : null,
-          ),
-        ),
+        const Text('monthly'),
       ]
       );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import 'package:lottie/lottie.dart';
 
 class StreakCelebrationWidget extends StatefulWidget {
@@ -88,10 +89,10 @@ class _StreakCelebrationWidgetState extends State<StreakCelebrationWidget>
   }
   
   Color _getStreakColor() {
-    if (widget.streakCount >= 100) return Colors.purple;
-    if (widget.streakCount >= 30) return Colors.orange;
-    if (widget.streakCount >= 7) return Colors.green;
-    return Colors.blue;
+    if (widget.streakCount >= 100) return DesignTokens.color('primary');
+    if (widget.streakCount >= 30) return DesignTokens.color('warning');
+    if (widget.streakCount >= 7) return DesignTokens.color('success');
+    return DesignTokens.color('info');
   }
   
   String _getStreakMessage() {
@@ -246,7 +247,7 @@ class _StreakCelebrationWidgetState extends State<StreakCelebrationWidget>
                                   Text(
                                     'You\'re building an amazing savings habit!',
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: Colors.grey.shade600,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       fontStyle: FontStyle.italic,
                                     ),
                                     textAlign: TextAlign.center,
@@ -323,7 +324,7 @@ class _StreakCelebrationWidgetState extends State<StreakCelebrationWidget>
             Text(
               'Progress to $nextMilestone ${widget.streakType}s',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 12,
               ),
             ),
@@ -340,7 +341,7 @@ class _StreakCelebrationWidgetState extends State<StreakCelebrationWidget>
         const SizedBox(height: 8),
         LinearProgressIndicator(
           value: progress,
-          backgroundColor: Colors.grey.shade200,
+          backgroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
           valueColor: AlwaysStoppedAnimation(streakColor),
           minHeight: 6,
         ),

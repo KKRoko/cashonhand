@@ -30,12 +30,10 @@ class GoalListItem extends StatelessWidget {
     return AnimatedContainer(
       duration: DesignTokens.duration('normal'),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.black 
-          : DesignTokens.color('surface'),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: DesignTokens.radius('md'),
-        boxShadow: isExpanded 
-            ? DesignTokens.shadow('lg') 
+        boxShadow: isExpanded
+            ? DesignTokens.shadow('lg')
             : DesignTokens.shadow('sm'),
       ),
       child: Material(
@@ -59,42 +57,29 @@ class GoalListItem extends StatelessWidget {
                           children: [
                             Text(
                               goal.title,
-                              style: DesignTokens.textStyle('titleMedium').copyWith(
-                                color: Theme.of(context).brightness == Brightness.dark 
-                                  ? Colors.white 
-                                  : null,
-                              ),
+                              style: DesignTokens.textStyle('titleMedium'),
                             ),
                             Text(
                               'Target: ${FormatUtils.formatCurrency(goal.targetAmount)}',
                               style: DesignTokens.textStyle('bodySmall').copyWith(
-                                color: Theme.of(context).brightness == Brightness.dark 
-                                  ? Colors.white70 
-                                  : DesignTokens.color('textSecondary'),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
-                        Icons.edit_outlined,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : null,
-                      ),
-                      onPressed: onEdit,
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: onEdit,
                       ),
                       AnimatedRotation(
-                      duration: DesignTokens.duration('normal'),
-                      turns: isExpanded ? 0.5 : 0,
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70 
-                          : DesignTokens.color('textSecondary'),
+                        duration: DesignTokens.duration('normal'),
+                        turns: isExpanded ? 0.5 : 0,
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
                   ],
                   ),
                   VSpace('sm'),
@@ -162,19 +147,12 @@ class GoalListItem extends StatelessWidget {
       children: [
         Text(
           label,
-          style: DesignTokens.textStyle('bodyMedium').copyWith(
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white 
-              : null,
-          ),
+          style: DesignTokens.textStyle('bodyMedium'),
         ),
         Text(
           value,
           style: DesignTokens.textStyle('bodyMedium').copyWith(
             fontWeight: FontWeight.w500,
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white 
-              : null,
           ),
         ),
       ],

@@ -7,18 +7,22 @@ class BudgetPieChart extends StatelessWidget {
   final Map<BucketType, double> bucketAmounts;
   final String centerText;
   final String? subtitle;
+  final bool showLegend;
+  final bool isActualView;
 
   const BudgetPieChart({
     super.key,
     required this.bucketAmounts,
     required this.centerText,
     this.subtitle,
+    this.showLegend = true,
+    this.isActualView = false,
   });
 
-  Color _getBucketColor(BucketType bucket) {
+  Color _getBucketColor(BuildContext context, BucketType bucket) {
     switch (bucket) {
       case BucketType.needs:
-        return DesignTokens.color('primary'); // Green
+        return Theme.of(context).colorScheme.primary; // Green
       case BucketType.wants:
         return DesignTokens.color('info'); // Blue
       case BucketType.savings:
@@ -42,7 +46,7 @@ class BudgetPieChart extends StatelessWidget {
     final total = bucketAmounts.values.fold<double>(0.0, (sum, amount) => sum + amount);
 
     if (total == 0) {
-      return _buildEmptyState();
+      return _buildEmptyState(context);
     }
 
     final sections = bucketAmounts.entries
@@ -53,7 +57,7 @@ class BudgetPieChart extends StatelessWidget {
       return PieChartSectionData(
         value: entry.value,
         title: '${percentage.toStringAsFixed(0)}%',
-        color: _getBucketColor(entry.key),
+        color: _getBucketColor(context, entry.key),
         radius: 100,
         titleStyle: const TextStyle(
           fontSize: 16,
@@ -86,7 +90,7 @@ class BudgetPieChart extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: DesignTokens.color('textPrimary'),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     if (subtitle != null) ...[
@@ -95,7 +99,7 @@ class BudgetPieChart extends StatelessWidget {
                         subtitle!,
                         style: TextStyle(
                           fontSize: 12,
-                          color: DesignTokens.color('textSecondary'),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -105,13 +109,15 @@ class BudgetPieChart extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
-        _buildLegend(total),
+        if (showLegend) ...[
+          const SizedBox(height: 24),
+          _buildLegend(context, total),
+        ],
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Column(
       children: [
         SizedBox(
@@ -121,18 +127,30 @@ class BudgetPieChart extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.pie_chart_outline,
+                  isActualView ? Icons.receipt_long_outlined : Icons.pie_chart_outline,
                   size: 64,
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No budget data',
+                  isActualView ? 'No spending recorded yet' : 'No budget data',
                   style: TextStyle(
                     fontSize: 16,
-                    color: DesignTokens.color('textSecondary'),
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (isActualView) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Transactions will appear here\nas you add them',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -141,7 +159,7 @@ class BudgetPieChart extends StatelessWidget {
     );
   }
 
-  Widget _buildLegend(double total) {
+  Widget _buildLegend(BuildContext context, double total) {
     return Wrap(
       spacing: 24,
       runSpacing: 12,
@@ -156,7 +174,7 @@ class BudgetPieChart extends StatelessWidget {
               width: 16,
               height: 16,
               decoration: BoxDecoration(
-                color: _getBucketColor(entry.key),
+                color: _getBucketColor(context, entry.key),
                 shape: BoxShape.circle,
               ),
             ),
@@ -165,7 +183,7 @@ class BudgetPieChart extends StatelessWidget {
               '${_getBucketLabel(entry.key)}: \$${entry.value.toStringAsFixed(0)} (${percentage.toStringAsFixed(0)}%)',
               style: TextStyle(
                 fontSize: 14,
-                color: DesignTokens.color('textPrimary'),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

@@ -9,6 +9,7 @@ import 'package:cash_on_hand/state/achievement_state.dart';
 import 'package:cash_on_hand/state/saving_goal_notifier.dart';
 import 'package:cash_on_hand/services/notification_service.dart';
 import 'package:cash_on_hand/services/achievement_service.dart';
+import 'package:cash_on_hand/services/currency_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,10 @@ void main() async {
   // Initialize app settings service
   final appSettingsService = getIt<app_settings.SettingsService>();
   await appSettingsService.initialize();
+
+  // Initialize currency service
+  final currencyService = getIt<CurrencyService>();
+  await currencyService.initialize();
 
   // Initialize notification service with periodic checks
   final notificationService = getIt<NotificationService>();
@@ -57,6 +62,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (context) => getIt<SavingGoalNotifier>(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => getIt<CurrencyService>(),
         ),
       ],
       child: MyApp(settingsController: settingsController),

@@ -1,3 +1,5 @@
+import '../../theme/design_tokens.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/database/database.dart';
@@ -134,8 +136,8 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
       child: ElevatedButton.icon(
         onPressed: _showQuickAllocateOptions,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green.shade50,
-          foregroundColor: Colors.green.shade700,
+          backgroundColor: DesignTokens.color('success').withOpacity(0.1),
+          foregroundColor: DesignTokens.color('success'),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
@@ -234,57 +236,31 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
-      surfaceTintColor: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.transparent 
-        : null,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Column(
         children: [
           // Header with expand/collapse
           ListTile(
-            tileColor: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.transparent 
-              : null,
             leading: Icon(
               Icons.savings,
-              color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : (_allocations.isEmpty ? Colors.grey : Colors.green),
+              color: _allocations.isEmpty ? Theme.of(context).colorScheme.onSurfaceVariant : DesignTokens.color('success'),
             ),
-            title: Text(
+            title: const Text(
               'Allocate to Savings Goals',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : null,
               ),
             ),
-            subtitle: _allocations.isNotEmpty 
+            subtitle: _allocations.isNotEmpty
               ? Text(
                   '${_allocations.length} allocations • \$${_totalAllocated.toStringAsFixed(2)} total',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
-                  ),
                 )
-              : Text(
+              : const Text(
                   'Add allocations to your savings goals',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
-                  ),
                 ),
             trailing: IconButton(
               icon: Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : null,
               ),
               onPressed: () => setState(() => _isExpanded = !_isExpanded),
             ),
@@ -316,24 +292,11 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
                       spacing: 8,
                       runSpacing: 8,
                       children: _availableGoalsToAdd.map((goal) => ActionChip(
-                        avatar: Icon(
-                          Icons.add, 
+                        avatar: const Icon(
+                          Icons.add,
                           size: 18,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : null,
                         ),
-                        label: Text(
-                          goal.title,
-                          style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white 
-                              : null,
-                          ),
-                        ),
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.grey.shade800 
-                          : null,
+                        label: Text(goal.title),
                         onPressed: () => _addAllocation(goal),
                       )).toList(),
                     ),
@@ -345,28 +308,23 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.grey.shade800 
-                          : Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: DesignTokens.borderRadius['sm']!,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Remaining:', 
+                          const Text(
+                            'Remaining:',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white 
-                                : null,
                             ),
                           ),
                           Text(
                             '\$${_remainingAmount.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: _remainingAmount < 0 ? Colors.red : Colors.green,
+                              color: _remainingAmount < 0 ? DesignTokens.color('error') : DesignTokens.color('success'),
                             ),
                           ),
                         ],
@@ -399,11 +357,8 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
             flex: 2,
             child: Text(
               allocation.goalTitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.w500,
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : null,
               ),
             ),
           ),
@@ -414,11 +369,6 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
               controller: controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
-              style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.black 
-                  : null,
-              ),
               decoration: const InputDecoration(
                 prefixText: '\$',
                 border: OutlineInputBorder(),
@@ -436,12 +386,9 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
             ),
           ),
           IconButton(
-            icon: Icon(
-              Icons.close, 
+            icon: const Icon(
+              Icons.close,
               size: 18,
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.white 
-                : null,
             ),
             onPressed: () => _removeAllocation(index),
           ),

@@ -93,8 +93,13 @@ class AchievementNotifier extends ChangeNotifier {
   List<Achievement> get unlockedAchievements => 
     _achievements.where((achievement) => achievement.isUnlocked).toList();
 
+  /// Reload achievements from database
+  Future<void> reload() async {
+    await _initialize();
+  }
+
   List<Achievement> get inProgressAchievements =>
-    _achievements.where((achievement) => 
+    _achievements.where((achievement) =>
       !achievement.isUnlocked && achievement.progress > 0
     ).toList();
 

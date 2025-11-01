@@ -275,20 +275,15 @@ class _CalendarScreenState extends State<CalendarScreen> with WidgetsBindingObse
       final eventNotifier = context.read<EventNotifier>();
       
       final categoryType = isPositiveCashflow ? CategoryType.income : CategoryType.expense;
-final categories = categoryNotifier.getCategoriesByType(categoryType)
-    .map((category) => CategoryTableData(
-          id: category.id,
-          name: category.name,
-          type: category.type,
-          parentCategoryId: null,
-          icon: null,
-          sortOrder: 0,
-          isActive: true,
-          isSystem: false,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ))
-    .toList();
+
+      // Load categories directly from database to get isSystem field
+      final database = getIt<Database>();
+      final allCategories = await database.getCategories(type: categoryType);
+
+      // Filter out system categories (like "Budget Surplus") but keep both parents and children
+      final categories = allCategories
+          .where((category) => category.isActive && !category.isSystem)
+          .toList();
 
       if (categories.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -298,7 +293,6 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
       }
 
       // Get available goals for allocation
-      final database = getIt<Database>();
       final availableGoals = await database.getActiveGoals();
       print("Debug: Found ${availableGoals.length} active goals for allocation");
       
@@ -385,21 +379,16 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
   Future<void> _showEditEventDialog(Event event) async {
     final categoryNotifier = context.read<CategoryNotifier>();
     final eventNotifier = context.read<EventNotifier>();
-    
+
     final categoryType = event.isPositiveCashflow ? CategoryType.income : CategoryType.expense;
-    final categories = categoryNotifier.getCategoriesByType(categoryType)
-        .map((category) => CategoryTableData(
-              id: category.id,
-              name: category.name,
-              type: category.type,
-              parentCategoryId: null,
-              icon: null,
-              sortOrder: 0,
-              isActive: true,
-              isSystem: false,
-              createdAt: DateTime.now(),
-              updatedAt: DateTime.now(),
-            ))
+
+    // Load categories directly from database to get isSystem field
+    final database = getIt<Database>();
+    final allCategories = await database.getCategories(type: categoryType);
+
+    // Filter out system categories (like "Budget Surplus") but keep both parents and children
+    final categories = allCategories
+        .where((category) => category.isActive && !category.isSystem)
         .toList();
 
     if (categories.isEmpty) {
@@ -410,7 +399,6 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
     }
 
     // Get available goals for allocation
-    final database = getIt<Database>();
     final availableGoals = await database.getActiveGoals();
     print("Debug: Found ${availableGoals.length} active goals for edit dialog");
     
@@ -609,14 +597,10 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
             child: Container(
               padding: EdgeInsets.all(DesignTokens.space('lg')),
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.black 
-                  : DesignTokens.color('surface'),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: Border(
                   top: BorderSide(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white30 
-                      : DesignTokens.color('border'),
+                    color: Theme.of(context).colorScheme.outline,
                     width: 1.0,
                   ),
                 ),
@@ -665,7 +649,6 @@ final categories = categoryNotifier.getCategoriesByType(categoryType)
 
     return CashCard(
       financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.income,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -20,4 +20,7 @@ abstract class ICategoryRepository {
   });
   Future<Either<Failure, bool>> softDeleteCategory(int id);
   Future<Either<Failure, List<Category>>> getActiveCategories();
+
+  // Get child categories for budgeting (excludes parent/folder categories)
+  Future<Either<Failure, List<Category>>> getExpenseChildCategories();
 }

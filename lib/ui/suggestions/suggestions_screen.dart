@@ -176,7 +176,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Text(
               'Analyzing your financial data...',
               style: DesignTokens.textStyle('bodyLarge').copyWith(
-                color: DesignTokens.color('textSecondary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -206,7 +206,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
                 _error!,
                 textAlign: TextAlign.center,
                 style: DesignTokens.textStyle('bodyMedium').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               VSpace('xl'),
@@ -285,13 +285,13 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               Icon(
                 Icons.notifications_off_outlined,
                 size: 80,
-                color: DesignTokens.color('textTertiary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               VSpace('xl'),
               Text(
                 'No Active Notifications',
                 style: DesignTokens.textStyle('headlineMedium').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               VSpace('lg'),
@@ -299,7 +299,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
                 'We\'ll notify you about important financial insights and goal updates.',
                 textAlign: TextAlign.center,
                 style: DesignTokens.textStyle('bodyLarge').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -327,7 +327,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
           backgroundColor: _getNotificationColor(notification.priority),
           child: Icon(
             _getNotificationIcon(notification.type),
-            color: DesignTokens.color('onPrimary'),
+            color: Theme.of(context).colorScheme.onPrimary,
             size: 20,
           ),
         ),
@@ -349,7 +349,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Text(
               _formatNotificationTime(notification.createdAt),
               style: DesignTokens.textStyle('bodySmall').copyWith(
-                color: DesignTokens.color('textSecondary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -386,13 +386,13 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Icon(
               Icons.lightbulb_outline,
               size: 80,
-              color: DesignTokens.color('textTertiary'),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             VSpace('xl'),
             Text(
               'No Suggestions Available',
               style: DesignTokens.textStyle('headlineMedium').copyWith(
-                color: DesignTokens.color('textSecondary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             VSpace('lg'),
@@ -400,7 +400,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               'Keep using the app and we\'ll provide personalized financial insights based on your spending patterns.',
               textAlign: TextAlign.center,
               style: DesignTokens.textStyle('bodyLarge').copyWith(
-                color: DesignTokens.color('textSecondary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             VSpace('2xl'),

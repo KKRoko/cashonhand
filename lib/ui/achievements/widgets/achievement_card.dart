@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../data/models/freezed/achievement_base_implementation.dart';
 import '../../../services/achievement_sharing_service.dart';
 import '../../../core/di/injection.dart';
+import '../../../theme/design_tokens.dart';
 import 'achievement_progress_indicator.dart';
 import 'achievement_celebration_overlay.dart';
 
@@ -31,12 +32,13 @@ class AchievementCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: achievement.isUnlocked ? 4 : 2,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: InkWell(
         onTap: achievement.isUnlocked ? () => _showCelebration(context) : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: DesignTokens.borderRadius['md']!,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: DesignTokens.borderRadius['md']!,
             border: achievement.isUnlocked 
                 ? Border.all(color: tierColor.withOpacity(0.3), width: 1)
                 : null,
@@ -56,14 +58,14 @@ class AchievementCard extends StatelessWidget {
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: achievement.isUnlocked 
+                            color: achievement.isUnlocked
                                 ? tierColor.withOpacity(0.1)
-                                : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(25),
+                                : Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: DesignTokens.borderRadius['full']!,
                             border: Border.all(
-                              color: achievement.isUnlocked 
+                              color: achievement.isUnlocked
                                   ? tierColor.withOpacity(0.3)
-                                  : Colors.grey.shade300,
+                                  : Theme.of(context).colorScheme.outline,
                             ),
                           ),
                           child: Center(
@@ -71,9 +73,9 @@ class AchievementCard extends StatelessWidget {
                               achievement.emoji,
                               style: TextStyle(
                                 fontSize: 24,
-                                color: achievement.isUnlocked 
-                                    ? null 
-                                    : Colors.grey.shade400,
+                                color: achievement.isUnlocked
+                                    ? null
+                                    : Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -87,12 +89,15 @@ class AchievementCard extends StatelessWidget {
                               height: 20,
                               decoration: BoxDecoration(
                                 color: tierColor,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.white, width: 2),
+                                borderRadius: DesignTokens.borderRadius['sm']!,
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  width: 2,
+                                ),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.check,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.surface,
                                 size: 12,
                               ),
                             ),
@@ -114,9 +119,9 @@ class AchievementCard extends StatelessWidget {
                                   achievement.title,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
-                                    color: achievement.isUnlocked 
-                                        ? null 
-                                        : Colors.grey.shade600,
+                                    color: achievement.isUnlocked
+                                        ? theme.colorScheme.onSurface
+                                        : theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ),
@@ -125,7 +130,7 @@ class AchievementCard extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: tierColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: DesignTokens.borderRadius['sm']!,
                                     border: Border.all(color: tierColor.withOpacity(0.3)),
                                   ),
                                   child: Text(
@@ -159,7 +164,7 @@ class AchievementCard extends StatelessWidget {
                                   Text(
                                     '${achievement.unlockedAt!.month}/${achievement.unlockedAt!.day}/${achievement.unlockedAt!.year}',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey.shade500,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                               ],
@@ -205,9 +210,9 @@ class AchievementCard extends StatelessWidget {
                 Text(
                   achievement.description,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: achievement.isUnlocked 
-                        ? null 
-                        : Colors.grey.shade600,
+                    color: achievement.isUnlocked
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 
@@ -224,7 +229,7 @@ class AchievementCard extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: tierColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: DesignTokens.borderRadius['sm']!,
                       border: Border.all(color: tierColor.withOpacity(0.2)),
                     ),
                     child: Row(

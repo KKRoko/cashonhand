@@ -108,7 +108,6 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
   Widget _buildOverallProgress() {
     return CashCard(
       financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.income,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black : null,
       padding: EdgeInsets.all(DesignTokens.space('lg')),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,9 +115,9 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
           Row(
             children: [
               Icon(
-                Icons.savings, 
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
+                Icons.savings,
+                color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
                   : DesignTokens.color('income'),
               ),
               HSpace('md'),
@@ -126,9 +125,10 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                 child: Text(
                   'Overall Savings Progress',
                   style: DesignTokens.textStyle('titleMedium').copyWith(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
+                    color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
                       : DesignTokens.color('income'),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -221,17 +221,13 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                           Icon(
                             Icons.savings_outlined,
                             size: 48,
-                            color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white 
-                              : DesignTokens.color('textTertiary'),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                           VSpace('lg'),
                           Text(
                             'No saving goals yet',
                             style: DesignTokens.textStyle('bodyLarge').copyWith(
-                              color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white 
-                                : DesignTokens.color('textSecondary'),
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                           VSpace('sm'),

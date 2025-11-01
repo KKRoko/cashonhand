@@ -4,6 +4,9 @@ import '../theme/design_tokens.dart';
 import '../ui/components/cash_components.dart';
 import '../ui/settings/round_up_settings_screen.dart';
 import '../ui/allocation_rules/allocation_rules_screen.dart';
+import '../ui/widgets/currency_selector.dart';
+import '../services/currency_service.dart';
+import '../core/di/injection.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({
@@ -39,25 +42,37 @@ class SettingsView extends StatelessWidget {
               HSpace('sm'),
               FinancialButton(
                 onPressed: () async {
+                  // Capture the navigator and scaffold messenger before popping dialog
+                  final navigator = Navigator.of(context, rootNavigator: true);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                  // Close dialog
                   Navigator.of(context).pop();
+
                   try {
                     await controller.resetAllData();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('All data has been reset successfully'),
-                        ),
-                      );
-                    }
+
+                    // Navigate to home using the captured navigator
+                    navigator.pushNamedAndRemoveUntil(
+                      '/',
+                      (route) => false,
+                    );
+
+                    // Show success message
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('All data has been reset successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
                   } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error resetting data: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Error resetting data: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   }
                 },
                 financialType: FinancialButtonType.expense,
@@ -127,6 +142,33 @@ class SettingsView extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          VSpace('lg'),
+          CashCard(
+            child: Padding(
+              padding: EdgeInsets.all(DesignTokens.space('md')),
+              child: ListenableBuilder(
+                listenable: getIt<CurrencyService>(),
+                builder: (context, _) {
+                  final currencyService = getIt<CurrencyService>();
+                  return CurrencySelector(
+                    selectedCurrency: currencyService.selectedCurrency,
+                    onCurrencySelected: (currency) async {
+                      await currencyService.updateCurrency(currency);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Currency updated to ${currency.name}'),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
               ),
             ),
           ),

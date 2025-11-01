@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import 'package:confetti/confetti.dart';
 import '../../../data/models/freezed/achievement_base_implementation.dart';
 import 'package:share_plus/share_plus.dart';
@@ -136,7 +137,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.black.withOpacity(0.8),
+      color: Theme.of(context).colorScheme.scrim.withOpacity(0.8),
       child: Stack(
         children: [
           // Background tap to dismiss
@@ -158,11 +159,11 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
               gravity: 0.1,
               colors: [
                 _getTierColor(),
-                Colors.orange,
-                Colors.yellow,
-                Colors.green,
-                Colors.blue,
-                Colors.purple,
+                DesignTokens.color('warning'),
+                DesignTokens.color('warning'),
+                DesignTokens.color('success'),
+                DesignTokens.color('info'),
+                DesignTokens.color('primary'),
               ],
             ),
           ),
@@ -201,8 +202,8 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       margin: const EdgeInsets.all(32),
       constraints: const BoxConstraints(maxWidth: 350),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: DesignTokens.borderRadius['xl']!,
         boxShadow: [
           BoxShadow(
             color: tierColor.withOpacity(0.3),
@@ -224,7 +225,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: BorderRadius.vertical(top: (DesignTokens.borderRadius['lg']!).topLeft),
             ),
             child: Column(
               children: [
@@ -232,8 +233,8 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(15),
+                    color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                    borderRadius: DesignTokens.borderRadius['lg']!,
                   ),
                   child: Text(
                     '${widget.achievement.tierName} Tier',
@@ -256,11 +257,11 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withOpacity(_sparkleAnimation.value * 0.5),
+                              color: Theme.of(context).colorScheme.surface.withOpacity(_sparkleAnimation.value * 0.5),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -283,7 +284,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                 Text(
                   'Achievement Unlocked!',
                   style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -322,7 +323,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: tierColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: DesignTokens.borderRadius['xl']!,
                     border: Border.all(color: tierColor.withOpacity(0.3)),
                   ),
                   child: Row(
@@ -352,7 +353,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                   widget.achievement.celebrationMessage,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontStyle: FontStyle.italic,
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -381,12 +382,10 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                           onPressed: _shareAchievement,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: tierColor,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
                           ),
-                          icon: const Icon(Icons.share, color: Colors.white),
-                          label: const Text(
-                            'Share',
-                            style: TextStyle(color: Colors.white),
-                          ),
+                          icon: const Icon(Icons.share),
+                          label: const Text('Share'),
                         ),
                       ),
                     ],

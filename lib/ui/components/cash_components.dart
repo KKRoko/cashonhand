@@ -2,8 +2,10 @@
 // Pre-built components using design tokens for consistent UI implementation
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/design_tokens.dart';
 import '../../theme/enhanced_theme.dart';
+import '../../services/currency_service.dart';
 
 /// 🎨 COMPONENT LIBRARY - Reusable UI Building Blocks
 /// These components use design tokens and provide consistent styling across the app
@@ -17,7 +19,6 @@ class FinancialAmount extends StatelessWidget {
     this.size = FinancialAmountSize.medium,
     this.showSign = true,
     this.showCurrency = true,
-    this.currency = '\$',
     this.style,
     this.maxWidth,
     this.adaptive = true,
@@ -27,7 +28,6 @@ class FinancialAmount extends StatelessWidget {
   final FinancialAmountSize size;
   final bool showSign;
   final bool showCurrency;
-  final String currency;
   final TextStyle? style;
   final double? maxWidth;
   final bool adaptive; // Whether to use adaptive scaling
@@ -35,6 +35,10 @@ class FinancialAmount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financial = context.financial;
+    // Get currency symbol from CurrencyService - will rebuild when currency changes
+    final currencyService = Provider.of<CurrencyService>(context);
+    final currency = currencyService.currencySymbol;
+
     final isPositive = amount >= 0;
     final isZero = amount == 0;
     
@@ -137,17 +141,28 @@ class FinancialAmount extends StatelessWidget {
     );
   }
 
-  /// Smart number formatting that abbreviates large amounts
+  /// Format amount with comma separators and 2 decimal places
   String _formatAmount(double amount) {
-    if (amount >= 1000000000) {
-      return '${(amount / 1000000000).toStringAsFixed(1)}B';
-    } else if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(1)}K';
-    } else {
-      return amount.toStringAsFixed(2);
+    // Format with 2 decimal places
+    final formatted = amount.toStringAsFixed(2);
+
+    // Split into whole and decimal parts
+    final parts = formatted.split('.');
+    final wholePart = parts[0];
+    final decimalPart = parts.length > 1 ? parts[1] : '00';
+
+    // Add comma separators to whole part
+    String result = '';
+    int count = 0;
+    for (int i = wholePart.length - 1; i >= 0; i--) {
+      if (count > 0 && count % 3 == 0) {
+        result = ',$result';
+      }
+      result = wholePart[i] + result;
+      count++;
     }
+
+    return '$result.$decimalPart';
   }
 }
 
@@ -257,27 +272,40 @@ class CashCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financial = context.financial;
-    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     // Determine background color based on financial context and theme
-    Color bgColor = backgroundColor ?? (Theme.of(context).brightness == Brightness.dark 
-      ? Colors.black 
-      : DesignTokens.color('surface'));
-    Color border = borderColor ?? (Theme.of(context).brightness == Brightness.dark 
-      ? Colors.transparent 
-      : DesignTokens.color('border'));
-    
+    Color bgColor = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
+    Color border = borderColor ?? Theme.of(context).colorScheme.outline;
+
     if (financialContext != null) {
+      // In dark mode, all cards use the same dark background
+      // In light mode, cards use colored backgrounds for context
+      if (isDark) {
+        bgColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+      } else {
+        switch (financialContext!) {
+          case FinancialContext.income:
+            bgColor = DesignTokens.color('incomeLight');
+            break;
+          case FinancialContext.expense:
+            bgColor = DesignTokens.color('expenseLight');
+            break;
+          case FinancialContext.neutral:
+            bgColor = DesignTokens.color('neutralLight');
+            break;
+        }
+      }
+
+      // Border color uses financial context in both light and dark mode
       switch (financialContext!) {
         case FinancialContext.income:
-          bgColor = financial.incomeBackground;
           border = financial.incomeColor.withValues(alpha: 0.3);
           break;
         case FinancialContext.expense:
-          bgColor = financial.expenseBackground;
           border = financial.expenseColor.withValues(alpha: 0.3);
           break;
         case FinancialContext.neutral:
-          bgColor = financial.neutralBackground;
           border = financial.neutralColor.withValues(alpha: 0.3);
           break;
       }
@@ -343,7 +371,7 @@ class PrimaryButton extends StatelessWidget {
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: DesignTokens.color('onPrimary'),
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               )
             : (icon != null ? Icon(icon, size: _getIconSize(size)) : const SizedBox.shrink()),
@@ -723,7 +751,7 @@ class FinancialProgressBar extends StatelessWidget {
                 size: FinancialAmountSize.small,
                 showSign: false,
                 style: DesignTokens.textStyle('amountSmall').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -760,13 +788,13 @@ class CategoryChip extends StatelessWidget {
     final financial = context.financial;
     
     Color backgroundColor = DesignTokens.color('surfaceContainer');
-    Color textColor = DesignTokens.color('textPrimary');
-    Color borderColor = DesignTokens.color('border');
+    Color textColor = Theme.of(context).colorScheme.onSurface;
+    Color borderColor = Theme.of(context).colorScheme.outline;
     
     if (selected) {
       backgroundColor = DesignTokens.color('primaryContainer');
       textColor = DesignTokens.color('onPrimaryContainer');
-      borderColor = DesignTokens.color('primary');
+      borderColor = Theme.of(context).colorScheme.primary;
     } else if (financialContext != null) {
       switch (financialContext!) {
         case FinancialContext.income:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import '../../../data/models/freezed/event.dart';
 import '../../../theme/app_theme.dart';
 import 'event_list_item.dart';

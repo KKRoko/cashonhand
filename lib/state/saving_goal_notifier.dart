@@ -1,10 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'dart:collection';
+import 'package:injectable/injectable.dart';
 import '../data/models/freezed/saving_goal.dart';
 import '../data/repositories/saving_goal_repository.dart';
 import '../services/saving_goal_service.dart';
 import '../services/goal_update_notifier.dart';
 
+@injectable
 class SavingGoalNotifier extends ChangeNotifier {
   final List<SavingGoal> _goals = [];
   final SavingGoalService _service;

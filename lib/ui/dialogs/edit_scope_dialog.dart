@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/design_tokens.dart';
 import '../../data/models/enums/edit_option.dart';
 import '../../data/models/freezed/event.dart';
 
@@ -62,20 +63,20 @@ class _EditScopeDialogState extends State<EditScopeDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: DesignTokens.color('info'),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: DesignTokens.color('info')),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.savings, color: Colors.blue.shade600, size: 16),
+                  Icon(Icons.savings, color: DesignTokens.color('info'), size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Goal allocation changes will be applied to the selected events',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.blue.shade700,
+                        color: DesignTokens.color('info'),
                         fontWeight: FontWeight.w500,
                       ),
                     ),

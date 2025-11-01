@@ -6,6 +6,8 @@ import '../../data/repositories/i_category_repository.dart';
 import '../../data/repositories/saving_goal_repository.dart';
 import '../../data/repositories/event_repository.dart';
 import '../../data/repositories/i_event_repository.dart';
+import '../../data/repositories/budget_repository.dart';
+import '../../data/repositories/year_end_goal_repository.dart';
 import '../../services/category_service.dart';
 import '../../services/saving_goal_service.dart';
 import '../../services/event_service.dart';
@@ -16,8 +18,10 @@ import '../../state/category_notifier.dart';
 import '../../state/saving_goal_notifier.dart';
 import '../../state/event_notifier.dart';
 import '../../state/budget_notifier.dart';
+import '../../state/achievement_state.dart';
 import '../../services/achievement_service.dart';
 import '../../services/allocation_service.dart';
+import '../../services/allocation_template_service.dart';
 import '../../services/round_up_service.dart';
 import '../../services/settings_service.dart' as app_settings;
 import '../../services/auto_allocation_rules_engine.dart';
@@ -25,6 +29,8 @@ import '../../services/financial_suggestions_engine.dart';
 import '../../services/notification_service.dart';
 import '../../services/savings_opportunity_detector.dart';
 import '../../services/smart_categorization_service.dart';
+import '../../services/surplus_allocation_service.dart';
+import '../../services/budget_analytics_service.dart';
 import 'injection.config.dart';
 
 final getIt = GetIt.instance;
@@ -157,6 +163,8 @@ Future<void> configureDependencies() async {
         getIt<Database>(),
         getIt<EventNotifier>(),
         getIt<CategoryNotifier>(),
+        getIt<SavingGoalNotifier>(),
+        getIt<AchievementNotifier>(),
       ),
     );
   }
@@ -189,12 +197,23 @@ Future<void> configureDependencies() async {
     );
   }
 
+  // Add Budget Analytics Service registration (must be before NotificationService)
+  if (!getIt.isRegistered<BudgetAnalyticsService>()) {
+    getIt.registerLazySingleton<BudgetAnalyticsService>(
+      () => BudgetAnalyticsService(
+        getIt<IBudgetRepository>(),
+        getIt<IYearEndGoalRepository>(),
+      ),
+    );
+  }
+
   // Add Notification Service registration
   if (!getIt.isRegistered<NotificationService>()) {
     getIt.registerLazySingleton<NotificationService>(
       () => NotificationService(
         getIt<ISavingGoalRepository>(),
         getIt<FinancialSuggestionsEngine>(),
+        getIt<BudgetAnalyticsService>(),
       ),
     );
   }
@@ -206,10 +225,26 @@ Future<void> configureDependencies() async {
     );
   }
 
-  // Add Budget Notifier registration
+  // Add Surplus Allocation Service registration
+  if (!getIt.isRegistered<SurplusAllocationService>()) {
+    getIt.registerLazySingleton<SurplusAllocationService>(
+      () => SurplusAllocationService(
+        getIt<Database>(),
+        getIt<IEventRepository>(),
+        getIt<ISavingGoalRepository>(),
+      ),
+    );
+  }
+
+  // Add Budget Notifier registration (with optional services)
   if (!getIt.isRegistered<BudgetNotifier>()) {
     getIt.registerFactory<BudgetNotifier>(
-      () => BudgetNotifier(getIt<BudgetService>()),
+      () => BudgetNotifier(
+        getIt<BudgetService>(),
+        getIt<AllocationTemplateService>(),
+        getIt.isRegistered<NotificationService>() ? getIt<NotificationService>() : null,
+        getIt.isRegistered<SurplusAllocationService>() ? getIt<SurplusAllocationService>() : null,
+      ),
     );
   }
 }

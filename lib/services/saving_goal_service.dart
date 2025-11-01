@@ -1,10 +1,12 @@
 // saving_goal_service.dart
 import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import '../core/error/failures.dart';
 import '../data/repositories/saving_goal_repository.dart';
 import '../data/models/freezed/saving_goal.dart';
 import '../services/achievement_service.dart';
 
+@injectable
 class SavingGoalService {
   final ISavingGoalRepository _repository;
   final AchievementService _achievementService;

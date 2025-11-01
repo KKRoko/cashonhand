@@ -124,12 +124,38 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       children: [
         // Search bar
         TextField(
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
           decoration: InputDecoration(
             hintText: 'Search transactions...',
-            prefixIcon: const Icon(Icons.search),
+            hintStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+            ),
+            prefixIcon: Icon(
+              Icons.search,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             border: OutlineInputBorder(
               borderRadius: DesignTokens.radius('md'),
-              borderSide: BorderSide(color: DesignTokens.color('border')),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: DesignTokens.radius('md'),
+              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: DesignTokens.radius('md'),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: DesignTokens.space('md'),
@@ -210,9 +236,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     styleToken: 'titleSmall',
                     style: DesignTokens.textStyle('titleSmall').copyWith(
                       fontWeight: FontWeight.w600,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.black 
-                          : null,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
                     maxLines: 2,
                   ),
@@ -245,7 +271,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         snapshot.data ?? 'Loading...',
                         styleToken: 'bodyMedium',
                         style: DesignTokens.textStyle('bodyMedium').copyWith(
-                          color: DesignTokens.color('textSecondary'),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       );
                     },
@@ -255,7 +281,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   _formatDate(transaction.dateTime),
                   styleToken: 'bodySmall',
                   style: DesignTokens.textStyle('bodySmall').copyWith(
-                    color: DesignTokens.color('textSecondary'),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -268,14 +294,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   Icon(
                     Icons.repeat,
                     size: 14,
-                    color: DesignTokens.color('textTertiary'),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   HSpace('xs'),
                   ResponsiveText(
                     'Recurring',
                     styleToken: 'bodySmall',
                     style: DesignTokens.textStyle('bodySmall').copyWith(
-                      color: DesignTokens.color('textTertiary'),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -317,9 +343,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             'Total: ',
                             styleToken: 'bodyMedium',
                             style: DesignTokens.textStyle('bodyMedium').copyWith(
-                              color: Theme.of(context).brightness == Brightness.dark 
-                                  ? Colors.white 
-                                  : DesignTokens.color('textSecondary'),
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                       ],
@@ -335,14 +360,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                   Icon(
                                     Icons.receipt_long_outlined,
                                     size: 64,
-                                    color: DesignTokens.color('textTertiary'),
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                   VSpace('md'),
                                   ResponsiveText(
                                     'No transactions found',
                                     styleToken: 'titleMedium',
                                     style: DesignTokens.textStyle('titleMedium').copyWith(
-                                      color: DesignTokens.color('textSecondary'),
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -353,7 +378,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                         : 'Start adding transactions to see them here',
                                     styleToken: 'bodyMedium',
                                     style: DesignTokens.textStyle('bodyMedium').copyWith(
-                                      color: DesignTokens.color('textTertiary'),
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),

@@ -13,6 +13,7 @@ import '../widgets/hierarchical_category_selector.dart';
 import '../../data/models/enums/category_type.dart';
 import '../../services/smart_categorization_service.dart';
 import '../../core/di/injection.dart';
+import '../../theme/design_tokens.dart';
 
 class AddEditEventDialog extends StatefulWidget {
   final DateTime selectedDay;
@@ -389,9 +390,9 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       _showTitleError = _titleController.text.isEmpty;
     });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please fill in all required fields'),
+          backgroundColor: DesignTokens.color('error'),
         ),
       );
       return;
@@ -400,9 +401,9 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     // Validate category selection
     if (_selectedCategoryId == -1 || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a category'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please select a category'),
+          backgroundColor: DesignTokens.color('error'),
         ),
       );
       return;
@@ -412,9 +413,9 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
 final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     if (parsedAmount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid amount'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please enter a valid amount'),
+          backgroundColor: DesignTokens.color('error'),
         ),
       );
       return;
@@ -501,29 +502,18 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
 }
 
   Widget _buildAmountCard() {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark 
-            ? Colors.transparent 
-            : (_isPositiveCashflow ? Colors.green.shade200 : Colors.red.shade200),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Amount input field
-            TextField(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Amount input field
+        TextField(
               controller: _amountController,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: _isPositiveCashflow ? Colors.green : Colors.red,
+                color: _isPositiveCashflow
+                    ? DesignTokens.color('income')
+                    : DesignTokens.color('expense'),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
@@ -532,7 +522,23 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               ],
               decoration: InputDecoration(
                 hintText: '0.00',
-                border: InputBorder.none,
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['md']!,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['md']!,
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['md']!,
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
                 errorText:
                     _showAmountError ? 'Amount is required' : null,
               ),
@@ -552,16 +558,32 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               controller: _titleController,
               textCapitalization: TextCapitalization.sentences,
               style: TextStyle(
-                color: Colors.black, // Always black text for better readability
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
                 hintText: "What's this for?",
                 hintStyle: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? const Color(0xFF9E9E9E) 
-                    : Colors.grey.shade600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
                 ),
-                border: InputBorder.none,
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['md']!,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['md']!,
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['md']!,
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
                 errorText: _showTitleError ? 'Description is required' : null,
               ),
               onChanged: (value) {
@@ -574,8 +596,6 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               },
             ),
           ],
-        ),
-      ),
     );
   }
 
@@ -583,14 +603,12 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     Widget _buildBasicDetailsSection() {
     return Card(
       elevation: 0,
-      color: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.transparent 
-          : Colors.grey.shade200),
+        borderRadius: DesignTokens.borderRadius['md']!,
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+        ),
       ),
       child: Column(
         children: [
@@ -603,28 +621,20 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 20, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null),
+                  Icon(Icons.calendar_today, size: 20, color: Theme.of(context).colorScheme.onSurface),
                   const SizedBox(width: 8),
-                  Text('When?',
+                  const Text('When?',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Colors.black, // White text on black cards in dark theme
                       )),
                   const Spacer(),
                   Text(
                     DateFormat('MMM d, y').format(selectedDate),
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white 
-                        : Colors.black, // White text on black cards in dark theme
-                    ),
                   ),
                   const SizedBox(width: 8),
                   RotatedBox(
                     quarterTurns: _isBasicExpanded ? 2 : 0,
-                    child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null),
+                    child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -640,37 +650,11 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   SizedBox(
                     height: 300,
                     child: Theme(
-                      data: Theme.of(context).brightness == Brightness.dark
-                        ? ThemeData.dark().copyWith(
-                            // Dark theme for calendar with white text and borders
-                            colorScheme: ColorScheme.dark(
-                              primary: _isPositiveCashflow ? Colors.green : Colors.red,
-                              onPrimary: Colors.white,
-                              surface: Colors.black,
-                              onSurface: Colors.white,
-                              surfaceContainerHighest: const Color(0xFF333333),
-                              outline: Colors.white,
-                              onSurfaceVariant: Colors.white70,
-                            ),
-                            textTheme: const TextTheme(
-                              bodyLarge: TextStyle(color: Colors.white),
-                              bodyMedium: TextStyle(color: Colors.white),
-                              headlineSmall: TextStyle(color: Colors.white),
-                              titleMedium: TextStyle(color: Colors.white),
-                              titleSmall: TextStyle(color: Colors.white),
-                              labelLarge: TextStyle(color: Colors.white),
-                              labelMedium: TextStyle(color: Colors.white),
-                            ),
-                            iconTheme: const IconThemeData(color: Colors.white),
-                          )
-                        : Theme.of(context).copyWith(
-                            colorScheme: Theme.of(context).colorScheme.copyWith(
-                              primary: Theme.of(context).primaryColor,
-                              onPrimary: Colors.white,
-                              surface: Colors.white,
-                              onSurface: Colors.black,
-                            ),
-                          ),
+                      data: Theme.of(context).copyWith(
+                        colorScheme: Theme.of(context).colorScheme.copyWith(
+                          primary: _isPositiveCashflow ? DesignTokens.color('income') : DesignTokens.color('expense'),
+                        ),
+                      ),
                       child: CalendarDatePicker(
                         initialDate: selectedDate,
                         firstDate: DateTime(2000),
@@ -706,21 +690,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
-      selectedColor: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
-      labelStyle: TextStyle(
-        color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.white 
-          : null,
-      ),
       side: BorderSide(
-        color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.grey.shade600 
-          : Colors.grey.shade300,
+        color: Theme.of(context).colorScheme.outline,
         width: 1,
       ),
       onSelected: (bool selected) {
@@ -764,7 +735,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
   return Row(
     children: [
       Text('Repeat every', style: TextStyle(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null,
+        color: Theme.of(context).colorScheme.onSurface,
         fontSize: 16,
       )),
       const SizedBox(width: 8),
@@ -773,11 +744,11 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         child: TextField(
           controller: _frequencyController,  // Use the existing controller
           keyboardType: TextInputType.number,
-          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.black : null),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            filled: Theme.of(context).brightness == Brightness.dark,
-            fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : null,
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
           onChanged: (value) {
             final frequency = int.tryParse(value) ?? 1;
@@ -799,7 +770,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       ),
       const SizedBox(width: 8),
       Text(_getIntervalLabel(), style: TextStyle(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null,
+        color: Theme.of(context).colorScheme.onSurface,
         fontSize: 16,
       )),
     ],
@@ -815,7 +786,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text('Repeat on:', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null)),
+        Text('Repeat on:', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -852,18 +823,14 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   border: Border.all(
                     color: isSelected
                         ? Theme.of(context).primaryColor
-                        : Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Colors.grey,
+                        : Theme.of(context).colorScheme.outline,
                   ),
                 ),
                 child: Center(
                   child: Text(
                     weekDays[index],
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Colors.grey,
+                      color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -885,25 +852,13 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.black 
-              : null,
-            borderRadius: BorderRadius.circular(8),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: DesignTokens.borderRadius['sm']!,
           ),
           child: CheckboxListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('Repeat at end of month', 
-              style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : null,
-              ),
-            ),
+            title: const Text('Repeat at end of month'),
             value: isEndOfMonth,
-            checkColor: Colors.white,
-            activeColor: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.green 
-              : null,
             onChanged: (value) {
             FocusScope.of(context).unfocus();
             setState(() {
@@ -948,12 +903,9 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
             children: [
               Row(
                 children: [
-                  Text(
+                  const Text(
                     'Day of month',
                     style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white 
-                        : null,
                       fontSize: 16,
                     ),
                   ),
@@ -964,14 +916,12 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                       controller: _dayOfMonthController,
                       keyboardType: TextInputType.number,
                       style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.black 
-                          : null,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        filled: Theme.of(context).brightness == Brightness.dark,
-                        fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : null,
+                        filled: true,
+                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       ),
                       onChanged: (value) {
                         final day = int.tryParse(value);
@@ -987,9 +937,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               Text(
                 'Enter a day between 1 and 31',
                 style: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.grey.shade600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -1003,14 +951,12 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
    Widget _buildRecurrenceSection() {
     return Card(
       elevation: 0,
-      color: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.transparent 
-          : Colors.grey.shade200),
+        borderRadius: DesignTokens.borderRadius['md']!,
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+        ),
       ),
       child: Column(
         children: [
@@ -1019,19 +965,16 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               FocusScope.of(context).unfocus();
               _toggleRecurrenceExpanded();
             },
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: DesignTokens.borderRadius['md']!,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(Icons.repeat, size: 20, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null),
+                  Icon(Icons.repeat, size: 20, color: Theme.of(context).colorScheme.onSurface),
                   const SizedBox(width: 8),
-                  Text('Repeat',
+                  const Text('Repeat',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Colors.black, // White text on black cards in dark theme
                       )),
                   const Spacer(),
                   Column(
@@ -1042,9 +985,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                           ? 'One-time'
                           : (_customRecurrence?.getDescription() ??
                               _repeatOption.toString().split('.').last),
-                        style: TextStyle(color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.grey.shade600),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       if (_repeatOption != RepeatOption.today) ...[
                         if (_firstOccurrenceText.isNotEmpty)
@@ -1053,9 +994,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                           Text(
                             _firstOccurrenceText,
                             style: TextStyle(
-                              color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white 
-                                : Theme.of(context).primaryColor,
+                              color: Theme.of(context).colorScheme.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1066,7 +1005,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   const SizedBox(width: 8),
                   RotatedBox(
                     quarterTurns: _isRecurrenceExpanded ? 2 : 0,
-                    child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null),
+                    child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -1116,7 +1055,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            foregroundColor: !_isPositiveCashflow ? Colors.red : null,
+            foregroundColor: !_isPositiveCashflow ? DesignTokens.color('expense') : null,
           ),
           child: const Text('Cancel'),
         ),
@@ -1124,7 +1063,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         FilledButton(
           onPressed: _saveEvent, // Always enabled, validation happens inside _saveEvent
           style: FilledButton.styleFrom(
-            backgroundColor: !_isPositiveCashflow ? Colors.red : null,
+            backgroundColor: !_isPositiveCashflow ? DesignTokens.color('expense') : null,
           ),
           child: Text(buttonText),
         ),
@@ -1156,20 +1095,16 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
 
   Widget _buildCategorySection() {
     final categoryType = _isPositiveCashflow ? CategoryType.income : CategoryType.expense;
-    
+
     return Card(
       elevation: 0,
-      color: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: DesignTokens.borderRadius['md']!,
         side: BorderSide(
-          color: _isSmartSuggestionActive 
-            ? Colors.blue.shade300
-            : (Theme.of(context).brightness == Brightness.dark 
-                ? Colors.transparent 
-                : Colors.grey.shade200),
+          color: _isSmartSuggestionActive
+            ? DesignTokens.color('info')
+            : Theme.of(context).colorScheme.outline,
           width: _isSmartSuggestionActive ? 2 : 1,
         ),
       ),
@@ -1180,7 +1115,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               FocusScope.of(context).unfocus();
               _toggleCategorySelector();
             },
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: DesignTokens.borderRadius['md']!,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -1188,18 +1123,13 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   Icon(
                     _isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
                     size: 20,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : (_isPositiveCashflow ? Colors.green : Colors.red),
+                    color: _isPositiveCashflow ? DesignTokens.color('income') : DesignTokens.color('expense'),
                   ),
                   const SizedBox(width: 8),
-                  Text(
+                  const Text(
                     'Category',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white 
-                        : Colors.black, // White text on black cards in dark theme
                     ),
                   ),
                   const Spacer(),
@@ -1209,19 +1139,19 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade100,
-                        borderRadius: BorderRadius.circular(8),
+                        color: DesignTokens.color('info').withOpacity(0.1),
+                        borderRadius: DesignTokens.borderRadius['sm']!,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.auto_awesome, size: 12, color: Colors.blue.shade700),
+                          Icon(Icons.auto_awesome, size: 12, color: DesignTokens.color('info')),
                           const SizedBox(width: 2),
                           Text(
                             'Smart',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Colors.blue.shade700,
+                              color: DesignTokens.color('info'),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -1243,31 +1173,20 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                       child: Text(
                         _selectedCategory!.name,
                         style: TextStyle(
-                          color: _isSmartSuggestionActive 
-                            ? Colors.blue.shade700
-                            : (Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white 
-                                : Colors.black), // White text on black cards in dark theme
+                          color: _isSmartSuggestionActive
+                            ? DesignTokens.color('info')
+                            : Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ] else
-                    Text(
-                      'Select category',
-                      style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : Colors.black, // White text on black cards in dark theme
-                      ),
-                    ),
+                    const Text('Select category'),
                   const SizedBox(width: 8),
                   Icon(
                     Icons.keyboard_arrow_right,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70 
-                      : Colors.black54, // White-ish icon on black cards in dark theme
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -1281,14 +1200,14 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               padding: const EdgeInsets.all(12.0),
               child: Row(
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 16, color: Colors.blue.shade600),
+                  Icon(Icons.lightbulb_outline, size: 16, color: DesignTokens.color('info')),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '${_smartSuggestion!.reason} (${_smartSuggestion!.confidencePercentage} match)',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.blue.shade600,
+                        color: DesignTokens.color('info'),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -1305,12 +1224,12 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               padding: const EdgeInsets.all(8.0),
               child: TextButton.icon(
                 onPressed: _requestSmartSuggestion,
-                icon: Icon(Icons.auto_awesome, size: 16, color: Colors.blue.shade600),
+                icon: Icon(Icons.auto_awesome, size: 16, color: DesignTokens.color('info')),
                 label: Text(
                   'Get Smart Suggestion',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.blue.shade600,
+                    color: DesignTokens.color('info'),
                   ),
                 ),
                 style: TextButton.styleFrom(
@@ -1331,11 +1250,9 @@ Widget build(BuildContext context) {
   return Stack(
     children: [
       Dialog(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.black 
-          : null,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: DesignTokens.borderRadius['lg']!,
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -1378,7 +1295,7 @@ Widget build(BuildContext context) {
       if (_showCategorySelector)
         Positioned.fill(
           child: Material(
-            color: Colors.black54,
+            color: Theme.of(context).colorScheme.scrim.withOpacity(0.5),
             child: Center(
               child: Container(
                 margin: const EdgeInsets.all(20),
@@ -1388,7 +1305,7 @@ Widget build(BuildContext context) {
                 ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: DesignTokens.borderRadius['lg']!,
                 ),
                 child: HierarchicalCategorySelector(
                   categoryType: _isPositiveCashflow ? CategoryType.income : CategoryType.expense,

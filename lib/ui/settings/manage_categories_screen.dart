@@ -101,7 +101,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Custom Categories'),
-        backgroundColor: DesignTokens.color('surface'),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 0,
       ),
       body: _isLoading
@@ -113,7 +113,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
         onPressed: () => _showAddCategoryDialog(),
         icon: const Icon(Icons.add),
         label: const Text('Add Category'),
-        backgroundColor: DesignTokens.color('primary'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -128,7 +128,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
             Icon(
               Icons.category_outlined,
               size: 80,
-              color: DesignTokens.color('textSecondary'),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
             Text(
@@ -136,7 +136,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: DesignTokens.color('textPrimary'),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -144,7 +144,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               'Create custom subcategories to better organize your income and expenses',
               style: TextStyle(
                 fontSize: 14,
-                color: DesignTokens.color('textSecondary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -154,7 +154,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Add Your First Category'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: DesignTokens.color('primary'),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
@@ -198,18 +198,18 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: DesignTokens.color('textPrimary'),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             subtitle: Text(
               category.type == CategoryType.income ? 'Income' : 'Expense',
               style: TextStyle(
                 fontSize: 12,
-                color: DesignTokens.color('textSecondary'),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             trailing: PopupMenuButton(
-              icon: Icon(Icons.more_vert, color: DesignTokens.color('textSecondary')),
+              icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurfaceVariant),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'delete',
@@ -402,7 +402,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: DesignTokens.color('primary'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Create'),

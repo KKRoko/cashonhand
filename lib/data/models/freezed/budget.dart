@@ -29,8 +29,8 @@ class Budget with _$Budget {
   double get wantsAmount => monthlyIncome * wantsPercentage;
   double get savingsAmount => monthlyIncome * savingsPercentage;
 
-  // Validate that percentages sum to 100%
-  bool get isValid => (needsPercentage + wantsPercentage + savingsPercentage - 1.0).abs() < 0.0001;
+  // Validate that percentages sum to 100% (with 1% tolerance for floating point rounding)
+  bool get isValid => (needsPercentage + wantsPercentage + savingsPercentage - 1.0).abs() < 0.01;
 
   // Helper to get bucket amount by name
   double getBucketAmount(String bucketType) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import '../../../data/models/freezed/financial_suggestion.dart';
 
 class SuggestionsFilterBar extends StatelessWidget {
@@ -24,14 +25,10 @@ class SuggestionsFilterBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.black 
-          : Colors.grey.shade50,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         border: Border(
           bottom: BorderSide(
-            color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.grey.shade800 
-              : Colors.grey.shade200,
+            color: Theme.of(context).colorScheme.outlineVariant,
           ),
         ),
       ),
@@ -42,28 +39,18 @@ class SuggestionsFilterBar extends StatelessWidget {
           // Filter title and clear button
           Row(
             children: [
-              Text(
+              const Text(
                 'Filters',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.black,
                 ),
               ),
               const Spacer(),
               if (_hasActiveFilters)
                 TextButton(
                   onPressed: _clearAllFilters,
-                  child: Text(
-                    'Clear All',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white 
-                        : null,
-                    ),
-                  ),
+                  child: const Text('Clear All'),
                 ),
             ],
           ),
@@ -79,9 +66,7 @@ class SuggestionsFilterBar extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 16),
@@ -96,12 +81,7 @@ class SuggestionsFilterBar extends StatelessWidget {
                         child: FilterChip(
                           label: Text(
                             _getTypeLabel(type),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(context).brightness == Brightness.dark
-                                ? (isSelected ? Colors.black : Colors.white)
-                                : null,
-                            ),
+                            style: const TextStyle(fontSize: 11),
                           ),
                           selected: isSelected,
                           onSelected: (selected) {
@@ -115,9 +95,6 @@ class SuggestionsFilterBar extends StatelessWidget {
                           },
                           selectedColor: _getTypeColor(type).withOpacity(0.2),
                           checkmarkColor: _getTypeColor(type),
-                          backgroundColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade800
-                            : null,
                         ),
                       );
                     }).toList(),
@@ -138,9 +115,7 @@ class SuggestionsFilterBar extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 16),
@@ -157,12 +132,7 @@ class SuggestionsFilterBar extends StatelessWidget {
                           child: FilterChip(
                             label: Text(
                               _getPriorityLabel(priority),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                  ? (isSelected ? Colors.black : Colors.white)
-                                  : null,
-                              ),
+                              style: const TextStyle(fontSize: 11),
                             ),
                             selected: isSelected,
                             onSelected: (selected) {
@@ -174,35 +144,24 @@ class SuggestionsFilterBar extends StatelessWidget {
                               }
                               onPrioritiesChanged(newPriorities);
                             },
-                            selectedColor: _getPriorityColor(priority).withOpacity(0.2),
-                            checkmarkColor: _getPriorityColor(priority),
-                            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade800
-                              : null,
+                            selectedColor: _getPriorityColor(context, priority).withOpacity(0.2),
+                            checkmarkColor: _getPriorityColor(context, priority),
                           ),
                         );
                       }).toList(),
-                      
+
                       const SizedBox(width: 8),
-                      
+
                       // Active only filter
                       FilterChip(
-                        label: Text(
+                        label: const Text(
                           'Active Only',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Theme.of(context).brightness == Brightness.dark
-                              ? (showOnlyActive ? Colors.black : Colors.white)
-                              : null,
-                          ),
+                          style: TextStyle(fontSize: 11),
                         ),
                         selected: showOnlyActive,
                         onSelected: onActiveFilterChanged,
-                        selectedColor: Colors.green.withOpacity(0.2),
-                        checkmarkColor: Colors.green,
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade800
-                          : null,
+                        selectedColor: DesignTokens.color('success').withOpacity(0.2),
+                        checkmarkColor: DesignTokens.color('success'),
                       ),
                     ],
                   ),
@@ -248,21 +207,21 @@ class SuggestionsFilterBar extends StatelessWidget {
   Color _getTypeColor(SuggestionType type) {
     switch (type) {
       case SuggestionType.savingsOpportunity:
-        return Colors.green;
+        return DesignTokens.color('success');
       case SuggestionType.budgetWarning:
-        return Colors.orange;
+        return DesignTokens.color('warning');
       case SuggestionType.goalRecommendation:
-        return Colors.blue;
+        return DesignTokens.color('info');
       case SuggestionType.spendingPattern:
-        return Colors.purple;
+        return DesignTokens.color('expense');
       case SuggestionType.roundUpOptimization:
-        return Colors.teal;
+        return DesignTokens.color('income');
       case SuggestionType.allocationImprovement:
-        return Colors.indigo;
+        return DesignTokens.color('primary');
       case SuggestionType.goalMilestone:
-        return Colors.amber;
+        return DesignTokens.color('warning');
       case SuggestionType.unusualActivity:
-        return Colors.red;
+        return DesignTokens.color('error');
     }
   }
 
@@ -279,16 +238,16 @@ class SuggestionsFilterBar extends StatelessWidget {
     }
   }
 
-  Color _getPriorityColor(SuggestionPriority priority) {
+  Color _getPriorityColor(BuildContext context, SuggestionPriority priority) {
     switch (priority) {
       case SuggestionPriority.low:
-        return Colors.grey;
+        return Theme.of(context).colorScheme.surfaceContainerHighest;
       case SuggestionPriority.medium:
-        return Colors.blue;
+        return DesignTokens.color('info');
       case SuggestionPriority.high:
-        return Colors.orange;
+        return DesignTokens.color('warning');
       case SuggestionPriority.urgent:
-        return Colors.red;
+        return DesignTokens.color('error');
     }
   }
 }

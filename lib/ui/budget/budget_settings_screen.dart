@@ -12,7 +12,7 @@ class BudgetSettingsScreen extends StatefulWidget {
     required double wantsPercentage,
     required double savingsPercentage,
   }) onUpdateBudget;
-  final VoidCallback? onDeleteBudget;
+  final Future<void> Function()? onDeleteBudget;
 
   const BudgetSettingsScreen({
     super.key,
@@ -108,10 +108,14 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              widget.onDeleteBudget?.call();
-              Navigator.of(context).pop(true);
+            onPressed: () async {
+              Navigator.of(context).pop(); // Close dialog
+              if (widget.onDeleteBudget != null) {
+                await widget.onDeleteBudget!(); // Await the async deletion
+                if (mounted) {
+                  Navigator.of(context).pop(true); // Close settings screen
+                }
+              }
             },
             style: TextButton.styleFrom(
               foregroundColor: DesignTokens.color('error'),
@@ -130,7 +134,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Budget Settings'),
-        backgroundColor: DesignTokens.color('surface'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         actions: [
           if (_hasChanges && _isPercentageValid)
@@ -139,7 +143,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
               child: Text(
                 'Save',
                 style: TextStyle(
-                  color: DesignTokens.color('primary'),
+                  color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -158,7 +162,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: DesignTokens.color('textPrimary'),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -166,7 +170,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 'Modify your monthly budget settings',
                 style: TextStyle(
                   fontSize: 14,
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 32),
@@ -177,7 +181,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: DesignTokens.color('textPrimary'),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -187,12 +191,48 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
                 decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   prefixText: '\$ ',
+                  prefixStyle: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Theme.of(context).colorScheme.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                   hintText: 'Enter your monthly income',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withOpacity(0.5)
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 18,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -213,7 +253,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: DesignTokens.color('textPrimary'),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -243,7 +283,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 'Needs',
                 'Essential expenses (housing, groceries, utilities)',
                 _needsPercentage,
-                DesignTokens.color('primary'),
+                Theme.of(context).colorScheme.primary,
                 (value) => _updatePercentages('needs', value),
               ),
               const SizedBox(height: 16),
@@ -273,7 +313,10 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 child: ElevatedButton(
                   onPressed: (_hasChanges && _isPercentageValid) ? _handleSave : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: DesignTokens.color('primary'),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -332,7 +375,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: DesignTokens.color('textPrimary'),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             Text(
@@ -350,7 +393,7 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
           description,
           style: TextStyle(
             fontSize: 12,
-            color: DesignTokens.color('textSecondary'),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         Slider(

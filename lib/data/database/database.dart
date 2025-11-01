@@ -27,13 +27,13 @@ enum UpdateType { single, allEvents, futureEvents, pastEvents }
 
 
 
-@DriftDatabase(tables: [Categories, Events, SavingGoalsTable, Achievements, GoalAllocations, AutoAllocationRules, Budgets, CategoryBudgets])
+@DriftDatabase(tables: [Categories, Events, SavingGoalsTable, Achievements, GoalAllocations, AutoAllocationRules, Budgets, CategoryBudgets, BudgetTemplates, YearEndGoals, AllocationTemplates, AllocationTemplateItems])
 @singleton
 class Database extends _$Database {
   Database() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration {
@@ -41,18 +41,7 @@ class Database extends _$Database {
       onCreate: (Migrator m) async {
         await m.createAll();
         await _addDefaultCategories();
-
-        await customStatement('''
-          INSERT INTO categories (name, type) 
-          VALUES 
-            ('Salary', 'income'),
-            ('Investment', 'income'),
-            ('Freelance', 'income'),
-            ('Food & Dining', 'expense'),
-            ('Transportation', 'expense'),
-            ('Housing', 'expense'),
-            ('Healthcare', 'expense')
-        ''');
+        await _addDefaultTemplates();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
@@ -110,6 +99,194 @@ class Database extends _$Database {
           );
 
           print('Database migrated to v7: Added month and year fields to budgets');
+        }
+        if (from < 8) {
+          // Migration from v7 to v8: Add budget templates table
+          await m.createTable(budgetTemplates);
+          await _addDefaultTemplates();
+
+          print('Database migrated to v8: Added budget templates table with presets');
+        }
+        if (from < 9) {
+          // Migration from v8 to v9: Fix corrupted "Budget Surplus" category
+          // The category was created with datetime format incompatible with Drift's parser
+          // Delete it using raw SQL before Drift tries to read the table
+          try {
+            print('🔍 Migration v9: Cleaning up corrupted Budget Surplus category...');
+            await customStatement(
+              'DELETE FROM categories WHERE name = ?',
+              ['Budget Surplus'],
+            );
+            print('✅ Migration v9: Removed corrupted Budget Surplus category');
+          } catch (e) {
+            print('⚠️ Migration v9: Error during cleanup (category may not exist): $e');
+            // Continue migration even if delete fails - category might not exist yet
+          }
+
+          print('Database migrated to v9: Fixed corrupted category data');
+        }
+        if (from < 10) {
+          // Migration from v9 to v10: Clean up duplicate categories
+          // Remove old duplicate categories that were created by legacy code
+          try {
+            print('🔍 Migration v10: Cleaning up duplicate categories...');
+
+            // Delete old standalone categories that are now part of hierarchical structure
+            await customStatement('''
+              DELETE FROM categories
+              WHERE name IN ('Food & Dining', 'Housing', 'Healthcare')
+              AND parent_category_id IS NULL
+              AND is_system = 1
+            ''');
+
+            // Delete duplicate income subcategories (keep only those with parent)
+            // First, get the Income parent category ID
+            final incomeParentResult = await customSelect(
+              'SELECT id FROM categories WHERE name = ? AND parent_category_id IS NULL LIMIT 1',
+              variables: [Variable.withString('Income')],
+            ).get();
+
+            if (incomeParentResult.isNotEmpty) {
+              final incomeParentId = incomeParentResult.first.data['id'];
+
+              // Delete duplicates that don't have the correct parent
+              await customStatement('''
+                DELETE FROM categories
+                WHERE name IN ('Salary', 'Investment', 'Freelance')
+                AND (parent_category_id IS NULL OR parent_category_id != ?)
+              ''', [incomeParentId]);
+            }
+
+            // Delete duplicate Transportation parent (keep the one with icon)
+            await customStatement('''
+              DELETE FROM categories
+              WHERE name = 'Transportation'
+              AND parent_category_id IS NULL
+              AND icon IS NULL
+            ''');
+
+            print('✅ Migration v10: Cleaned up duplicate categories');
+          } catch (e) {
+            print('⚠️ Migration v10: Error during cleanup: $e');
+            // Continue even if cleanup fails
+          }
+
+          print('Database migrated to v10: Removed duplicate categories');
+        }
+        if (from < 11) {
+          // Migration from v10 to v11: Clean up category budgets that reference parent categories
+          // Parent categories are organizational folders and shouldn't be budgeted
+          try {
+            print('🔍 Migration v11: Cleaning up parent category budgets...');
+
+            // Delete category budgets that reference parent categories (categories with no parent_category_id)
+            await customStatement('''
+              DELETE FROM category_budgets
+              WHERE category_id IN (
+                SELECT id FROM categories
+                WHERE parent_category_id IS NULL
+              )
+            ''');
+
+            print('✅ Migration v11: Removed category budgets for parent categories');
+          } catch (e) {
+            print('⚠️ Migration v11: Error during cleanup: $e');
+            // Continue even if cleanup fails
+          }
+
+          print('Database migrated to v11: Cleaned up parent category budgets');
+        }
+        if (from < 12) {
+          // Migration from v11 to v12: Add year-end goals table
+          try {
+            print('🔍 Migration v12: Creating year-end goals table...');
+            await m.createTable(yearEndGoals);
+            print('✅ Migration v12: Created year-end goals table');
+          } catch (e) {
+            print('⚠️ Migration v12: Error creating table: $e');
+          }
+
+          print('Database migrated to v12: Added year-end goals feature');
+        }
+        if (from < 13) {
+          // Migration from v12 to v13: Convert year-end goals from dollar amounts to percentages
+          try {
+            print('🔍 Migration v13: Converting year-end goals to percentage-based...');
+
+            // Drop the old table and recreate with new schema
+            await customStatement('DROP TABLE IF EXISTS year_end_goals');
+            await m.createTable(yearEndGoals);
+
+            print('✅ Migration v13: Recreated year-end goals table with percentages');
+          } catch (e) {
+            print('⚠️ Migration v13: Error during conversion: $e');
+          }
+
+          print('Database migrated to v13: Year-end goals now use percentages');
+        }
+        if (from < 14) {
+          // Migration from v13 to v14: Remove duplicate "Books" category from Entertainment
+          try {
+            print('🔍 Migration v14: Removing duplicate Books category...');
+
+            // Get the Entertainment parent category ID
+            final entertainmentResult = await customSelect(
+              'SELECT id FROM categories WHERE name = ? AND parent_category_id IS NULL LIMIT 1',
+              variables: [Variable.withString('Entertainment')],
+            ).get();
+
+            if (entertainmentResult.isNotEmpty) {
+              final entertainmentId = entertainmentResult.first.data['id'];
+
+              // Delete "Books" subcategory under Entertainment
+              // (The one under Education will remain)
+              await customStatement('''
+                DELETE FROM categories
+                WHERE name = 'Books'
+                AND parent_category_id = ?
+              ''', [entertainmentId]);
+
+              // Also delete any category budgets that referenced this duplicate Books category
+              await customStatement('''
+                DELETE FROM category_budgets
+                WHERE category_id NOT IN (SELECT id FROM categories)
+              ''');
+
+              print('✅ Migration v14: Removed duplicate Books category from Entertainment');
+            }
+          } catch (e) {
+            print('⚠️ Migration v14: Error during cleanup: $e');
+          }
+
+          print('Database migrated to v14: Cleaned up duplicate Books category');
+        }
+        if (from < 15) {
+          // Migration from v14 to v15: Fix isSystem flag - only "Budget Surplus" should be a system category
+          try {
+            print('🔍 Migration v15: Fixing isSystem flags for categories...');
+
+            // Set all categories to isSystem = false
+            await customStatement('UPDATE categories SET is_system = 0');
+
+            // Set only "Budget Surplus" to isSystem = true
+            await customStatement('''
+              UPDATE categories
+              SET is_system = 1
+              WHERE name = 'Budget Surplus'
+            ''');
+
+            print('✅ Migration v15: Fixed isSystem flags - only Budget Surplus is now a system category');
+          } catch (e) {
+            print('⚠️ Migration v15: Error during fix: $e');
+          }
+
+          print('Database migrated to v15: Fixed category system flags');
+        }
+        if (from < 16) {
+          // Migration from v15 to v16: Add allocation template tables
+          await m.createTable(allocationTemplates);
+          await m.createTable(allocationTemplateItems);
+          print('Database migrated to v16: Added allocation template tables');
         }
       },
     );
@@ -590,7 +767,7 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
         type: CategoryType.income,
         icon: const Value('💰'),
         sortOrder: const Value(1),
-        isSystem: const Value(true),
+        isSystem: const Value(false),
       ));
 
       // Income subcategories
@@ -604,7 +781,7 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
           type: CategoryType.income,
           parentCategoryId: Value(incomeId),
           sortOrder: Value(i + 1),
-          isSystem: const Value(true),
+          isSystem: const Value(false),
         ));
       }
 
@@ -642,7 +819,7 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
 
       await _addExpenseCategory('Entertainment', '🎬', 7, [
         'Restaurants', 'Movies', 'Concerts', 'Hobby expenses',
-        'Streaming platforms', 'Magazine subscriptions', 'Gaming', 'Books'
+        'Streaming platforms', 'Magazine subscriptions', 'Gaming'
       ]);
 
       await _addExpenseCategory('Clothes', '👔', 8, [
@@ -674,7 +851,7 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
       type: CategoryType.expense,
       icon: Value(icon),
       sortOrder: Value(sortOrder),
-      isSystem: const Value(true),
+      isSystem: const Value(false),
     ));
 
     for (int i = 0; i < subcategories.length; i++) {
@@ -683,8 +860,76 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
         type: CategoryType.expense,
         parentCategoryId: Value(categoryId),
         sortOrder: Value(i + 1),
-        isSystem: const Value(true),
+        isSystem: const Value(false),
       ));
+    }
+  }
+
+  Future<void> _addDefaultTemplates() async {
+    print("Adding default budget templates");
+
+    try {
+      final now = DateTime.now();
+
+      // 1. 50/30/20 Rule - Classic balanced budget
+      await into(budgetTemplates).insert(BudgetTemplatesCompanion.insert(
+        name: '50/30/20 Rule',
+        description: 'Balanced budget: 50% for needs, 30% for wants, 20% for savings. Perfect for maintaining a healthy financial lifestyle.',
+        needsPercentage: const Value(0.50),
+        wantsPercentage: const Value(0.30),
+        savingsPercentage: const Value(0.20),
+        isPreset: const Value(true),
+        createdAt: Value(now),
+      ));
+
+      // 2. Aggressive Savings - For those prioritizing savings
+      await into(budgetTemplates).insert(BudgetTemplatesCompanion.insert(
+        name: 'Aggressive Savings',
+        description: 'Maximize savings: 50% for needs, 20% for wants, 30% for savings. Ideal for building wealth quickly or saving for major goals.',
+        needsPercentage: const Value(0.50),
+        wantsPercentage: const Value(0.20),
+        savingsPercentage: const Value(0.30),
+        isPreset: const Value(true),
+        createdAt: Value(now),
+      ));
+
+      // 3. Student Budget - Higher needs, lower discretionary
+      await into(budgetTemplates).insert(BudgetTemplatesCompanion.insert(
+        name: 'Student Budget',
+        description: 'Student-friendly: 60% for needs, 30% for wants, 10% for savings. Accommodates education costs while building saving habits.',
+        needsPercentage: const Value(0.60),
+        wantsPercentage: const Value(0.30),
+        savingsPercentage: const Value(0.10),
+        isPreset: const Value(true),
+        createdAt: Value(now),
+      ));
+
+      // 4. Debt Payoff - Maximize debt reduction
+      await into(budgetTemplates).insert(BudgetTemplatesCompanion.insert(
+        name: 'Debt Payoff',
+        description: 'Focus on debt: 70% for needs (including debt payments), 10% for wants, 20% for emergency savings. Accelerate debt freedom.',
+        needsPercentage: const Value(0.70),
+        wantsPercentage: const Value(0.10),
+        savingsPercentage: const Value(0.20),
+        isPreset: const Value(true),
+        createdAt: Value(now),
+      ));
+
+      // 5. Balanced Lifestyle - More flexibility
+      await into(budgetTemplates).insert(BudgetTemplatesCompanion.insert(
+        name: 'Balanced Lifestyle',
+        description: 'Moderate approach: 55% for needs, 30% for wants, 15% for savings. Balances financial security with quality of life.',
+        needsPercentage: const Value(0.55),
+        wantsPercentage: const Value(0.30),
+        savingsPercentage: const Value(0.15),
+        isPreset: const Value(true),
+        createdAt: Value(now),
+      ));
+
+      print("Default budget templates added successfully");
+    } catch (e) {
+      print("Error adding default templates: $e");
+      rethrow;
     }
   }
 
@@ -702,13 +947,16 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
 
   // Hierarchical category methods
   Future<List<CategoryTableData>> getMainCategories({CategoryType? type}) =>
-      (select(categories)..where((t) => 
-        t.parentCategoryId.isNull() & 
+      (select(categories)..where((t) =>
+        t.parentCategoryId.isNull() &
+        t.isSystem.equals(false) &
         (type != null ? t.type.equals(type.toString().split('.').last) : const Constant(true)))
       ..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
 
   Future<List<CategoryTableData>> getSubcategories(int parentId) =>
-      (select(categories)..where((t) => t.parentCategoryId.equals(parentId))
+      (select(categories)..where((t) =>
+        t.parentCategoryId.equals(parentId) &
+        t.isSystem.equals(false))
       ..orderBy([(c) => OrderingTerm.asc(c.sortOrder)])).get();
 
   Future<List<CategoryTableData>> getAllCategoriesHierarchical() =>
@@ -1058,6 +1306,9 @@ Future<int> createBudget(BudgetsCompanion budget) =>
 Future<bool> updateBudget(BudgetsCompanion budget) =>
     update(budgets).replace(budget);
 
+Future<int> deleteBudget(int budgetId) =>
+    (delete(budgets)..where((b) => b.id.equals(budgetId))).go();
+
 Future<void> deactivateAllBudgets() async {
   await (update(budgets)
     ..where((b) => b.isActive.equals(true)))
@@ -1066,36 +1317,61 @@ Future<void> deactivateAllBudgets() async {
 
 // CategoryBudget CRUD operations
 Future<List<Map<String, dynamic>>> getCategoryBudgets(int budgetId) async {
-  final query = await customSelect(
-    '''
-    SELECT cb.*, c.name as category_name
-    FROM category_budgets cb
-    LEFT JOIN categories c ON cb.category_id = c.id
-    WHERE cb.budget_id = ?
-    ORDER BY c.name
-    ''',
-    variables: [Variable.withInt(budgetId)],
-    readsFrom: {categoryBudgets, categories},
-  ).get();
+  // Use Drift's type-safe fluent API instead of raw SQL
+  final query = select(categoryBudgets).join([
+    leftOuterJoin(categories, categories.id.equalsExp(categoryBudgets.categoryId))
+  ])
+  ..where(categoryBudgets.budgetId.equals(budgetId))
+  ..orderBy([OrderingTerm.asc(categories.name)]);
 
-  return query.map((row) => row.data).toList();
+  final results = await query.get();
+
+  // Map to the expected structure with proper type conversions
+  return results.map((row) {
+    final cb = row.readTable(categoryBudgets);
+    final c = row.readTableOrNull(categories);
+
+    return {
+      'id': cb.id,
+      'budget_id': cb.budgetId,
+      'category_id': cb.categoryId,
+      'allocated_amount': cb.allocatedAmount,
+      'bucket_type': cb.bucketType.toString().split('.').last,
+      'created_at': cb.createdAt.millisecondsSinceEpoch, // Return as int
+      'updated_at': cb.updatedAt.millisecondsSinceEpoch, // Return as int
+      'category_name': c?.name ?? 'Unknown',
+    };
+  }).toList();
 }
 
 Future<List<Map<String, dynamic>>> getCategoryBudgetsByBucket(int budgetId, BucketType bucketType) async {
   final bucketString = bucketType.toString().split('.').last;
-  final query = await customSelect(
-    '''
-    SELECT cb.*, c.name as category_name
-    FROM category_budgets cb
-    LEFT JOIN categories c ON cb.category_id = c.id
-    WHERE cb.budget_id = ? AND cb.bucket_type = ?
-    ORDER BY c.name
-    ''',
-    variables: [Variable.withInt(budgetId), Variable.withString(bucketString)],
-    readsFrom: {categoryBudgets, categories},
-  ).get();
 
-  return query.map((row) => row.data).toList();
+  // Use Drift's type-safe fluent API instead of raw SQL
+  final query = select(categoryBudgets).join([
+    leftOuterJoin(categories, categories.id.equalsExp(categoryBudgets.categoryId))
+  ])
+  ..where(categoryBudgets.budgetId.equals(budgetId) & categoryBudgets.bucketType.equals(bucketString))
+  ..orderBy([OrderingTerm.asc(categories.name)]);
+
+  final results = await query.get();
+
+  // Map to the expected structure with proper type conversions
+  return results.map((row) {
+    final cb = row.readTable(categoryBudgets);
+    final c = row.readTableOrNull(categories);
+
+    return {
+      'id': cb.id,
+      'budget_id': cb.budgetId,
+      'category_id': cb.categoryId,
+      'allocated_amount': cb.allocatedAmount,
+      'bucket_type': cb.bucketType.toString().split('.').last,
+      'created_at': cb.createdAt.millisecondsSinceEpoch, // Return as int
+      'updated_at': cb.updatedAt.millisecondsSinceEpoch, // Return as int
+      'category_name': c?.name ?? 'Unknown',
+    };
+  }).toList();
 }
 
 Future<int> createCategoryBudget(CategoryBudgetsCompanion categoryBudget) =>
@@ -1126,6 +1402,58 @@ Future<int> deleteIncomeCategoryBudgets() async {
   ).go();
 }
 
+// AllocationTemplate CRUD operations
+Future<List<AllocationTemplateTableData>> getAllocationTemplates() =>
+  select(allocationTemplates).get();
+
+Future<AllocationTemplateTableData?> getAllocationTemplateById(int id) =>
+  (select(allocationTemplates)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+Future<int> createAllocationTemplate(AllocationTemplatesCompanion template) =>
+  into(allocationTemplates).insert(template);
+
+Future<bool> updateAllocationTemplate(AllocationTemplatesCompanion template) =>
+  update(allocationTemplates).replace(template);
+
+Future<int> deleteAllocationTemplate(int templateId) =>
+  (delete(allocationTemplates)..where((t) => t.id.equals(templateId))).go();
+
+// AllocationTemplateItem CRUD operations
+Future<List<Map<String, dynamic>>> getAllocationTemplateItems(int templateId) async {
+  // Join with categories table to get category names
+  final query = '''
+    SELECT
+      ati.id,
+      ati.template_id,
+      ati.category_id,
+      ati.allocated_amount,
+      ati.bucket_type,
+      ati.created_at,
+      ati.updated_at,
+      c.name as category_name
+    FROM allocation_template_items ati
+    LEFT JOIN categories c ON ati.category_id = c.id
+    WHERE ati.template_id = ?
+    ORDER BY ati.bucket_type, c.name
+  ''';
+
+  final results = await customSelect(query, variables: [Variable.withInt(templateId)]).get();
+  return results.map((row) => row.data).toList();
+}
+
+Future<int> createAllocationTemplateItem(AllocationTemplateItemsCompanion item) =>
+  into(allocationTemplateItems).insert(item);
+
+Future<bool> updateAllocationTemplateItem(AllocationTemplateItemsCompanion item) =>
+  update(allocationTemplateItems).replace(item);
+
+Future<int> deleteAllocationTemplateItem(int itemId) =>
+  (delete(allocationTemplateItems)..where((i) => i.id.equals(itemId))).go();
+
+// Delete all items for a template (used when deleting template)
+Future<int> deleteAllocationTemplateItemsByTemplate(int templateId) =>
+  (delete(allocationTemplateItems)..where((i) => i.templateId.equals(templateId))).go();
+
 // Budget spending analysis methods
 Future<Map<int, double>> getActualSpendingByCategory(DateTime start, DateTime end) async {
   final query = '''
@@ -1145,6 +1473,35 @@ Future<Map<int, double>> getActualSpendingByCategory(DateTime start, DateTime en
     results.map((row) => MapEntry(
       row.data['category_id'] as int,
       row.data['total'] as double,
+    )),
+  );
+}
+
+// Get spending per category budget (joins with category_budgets to filter by budget)
+Future<Map<int, double>> getActualSpendingByCategoryBudget(int budgetId, DateTime start, DateTime end) async {
+  final query = '''
+    SELECT cb.id as category_budget_id, COALESCE(SUM(ABS(e.amount)), 0.0) as total
+    FROM category_budgets cb
+    LEFT JOIN events e ON e.category_id = cb.category_id
+      AND e.date BETWEEN ? AND ?
+      AND e.amount < 0
+    WHERE cb.budget_id = ?
+    GROUP BY cb.id
+  ''';
+
+  final results = await customSelect(
+    query,
+    variables: [
+      Variable.withDateTime(start),
+      Variable.withDateTime(end),
+      Variable.withInt(budgetId),
+    ],
+  ).get();
+
+  return Map.fromEntries(
+    results.map((row) => MapEntry(
+      row.data['category_budget_id'] as int,
+      (row.data['total'] as num?)?.toDouble() ?? 0.0,
     )),
   );
 }
@@ -1177,20 +1534,44 @@ Future<Map<String, double>> getActualSpendingByBucket(int budgetId, DateTime sta
   );
 }
 
+/// Get total income for a date range (sum of all positive transaction amounts)
+Future<double> getActualIncomeForMonth(DateTime start, DateTime end) async {
+  final query = '''
+    SELECT COALESCE(SUM(amount), 0.0) as total
+    FROM events
+    WHERE date BETWEEN ? AND ?
+      AND amount > 0
+  ''';
+
+  final results = await customSelect(
+    query,
+    variables: [
+      Variable.withDateTime(start),
+      Variable.withDateTime(end),
+    ],
+  ).get();
+
+  if (results.isEmpty) {
+    return 0.0;
+  }
+
+  return (results.first.data['total'] as num?)?.toDouble() ?? 0.0;
+}
+
 Future<Map<String, double>> getAllocationsByType(DateTime start, DateTime end) async {
   final query = '''
-    SELECT allocation_type, SUM(amount) as total
+    SELECT allocation_type, SUM(allocation_amount) as total
     FROM goal_allocations
     WHERE created_at BETWEEN ? AND ?
     GROUP BY allocation_type
     ORDER BY total DESC
   ''';
-  
+
   final results = await customSelect(
     query,
     variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
   ).get();
-  
+
   return Map.fromEntries(
     results.map((row) => MapEntry(
       row.data['allocation_type'] as String,
@@ -1201,21 +1582,21 @@ Future<Map<String, double>> getAllocationsByType(DateTime start, DateTime end) a
 
 Future<List<Map<String, dynamic>>> getVelocityData(DateTime start, DateTime end) async {
   final query = '''
-    SELECT 
+    SELECT
       DATE(ga.created_at) as date,
-      SUM(ga.amount) as daily_total,
+      SUM(ga.allocation_amount) as daily_total,
       COUNT(ga.id) as allocation_count
     FROM goal_allocations ga
     WHERE ga.created_at BETWEEN ? AND ?
     GROUP BY DATE(ga.created_at)
     ORDER BY DATE(ga.created_at) ASC
   ''';
-  
+
   final results = await customSelect(
     query,
     variables: [Variable.withDateTime(start), Variable.withDateTime(end)],
   ).get();
-  
+
   return results.map((row) => {
     'date': row.data['date'] as String,
     'daily_total': row.data['daily_total'] as double,

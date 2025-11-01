@@ -304,19 +304,62 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     final result = await showDialog<double>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Year-End Goal'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          'Year-End Goal',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('How much cash do you want to have on hand by the end of 2025?'),
+            Text(
+              'How much cash do you want to have on hand by the end of 2025?',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: InputDecoration(
                 labelText: 'Goal amount',
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 16,
+                ),
                 prefixText: '\$',
-                border: OutlineInputBorder(),
+                prefixStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['sm']!,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['sm']!,
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: DesignTokens.borderRadius['sm']!,
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
             ),
           ],
@@ -324,7 +367,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
           if (_yearEndGoal != null)
             TextButton(
@@ -333,7 +381,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 await prefs.remove('year_end_goal');
                 Navigator.pop(context, -1.0); // Special value to indicate removal
               },
-              child: const Text('Remove Goal'),
+              child: Text(
+                'Remove Goal',
+                style: TextStyle(
+                  color: DesignTokens.color('error'),
+                ),
+              ),
             ),
           TextButton(
             onPressed: () {
@@ -342,7 +395,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 Navigator.pop(context, amount);
               }
             },
-            child: const Text('Save'),
+            child: Text(
+              'Save',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -449,19 +508,14 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       }
       
       final categoryType = isPositiveCashflow ? CategoryType.income : CategoryType.expense;
-      final categories = categoryNotifier.getCategoriesByType(categoryType)
-          .map((category) => CategoryTableData(
-                id: category.id,
-                name: category.name,
-                type: category.type,
-                parentCategoryId: null,
-                icon: null,
-                sortOrder: 0,
-                isActive: true,
-                isSystem: false,
-                createdAt: DateTime.now(),
-                updatedAt: DateTime.now(),
-              ))
+
+      // Load categories directly from database to get isSystem field
+      final database = getIt<Database>();
+      final allCategories = await database.getCategories(type: categoryType);
+
+      // Filter out system categories (like "Budget Surplus") but keep both parents and children
+      final categories = allCategories
+          .where((category) => category.isActive && !category.isSystem)
           .toList();
 
       if (categories.isEmpty) {
@@ -472,7 +526,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       }
 
       // Get available goals for allocation
-      final database = getIt<Database>();
       final availableGoals = await database.getActiveGoals();
       print("Debug: Found ${availableGoals.length} active goals for allocation");
       
@@ -540,11 +593,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              result.event.isRecurring 
+              result.event.isRecurring
                 ? 'Recurring events created! Your balance has been updated.'
                 : 'Event created successfully! Your balance has been updated.'
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: DesignTokens.color('success'),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -558,7 +611,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: DesignTokens.color('error'),
         ),
       );
     }
@@ -589,9 +642,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   'Cash on Hand by End of Year',
                   styleToken: 'titleMedium',
                   style: DesignTokens.textStyle('titleMedium').copyWith(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? DesignTokens.color('textPrimary')
-                      : DesignTokens.color('primaryDark'),
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -617,10 +667,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               Container(
                 padding: EdgeInsets.all(DesignTokens.space('md')),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                    ? DesignTokens.color('income').withOpacity(0.1)
-                    : DesignTokens.color('incomeLight'),
-                  borderRadius: BorderRadius.circular(12),
+                  color: DesignTokens.color('income').withOpacity(0.1),
+                  borderRadius: DesignTokens.borderRadius['md']!,
                   border: Border.all(
                     color: DesignTokens.color('income').withOpacity(0.3),
                     width: 1,
@@ -644,9 +692,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                               'Year-End Goal',
                               styleToken: 'labelMedium',
                               style: DesignTokens.textStyle('labelMedium').copyWith(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                  ? DesignTokens.color('textPrimary')
-                                  : DesignTokens.color('textPrimary'),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -673,9 +718,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                               goalProgress >= 1.0 ? 'Goal Achieved! 🎉' : 'Progress',
                               styleToken: 'labelSmall',
                               style: DesignTokens.textStyle('labelSmall').copyWith(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                  ? DesignTokens.color('textSecondary')
-                                  : DesignTokens.color('textSecondary'),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -695,27 +738,25 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         Container(
                           height: 8,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade700
-                              : DesignTokens.color('backgroundSecondary'),
+                            borderRadius: DesignTokens.borderRadius['xs']!,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           ),
                           child: FractionallySizedBox(
                             alignment: Alignment.centerLeft,
                             widthFactor: (goalProgress > 1.0 ? 1.0 : goalProgress.abs()).clamp(0.0, 1.0),
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: DesignTokens.borderRadius['xs']!,
                                 gradient: LinearGradient(
-                                  colors: currentBalance < 0 
+                                  colors: currentBalance < 0
                                       ? [DesignTokens.color('expense'), DesignTokens.color('expense').withOpacity(0.8)]
                                       : goalProgress >= 1.0
                                           ? [DesignTokens.color('income'), DesignTokens.color('income').withOpacity(0.8)]
                                           : goalProgress >= 0.75
-                                              ? [Colors.blue.shade500, Colors.blue.shade400]
+                                              ? [DesignTokens.color('info'), DesignTokens.color('info').withOpacity(0.8)]
                                               : goalProgress >= 0.50
-                                                  ? [Colors.orange.shade500, Colors.orange.shade400]
-                                                  : [Colors.red.shade500, Colors.red.shade400],
+                                                  ? [DesignTokens.color('warning'), DesignTokens.color('warning').withOpacity(0.8)]
+                                                  : [DesignTokens.color('error'), DesignTokens.color('error').withOpacity(0.8)],
                                 ),
                               ),
                             ),
@@ -735,9 +776,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 yearEndGoal > 0 ? 'Tap to change your goal' : 'Tap to set year-end goal',
                 styleToken: 'labelSmall',
                 style: DesignTokens.textStyle('labelSmall').copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark
-                    ? DesignTokens.color('textSecondary')
-                    : DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -837,11 +876,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           maxLines: 1,
                           minFontSize: 12,
                           maxFontSize: 16,
-                          style: DesignTokens.textStyle('titleSmall').copyWith(
-                            color: Theme.of(context).brightness == Brightness.dark 
-                              ? DesignTokens.color('textPrimary') 
-                              : null,
-                          ),
                         ),
                         SizedBox(height: DesignTokens.space('xs') / 2), // Reduced spacing
                         Flexible(
@@ -857,7 +891,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           period['subtitle'] as String,
                           styleToken: 'bodySmall',
                           style: DesignTokens.textStyle('bodySmall').copyWith(
-                            color: DesignTokens.color('textSecondary'),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
                           maxWidth: 120,
@@ -898,7 +932,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 'View All',
                 styleToken: 'labelMedium',
                 style: DesignTokens.textStyle('labelMedium').copyWith(
-                  color: DesignTokens.color('primary'),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 maxWidth: 60,
               ),
@@ -915,18 +949,14 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       Icon(
                         Icons.receipt_long_outlined,
                         size: 48,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : DesignTokens.color('textTertiary'),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       VSpace('md'),
                       ResponsiveText(
                         'No recent transactions',
                         styleToken: 'bodyMedium',
                         style: DesignTokens.textStyle('bodyMedium').copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : DesignTokens.color('textSecondary'),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -935,9 +965,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         'Add your first transaction using the buttons above',
                         styleToken: 'bodySmall',
                         style: DesignTokens.textStyle('bodySmall').copyWith(
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white70 
-                            : DesignTokens.color('textTertiary'),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -953,7 +981,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         _buildTransactionItem(transaction: transaction),
                         if (index < _recentTransactions.length - 1)
                           Divider(
-                            color: DesignTokens.color('border'),
+                            color: Theme.of(context).colorScheme.outline,
                             height: 1,
                           ),
                       ],
@@ -1033,9 +1061,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   styleToken: 'bodyMedium',
                   style: DesignTokens.textStyle('bodyMedium').copyWith(
                     fontWeight: FontWeight.w500,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : Colors.black,
                   ),
                   maxLines: 1,
                 ),
@@ -1047,9 +1072,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       '$categoryName • ${formatRelativeDate(transaction.dateTime)}',
                       styleToken: 'bodySmall',
                       style: DesignTokens.textStyle('bodySmall').copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white70
-                          : Colors.black54,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 1,
                     );
@@ -1102,7 +1125,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 'View All',
                 styleToken: 'labelMedium',
                 style: DesignTokens.textStyle('labelMedium').copyWith(
-                  color: DesignTokens.color('primary'),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 maxWidth: 60,
               ),
@@ -1130,9 +1153,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   child: Text(
                     'No achievements yet',
                     style: DesignTokens.textStyle('bodyMedium').copyWith(
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white70 
-                        : DesignTokens.color('textSecondary'),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 );
@@ -1198,18 +1219,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     final amounts = _totals[periodKey]!;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (context) => Container(
         padding: EdgeInsets.all(DesignTokens.space('lg')),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark 
-            ? Colors.black 
-            : null,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.vertical(
+            top: (DesignTokens.borderRadius['lg']!).topLeft,
           ),
         ),
         child: Column(
@@ -1219,11 +1235,6 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               '${periodKey.toUpperCase()} BREAKDOWN',
               styleToken: 'titleLarge',
               textAlign: TextAlign.center,
-              style: DesignTokens.textStyle('titleLarge').copyWith(
-                color: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.white 
-                  : null,
-              ),
             ),
             VSpace('lg'),
             Row(
@@ -1232,14 +1243,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 Column(
                   children: [
                     ResponsiveText(
-                      'Income', 
-                      styleToken: 'labelMedium', 
+                      'Income',
+                      styleToken: 'labelMedium',
                       textAlign: TextAlign.center,
-                      style: DesignTokens.textStyle('labelMedium').copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : null,
-                      ),
                     ),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['positive']!, showSign: false),
@@ -1248,14 +1254,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 Column(
                   children: [
                     ResponsiveText(
-                      'Expenses', 
-                      styleToken: 'labelMedium', 
+                      'Expenses',
+                      styleToken: 'labelMedium',
                       textAlign: TextAlign.center,
-                      style: DesignTokens.textStyle('labelMedium').copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : null,
-                      ),
                     ),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['negative']!, showSign: false),
@@ -1264,14 +1265,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 Column(
                   children: [
                     ResponsiveText(
-                      'Net', 
-                      styleToken: 'labelMedium', 
+                      'Net',
+                      styleToken: 'labelMedium',
                       textAlign: TextAlign.center,
-                      style: DesignTokens.textStyle('labelMedium').copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : null,
-                      ),
                     ),
                     VSpace('xs'),
                     FinancialAmount(amount: amounts['positive']! - amounts['negative']!),

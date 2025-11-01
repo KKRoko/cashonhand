@@ -1,3 +1,4 @@
+import '../../theme/design_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cash_on_hand/core/di/injection.dart';
@@ -194,25 +195,25 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                   ],
                   
                   if (_historyItems.isEmpty)
-                    const SliverFillRemaining(
+                    SliverFillRemaining(
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.history, size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
+                            Icon(Icons.history, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            const SizedBox(height: 16),
                             Text(
                               'No Round-Up History',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.grey,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               'Round-up transactions will appear here',
-                              style: TextStyle(color: Colors.grey),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -288,7 +289,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                   'Transactions',
                   stats.totalTransactions.toString(),
                   Icons.receipt,
-                  Colors.blue,
+                  DesignTokens.color('info'),
                 ),
               ),
             ],
@@ -303,7 +304,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                   'Average',
                   '\$${stats.averageRoundUp.toStringAsFixed(2)}',
                   Icons.analytics,
-                  Colors.green,
+                  DesignTokens.color('success'),
                 ),
               ),
               Expanded(
@@ -311,7 +312,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                   'Goals Funded',
                   stats.goalBreakdown.length.toString(),
                   Icons.flag,
-                  Colors.orange,
+                  DesignTokens.color('warning'),
                 ),
               ),
             ],
@@ -383,7 +384,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -427,7 +428,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                 'Rounded up to ${item.goalTitle}',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -436,7 +437,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                 _formatDate(item.date),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[500],
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
                 ),
               ),
             ],
@@ -458,7 +459,7 @@ class _RoundUpHistoryScreenState extends State<RoundUpHistoryScreen> {
                 'from \$${item.originalAmount.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[500],
+                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
                 ),
               ),
             ],

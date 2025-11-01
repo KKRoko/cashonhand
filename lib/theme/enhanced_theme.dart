@@ -620,7 +620,8 @@ class FinancialTheme extends ThemeExtension<FinancialTheme> {
       incomeColor: DesignTokens.color('income'),
       expenseColor: DesignTokens.color('expense'),
       neutralColor: DesignTokens.color('neutral'),
-      // 🎨 DARK THEME: Use same vibrant colors as light theme for better contrast against black
+      // 🎨 DARK THEME: Backgrounds are determined at runtime in CashCard based on brightness
+      // These values are no longer used, but kept for backwards compatibility
       incomeBackground: DesignTokens.color('incomeLight'),
       expenseBackground: DesignTokens.color('expenseLight'),
       neutralBackground: DesignTokens.color('neutralLight'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/design_tokens.dart';
 import 'package:provider/provider.dart';
 import '../../../data/repositories/saving_goal_repository.dart';
 import '../../../state/saving_goal_notifier.dart';
@@ -58,9 +59,7 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(16),
-      color: Theme.of(context).brightness == Brightness.dark 
-        ? Colors.black 
-        : null,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -70,10 +69,8 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
             child: Row(
               children: [
                 Icon(
-                  Icons.history, 
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.white 
-                    : Colors.blue,
+                  Icons.history,
+                  color: DesignTokens.color('info'),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -81,19 +78,11 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
                     'Allocation History',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white 
-                        : null,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(
-                    Icons.refresh,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
-                  ),
+                  icon: const Icon(Icons.refresh),
                   onPressed: _loadAllocationHistory,
                   tooltip: 'Refresh',
                 ),
@@ -117,20 +106,16 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
               child: Center(
                 child: Column(
                   children: [
-                    const Icon(Icons.error, color: Colors.red, size: 48),
+                    Icon(Icons.error, color: DesignTokens.color('error'), size: 48),
                     const SizedBox(height: 8),
                     Text(
                       'Failed to load allocation history',
-                      style: TextStyle(color: Colors.red.shade700),
+                      style: TextStyle(color: DesignTokens.color('error')),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _error!,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? Colors.white 
-                          : null,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -143,18 +128,18 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.savings, color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Colors.grey, size: 48),
+                    Icon(
+                      Icons.savings,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      size: 48,
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'No allocations yet',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -162,9 +147,7 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
                       'Start allocating money to this goal from your transactions',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 14,
                       ),
                     ),
@@ -179,19 +162,14 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? Colors.grey.shade800 
-                    : Colors.blue.shade50,
+                  color: DesignTokens.color('info').withOpacity(0.1),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Total Allocations: ${_allocations.length}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white 
-                            : null,
                         ),
                       ),
                       Text(
@@ -200,9 +178,7 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
                         ),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.green 
-                            : Colors.blue.shade700,
+                          color: DesignTokens.color('info'),
                           fontSize: 16,
                         ),
                       ),
@@ -234,11 +210,9 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Theme.of(context).brightness == Brightness.dark 
-          ? const Color(0xFF3E3E3E) 
-          : Colors.grey.shade200),
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
         ),
       ),
       child: Row(
@@ -251,22 +225,15 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
               children: [
                 Text(
                   '${allocation.date.month}/${allocation.date.day}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
                   ),
                 ),
                 Text(
                   '${allocation.date.year}',
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Theme.of(context).brightness == Brightness.dark 
-                      ? const Color(0xFFBDBDBD) 
-                      : Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 11,
                   ),
                 ),
@@ -283,12 +250,9 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
               children: [
                 Text(
                   allocation.eventTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 15,
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
-                      : null,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -299,21 +263,13 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
                     Icon(
                       _getAllocationTypeIcon(allocation.allocationType),
                       size: 12,
-                      color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Theme.of(context).brightness == Brightness.dark 
-                      ? const Color(0xFFBDBDBD) 
-                      : Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       _getAllocationTypeLabel(allocation.allocationType),
                       style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                        ? const Color(0xFFBDBDBD) 
-                        : Theme.of(context).brightness == Brightness.dark 
-                      ? const Color(0xFFBDBDBD) 
-                      : Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -327,15 +283,15 @@ class _GoalAllocationHistoryWidgetState extends State<GoalAllocationHistoryWidge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.green.shade200),
+              color: DesignTokens.color('success').withOpacity(0.1),
+              borderRadius: DesignTokens.borderRadius['md']!,
+              border: Border.all(color: DesignTokens.color('success').withOpacity(0.3)),
             ),
             child: Text(
               FormatUtils.formatCurrency(allocation.amount),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.green.shade700,
+                color: DesignTokens.color('success'),
                 fontSize: 13,
               ),
             ),

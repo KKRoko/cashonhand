@@ -1,21 +1,33 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'money.dart';
+import '../core/di/injection.dart';
+import '../services/currency_service.dart';
 
 
 /// Formatters for currency and dates
 class FormatUtils {
-  static final NumberFormat _currencyFormatter = NumberFormat.currency(symbol: '\$');
   static final DateFormat _dateFormatter = DateFormat('EEE, MMMM d, y');
+
+  /// Get the current currency symbol from CurrencyService
+  static String get currencySymbol {
+    try {
+      final currencyService = getIt<CurrencyService>();
+      return currencyService.currencySymbol;
+    } catch (e) {
+      return '\$'; // Fallback to USD if service not available
+    }
+  }
 
   /// Formats a number as currency (legacy - use formatMoney instead)
   static String formatCurrency(double amount) {
-    return _currencyFormatter.format(amount);
+    final formatter = NumberFormat.currency(symbol: currencySymbol);
+    return formatter.format(amount);
   }
 
   /// Formats Money as currency with precise arithmetic
   static String formatMoney(Money amount) {
-    return amount.formatCurrency();
+    return amount.formatCurrency(symbol: currencySymbol);
   }
 
   /// Formats a date in full format

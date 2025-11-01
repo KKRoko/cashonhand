@@ -4413,6 +4413,1636 @@ class CategoryBudgetsCompanion
   }
 }
 
+class $BudgetTemplatesTable extends BudgetTemplates
+    with TableInfo<$BudgetTemplatesTable, BudgetTemplateTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BudgetTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _needsPercentageMeta =
+      const VerificationMeta('needsPercentage');
+  @override
+  late final GeneratedColumn<double> needsPercentage = GeneratedColumn<double>(
+      'needs_percentage', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.50));
+  static const VerificationMeta _wantsPercentageMeta =
+      const VerificationMeta('wantsPercentage');
+  @override
+  late final GeneratedColumn<double> wantsPercentage = GeneratedColumn<double>(
+      'wants_percentage', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.30));
+  static const VerificationMeta _savingsPercentageMeta =
+      const VerificationMeta('savingsPercentage');
+  @override
+  late final GeneratedColumn<double> savingsPercentage =
+      GeneratedColumn<double>('savings_percentage', aliasedName, false,
+          type: DriftSqlType.double,
+          requiredDuringInsert: false,
+          defaultValue: const Constant(0.20));
+  static const VerificationMeta _isPresetMeta =
+      const VerificationMeta('isPreset');
+  @override
+  late final GeneratedColumn<bool> isPreset = GeneratedColumn<bool>(
+      'is_preset', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_preset" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        description,
+        needsPercentage,
+        wantsPercentage,
+        savingsPercentage,
+        isPreset,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budget_templates';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<BudgetTemplateTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('needs_percentage')) {
+      context.handle(
+          _needsPercentageMeta,
+          needsPercentage.isAcceptableOrUnknown(
+              data['needs_percentage']!, _needsPercentageMeta));
+    }
+    if (data.containsKey('wants_percentage')) {
+      context.handle(
+          _wantsPercentageMeta,
+          wantsPercentage.isAcceptableOrUnknown(
+              data['wants_percentage']!, _wantsPercentageMeta));
+    }
+    if (data.containsKey('savings_percentage')) {
+      context.handle(
+          _savingsPercentageMeta,
+          savingsPercentage.isAcceptableOrUnknown(
+              data['savings_percentage']!, _savingsPercentageMeta));
+    }
+    if (data.containsKey('is_preset')) {
+      context.handle(_isPresetMeta,
+          isPreset.isAcceptableOrUnknown(data['is_preset']!, _isPresetMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BudgetTemplateTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetTemplateTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
+      needsPercentage: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}needs_percentage'])!,
+      wantsPercentage: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}wants_percentage'])!,
+      savingsPercentage: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}savings_percentage'])!,
+      isPreset: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_preset'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
+    );
+  }
+
+  @override
+  $BudgetTemplatesTable createAlias(String alias) {
+    return $BudgetTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class BudgetTemplateTableData extends DataClass
+    implements Insertable<BudgetTemplateTableData> {
+  final int id;
+  final String name;
+  final String description;
+  final double needsPercentage;
+  final double wantsPercentage;
+  final double savingsPercentage;
+  final bool isPreset;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+  const BudgetTemplateTableData(
+      {required this.id,
+      required this.name,
+      required this.description,
+      required this.needsPercentage,
+      required this.wantsPercentage,
+      required this.savingsPercentage,
+      required this.isPreset,
+      required this.createdAt,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['description'] = Variable<String>(description);
+    map['needs_percentage'] = Variable<double>(needsPercentage);
+    map['wants_percentage'] = Variable<double>(wantsPercentage);
+    map['savings_percentage'] = Variable<double>(savingsPercentage);
+    map['is_preset'] = Variable<bool>(isPreset);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
+  BudgetTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return BudgetTemplatesCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: Value(description),
+      needsPercentage: Value(needsPercentage),
+      wantsPercentage: Value(wantsPercentage),
+      savingsPercentage: Value(savingsPercentage),
+      isPreset: Value(isPreset),
+      createdAt: Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory BudgetTemplateTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetTemplateTableData(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String>(json['description']),
+      needsPercentage: serializer.fromJson<double>(json['needsPercentage']),
+      wantsPercentage: serializer.fromJson<double>(json['wantsPercentage']),
+      savingsPercentage: serializer.fromJson<double>(json['savingsPercentage']),
+      isPreset: serializer.fromJson<bool>(json['isPreset']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String>(description),
+      'needsPercentage': serializer.toJson<double>(needsPercentage),
+      'wantsPercentage': serializer.toJson<double>(wantsPercentage),
+      'savingsPercentage': serializer.toJson<double>(savingsPercentage),
+      'isPreset': serializer.toJson<bool>(isPreset),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+    };
+  }
+
+  BudgetTemplateTableData copyWith(
+          {int? id,
+          String? name,
+          String? description,
+          double? needsPercentage,
+          double? wantsPercentage,
+          double? savingsPercentage,
+          bool? isPreset,
+          DateTime? createdAt,
+          Value<DateTime?> updatedAt = const Value.absent()}) =>
+      BudgetTemplateTableData(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        description: description ?? this.description,
+        needsPercentage: needsPercentage ?? this.needsPercentage,
+        wantsPercentage: wantsPercentage ?? this.wantsPercentage,
+        savingsPercentage: savingsPercentage ?? this.savingsPercentage,
+        isPreset: isPreset ?? this.isPreset,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  BudgetTemplateTableData copyWithCompanion(BudgetTemplatesCompanion data) {
+    return BudgetTemplateTableData(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+      needsPercentage: data.needsPercentage.present
+          ? data.needsPercentage.value
+          : this.needsPercentage,
+      wantsPercentage: data.wantsPercentage.present
+          ? data.wantsPercentage.value
+          : this.wantsPercentage,
+      savingsPercentage: data.savingsPercentage.present
+          ? data.savingsPercentage.value
+          : this.savingsPercentage,
+      isPreset: data.isPreset.present ? data.isPreset.value : this.isPreset,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetTemplateTableData(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('needsPercentage: $needsPercentage, ')
+          ..write('wantsPercentage: $wantsPercentage, ')
+          ..write('savingsPercentage: $savingsPercentage, ')
+          ..write('isPreset: $isPreset, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, description, needsPercentage,
+      wantsPercentage, savingsPercentage, isPreset, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetTemplateTableData &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.needsPercentage == this.needsPercentage &&
+          other.wantsPercentage == this.wantsPercentage &&
+          other.savingsPercentage == this.savingsPercentage &&
+          other.isPreset == this.isPreset &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class BudgetTemplatesCompanion
+    extends UpdateCompanion<BudgetTemplateTableData> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> description;
+  final Value<double> needsPercentage;
+  final Value<double> wantsPercentage;
+  final Value<double> savingsPercentage;
+  final Value<bool> isPreset;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> updatedAt;
+  const BudgetTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.needsPercentage = const Value.absent(),
+    this.wantsPercentage = const Value.absent(),
+    this.savingsPercentage = const Value.absent(),
+    this.isPreset = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  BudgetTemplatesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String description,
+    this.needsPercentage = const Value.absent(),
+    this.wantsPercentage = const Value.absent(),
+    this.savingsPercentage = const Value.absent(),
+    this.isPreset = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : name = Value(name),
+        description = Value(description);
+  static Insertable<BudgetTemplateTableData> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<double>? needsPercentage,
+    Expression<double>? wantsPercentage,
+    Expression<double>? savingsPercentage,
+    Expression<bool>? isPreset,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (needsPercentage != null) 'needs_percentage': needsPercentage,
+      if (wantsPercentage != null) 'wants_percentage': wantsPercentage,
+      if (savingsPercentage != null) 'savings_percentage': savingsPercentage,
+      if (isPreset != null) 'is_preset': isPreset,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  BudgetTemplatesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<String>? description,
+      Value<double>? needsPercentage,
+      Value<double>? wantsPercentage,
+      Value<double>? savingsPercentage,
+      Value<bool>? isPreset,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? updatedAt}) {
+    return BudgetTemplatesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      needsPercentage: needsPercentage ?? this.needsPercentage,
+      wantsPercentage: wantsPercentage ?? this.wantsPercentage,
+      savingsPercentage: savingsPercentage ?? this.savingsPercentage,
+      isPreset: isPreset ?? this.isPreset,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (needsPercentage.present) {
+      map['needs_percentage'] = Variable<double>(needsPercentage.value);
+    }
+    if (wantsPercentage.present) {
+      map['wants_percentage'] = Variable<double>(wantsPercentage.value);
+    }
+    if (savingsPercentage.present) {
+      map['savings_percentage'] = Variable<double>(savingsPercentage.value);
+    }
+    if (isPreset.present) {
+      map['is_preset'] = Variable<bool>(isPreset.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('needsPercentage: $needsPercentage, ')
+          ..write('wantsPercentage: $wantsPercentage, ')
+          ..write('savingsPercentage: $savingsPercentage, ')
+          ..write('isPreset: $isPreset, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $YearEndGoalsTable extends YearEndGoals
+    with TableInfo<$YearEndGoalsTable, YearEndGoalTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $YearEndGoalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _yearMeta = const VerificationMeta('year');
+  @override
+  late final GeneratedColumn<int> year = GeneratedColumn<int>(
+      'year', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _needsPercentageMeta =
+      const VerificationMeta('needsPercentage');
+  @override
+  late final GeneratedColumn<double> needsPercentage = GeneratedColumn<double>(
+      'needs_percentage', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _wantsPercentageMeta =
+      const VerificationMeta('wantsPercentage');
+  @override
+  late final GeneratedColumn<double> wantsPercentage = GeneratedColumn<double>(
+      'wants_percentage', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _savingsPercentageMeta =
+      const VerificationMeta('savingsPercentage');
+  @override
+  late final GeneratedColumn<double> savingsPercentage =
+      GeneratedColumn<double>('savings_percentage', aliasedName, false,
+          type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        year,
+        needsPercentage,
+        wantsPercentage,
+        savingsPercentage,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'year_end_goals';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<YearEndGoalTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('year')) {
+      context.handle(
+          _yearMeta, year.isAcceptableOrUnknown(data['year']!, _yearMeta));
+    } else if (isInserting) {
+      context.missing(_yearMeta);
+    }
+    if (data.containsKey('needs_percentage')) {
+      context.handle(
+          _needsPercentageMeta,
+          needsPercentage.isAcceptableOrUnknown(
+              data['needs_percentage']!, _needsPercentageMeta));
+    } else if (isInserting) {
+      context.missing(_needsPercentageMeta);
+    }
+    if (data.containsKey('wants_percentage')) {
+      context.handle(
+          _wantsPercentageMeta,
+          wantsPercentage.isAcceptableOrUnknown(
+              data['wants_percentage']!, _wantsPercentageMeta));
+    } else if (isInserting) {
+      context.missing(_wantsPercentageMeta);
+    }
+    if (data.containsKey('savings_percentage')) {
+      context.handle(
+          _savingsPercentageMeta,
+          savingsPercentage.isAcceptableOrUnknown(
+              data['savings_percentage']!, _savingsPercentageMeta));
+    } else if (isInserting) {
+      context.missing(_savingsPercentageMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {year},
+      ];
+  @override
+  YearEndGoalTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return YearEndGoalTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      year: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}year'])!,
+      needsPercentage: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}needs_percentage'])!,
+      wantsPercentage: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}wants_percentage'])!,
+      savingsPercentage: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}savings_percentage'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $YearEndGoalsTable createAlias(String alias) {
+    return $YearEndGoalsTable(attachedDatabase, alias);
+  }
+}
+
+class YearEndGoalTableData extends DataClass
+    implements Insertable<YearEndGoalTableData> {
+  final int id;
+  final int year;
+  final double needsPercentage;
+  final double wantsPercentage;
+  final double savingsPercentage;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const YearEndGoalTableData(
+      {required this.id,
+      required this.year,
+      required this.needsPercentage,
+      required this.wantsPercentage,
+      required this.savingsPercentage,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['year'] = Variable<int>(year);
+    map['needs_percentage'] = Variable<double>(needsPercentage);
+    map['wants_percentage'] = Variable<double>(wantsPercentage);
+    map['savings_percentage'] = Variable<double>(savingsPercentage);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  YearEndGoalsCompanion toCompanion(bool nullToAbsent) {
+    return YearEndGoalsCompanion(
+      id: Value(id),
+      year: Value(year),
+      needsPercentage: Value(needsPercentage),
+      wantsPercentage: Value(wantsPercentage),
+      savingsPercentage: Value(savingsPercentage),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory YearEndGoalTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return YearEndGoalTableData(
+      id: serializer.fromJson<int>(json['id']),
+      year: serializer.fromJson<int>(json['year']),
+      needsPercentage: serializer.fromJson<double>(json['needsPercentage']),
+      wantsPercentage: serializer.fromJson<double>(json['wantsPercentage']),
+      savingsPercentage: serializer.fromJson<double>(json['savingsPercentage']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'year': serializer.toJson<int>(year),
+      'needsPercentage': serializer.toJson<double>(needsPercentage),
+      'wantsPercentage': serializer.toJson<double>(wantsPercentage),
+      'savingsPercentage': serializer.toJson<double>(savingsPercentage),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  YearEndGoalTableData copyWith(
+          {int? id,
+          int? year,
+          double? needsPercentage,
+          double? wantsPercentage,
+          double? savingsPercentage,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      YearEndGoalTableData(
+        id: id ?? this.id,
+        year: year ?? this.year,
+        needsPercentage: needsPercentage ?? this.needsPercentage,
+        wantsPercentage: wantsPercentage ?? this.wantsPercentage,
+        savingsPercentage: savingsPercentage ?? this.savingsPercentage,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  YearEndGoalTableData copyWithCompanion(YearEndGoalsCompanion data) {
+    return YearEndGoalTableData(
+      id: data.id.present ? data.id.value : this.id,
+      year: data.year.present ? data.year.value : this.year,
+      needsPercentage: data.needsPercentage.present
+          ? data.needsPercentage.value
+          : this.needsPercentage,
+      wantsPercentage: data.wantsPercentage.present
+          ? data.wantsPercentage.value
+          : this.wantsPercentage,
+      savingsPercentage: data.savingsPercentage.present
+          ? data.savingsPercentage.value
+          : this.savingsPercentage,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('YearEndGoalTableData(')
+          ..write('id: $id, ')
+          ..write('year: $year, ')
+          ..write('needsPercentage: $needsPercentage, ')
+          ..write('wantsPercentage: $wantsPercentage, ')
+          ..write('savingsPercentage: $savingsPercentage, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, year, needsPercentage, wantsPercentage,
+      savingsPercentage, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is YearEndGoalTableData &&
+          other.id == this.id &&
+          other.year == this.year &&
+          other.needsPercentage == this.needsPercentage &&
+          other.wantsPercentage == this.wantsPercentage &&
+          other.savingsPercentage == this.savingsPercentage &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class YearEndGoalsCompanion extends UpdateCompanion<YearEndGoalTableData> {
+  final Value<int> id;
+  final Value<int> year;
+  final Value<double> needsPercentage;
+  final Value<double> wantsPercentage;
+  final Value<double> savingsPercentage;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const YearEndGoalsCompanion({
+    this.id = const Value.absent(),
+    this.year = const Value.absent(),
+    this.needsPercentage = const Value.absent(),
+    this.wantsPercentage = const Value.absent(),
+    this.savingsPercentage = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  YearEndGoalsCompanion.insert({
+    this.id = const Value.absent(),
+    required int year,
+    required double needsPercentage,
+    required double wantsPercentage,
+    required double savingsPercentage,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : year = Value(year),
+        needsPercentage = Value(needsPercentage),
+        wantsPercentage = Value(wantsPercentage),
+        savingsPercentage = Value(savingsPercentage);
+  static Insertable<YearEndGoalTableData> custom({
+    Expression<int>? id,
+    Expression<int>? year,
+    Expression<double>? needsPercentage,
+    Expression<double>? wantsPercentage,
+    Expression<double>? savingsPercentage,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (year != null) 'year': year,
+      if (needsPercentage != null) 'needs_percentage': needsPercentage,
+      if (wantsPercentage != null) 'wants_percentage': wantsPercentage,
+      if (savingsPercentage != null) 'savings_percentage': savingsPercentage,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  YearEndGoalsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? year,
+      Value<double>? needsPercentage,
+      Value<double>? wantsPercentage,
+      Value<double>? savingsPercentage,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return YearEndGoalsCompanion(
+      id: id ?? this.id,
+      year: year ?? this.year,
+      needsPercentage: needsPercentage ?? this.needsPercentage,
+      wantsPercentage: wantsPercentage ?? this.wantsPercentage,
+      savingsPercentage: savingsPercentage ?? this.savingsPercentage,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (year.present) {
+      map['year'] = Variable<int>(year.value);
+    }
+    if (needsPercentage.present) {
+      map['needs_percentage'] = Variable<double>(needsPercentage.value);
+    }
+    if (wantsPercentage.present) {
+      map['wants_percentage'] = Variable<double>(wantsPercentage.value);
+    }
+    if (savingsPercentage.present) {
+      map['savings_percentage'] = Variable<double>(savingsPercentage.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('YearEndGoalsCompanion(')
+          ..write('id: $id, ')
+          ..write('year: $year, ')
+          ..write('needsPercentage: $needsPercentage, ')
+          ..write('wantsPercentage: $wantsPercentage, ')
+          ..write('savingsPercentage: $savingsPercentage, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AllocationTemplatesTable extends AllocationTemplates
+    with TableInfo<$AllocationTemplatesTable, AllocationTemplateTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AllocationTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _totalAmountMeta =
+      const VerificationMeta('totalAmount');
+  @override
+  late final GeneratedColumn<double> totalAmount = GeneratedColumn<double>(
+      'total_amount', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, name, description, totalAmount, createdAt, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'allocation_templates';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<AllocationTemplateTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('total_amount')) {
+      context.handle(
+          _totalAmountMeta,
+          totalAmount.isAcceptableOrUnknown(
+              data['total_amount']!, _totalAmountMeta));
+    } else if (isInserting) {
+      context.missing(_totalAmountMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AllocationTemplateTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AllocationTemplateTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      totalAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}total_amount'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $AllocationTemplatesTable createAlias(String alias) {
+    return $AllocationTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class AllocationTemplateTableData extends DataClass
+    implements Insertable<AllocationTemplateTableData> {
+  final int id;
+  final String name;
+  final String? description;
+  final double totalAmount;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const AllocationTemplateTableData(
+      {required this.id,
+      required this.name,
+      this.description,
+      required this.totalAmount,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['total_amount'] = Variable<double>(totalAmount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AllocationTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return AllocationTemplatesCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      totalAmount: Value(totalAmount),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AllocationTemplateTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AllocationTemplateTableData(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      totalAmount: serializer.fromJson<double>(json['totalAmount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'totalAmount': serializer.toJson<double>(totalAmount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AllocationTemplateTableData copyWith(
+          {int? id,
+          String? name,
+          Value<String?> description = const Value.absent(),
+          double? totalAmount,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      AllocationTemplateTableData(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        description: description.present ? description.value : this.description,
+        totalAmount: totalAmount ?? this.totalAmount,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  AllocationTemplateTableData copyWithCompanion(
+      AllocationTemplatesCompanion data) {
+    return AllocationTemplateTableData(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+      totalAmount:
+          data.totalAmount.present ? data.totalAmount.value : this.totalAmount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AllocationTemplateTableData(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, description, totalAmount, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AllocationTemplateTableData &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.totalAmount == this.totalAmount &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AllocationTemplatesCompanion
+    extends UpdateCompanion<AllocationTemplateTableData> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<double> totalAmount;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const AllocationTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AllocationTemplatesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.description = const Value.absent(),
+    required double totalAmount,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : name = Value(name),
+        totalAmount = Value(totalAmount);
+  static Insertable<AllocationTemplateTableData> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<double>? totalAmount,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (totalAmount != null) 'total_amount': totalAmount,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AllocationTemplatesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<String?>? description,
+      Value<double>? totalAmount,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return AllocationTemplatesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      totalAmount: totalAmount ?? this.totalAmount,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (totalAmount.present) {
+      map['total_amount'] = Variable<double>(totalAmount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AllocationTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AllocationTemplateItemsTable extends AllocationTemplateItems
+    with
+        TableInfo<$AllocationTemplateItemsTable,
+            AllocationTemplateItemTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AllocationTemplateItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _templateIdMeta =
+      const VerificationMeta('templateId');
+  @override
+  late final GeneratedColumn<int> templateId = GeneratedColumn<int>(
+      'template_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES allocation_templates (id) ON DELETE CASCADE'));
+  static const VerificationMeta _categoryIdMeta =
+      const VerificationMeta('categoryId');
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+      'category_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES categories (id) ON DELETE CASCADE'));
+  static const VerificationMeta _allocatedAmountMeta =
+      const VerificationMeta('allocatedAmount');
+  @override
+  late final GeneratedColumn<double> allocatedAmount = GeneratedColumn<double>(
+      'allocated_amount', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _bucketTypeMeta =
+      const VerificationMeta('bucketType');
+  @override
+  late final GeneratedColumnWithTypeConverter<BucketType, String> bucketType =
+      GeneratedColumn<String>('bucket_type', aliasedName, false,
+              type: DriftSqlType.string, requiredDuringInsert: true)
+          .withConverter<BucketType>(
+              $AllocationTemplateItemsTable.$converterbucketType);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        templateId,
+        categoryId,
+        allocatedAmount,
+        bucketType,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'allocation_template_items';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<AllocationTemplateItemTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('template_id')) {
+      context.handle(
+          _templateIdMeta,
+          templateId.isAcceptableOrUnknown(
+              data['template_id']!, _templateIdMeta));
+    } else if (isInserting) {
+      context.missing(_templateIdMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+          _categoryIdMeta,
+          categoryId.isAcceptableOrUnknown(
+              data['category_id']!, _categoryIdMeta));
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('allocated_amount')) {
+      context.handle(
+          _allocatedAmountMeta,
+          allocatedAmount.isAcceptableOrUnknown(
+              data['allocated_amount']!, _allocatedAmountMeta));
+    } else if (isInserting) {
+      context.missing(_allocatedAmountMeta);
+    }
+    context.handle(_bucketTypeMeta, const VerificationResult.success());
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AllocationTemplateItemTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AllocationTemplateItemTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      templateId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}template_id'])!,
+      categoryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}category_id'])!,
+      allocatedAmount: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}allocated_amount'])!,
+      bucketType: $AllocationTemplateItemsTable.$converterbucketType.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}bucket_type'])!),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $AllocationTemplateItemsTable createAlias(String alias) {
+    return $AllocationTemplateItemsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<BucketType, String> $converterbucketType =
+      const BucketTypeConverter();
+}
+
+class AllocationTemplateItemTableData extends DataClass
+    implements Insertable<AllocationTemplateItemTableData> {
+  final int id;
+  final int templateId;
+  final int categoryId;
+  final double allocatedAmount;
+  final BucketType bucketType;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const AllocationTemplateItemTableData(
+      {required this.id,
+      required this.templateId,
+      required this.categoryId,
+      required this.allocatedAmount,
+      required this.bucketType,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['template_id'] = Variable<int>(templateId);
+    map['category_id'] = Variable<int>(categoryId);
+    map['allocated_amount'] = Variable<double>(allocatedAmount);
+    {
+      map['bucket_type'] = Variable<String>(
+          $AllocationTemplateItemsTable.$converterbucketType.toSql(bucketType));
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  AllocationTemplateItemsCompanion toCompanion(bool nullToAbsent) {
+    return AllocationTemplateItemsCompanion(
+      id: Value(id),
+      templateId: Value(templateId),
+      categoryId: Value(categoryId),
+      allocatedAmount: Value(allocatedAmount),
+      bucketType: Value(bucketType),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory AllocationTemplateItemTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AllocationTemplateItemTableData(
+      id: serializer.fromJson<int>(json['id']),
+      templateId: serializer.fromJson<int>(json['templateId']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      allocatedAmount: serializer.fromJson<double>(json['allocatedAmount']),
+      bucketType: serializer.fromJson<BucketType>(json['bucketType']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'templateId': serializer.toJson<int>(templateId),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'allocatedAmount': serializer.toJson<double>(allocatedAmount),
+      'bucketType': serializer.toJson<BucketType>(bucketType),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  AllocationTemplateItemTableData copyWith(
+          {int? id,
+          int? templateId,
+          int? categoryId,
+          double? allocatedAmount,
+          BucketType? bucketType,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      AllocationTemplateItemTableData(
+        id: id ?? this.id,
+        templateId: templateId ?? this.templateId,
+        categoryId: categoryId ?? this.categoryId,
+        allocatedAmount: allocatedAmount ?? this.allocatedAmount,
+        bucketType: bucketType ?? this.bucketType,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  AllocationTemplateItemTableData copyWithCompanion(
+      AllocationTemplateItemsCompanion data) {
+    return AllocationTemplateItemTableData(
+      id: data.id.present ? data.id.value : this.id,
+      templateId:
+          data.templateId.present ? data.templateId.value : this.templateId,
+      categoryId:
+          data.categoryId.present ? data.categoryId.value : this.categoryId,
+      allocatedAmount: data.allocatedAmount.present
+          ? data.allocatedAmount.value
+          : this.allocatedAmount,
+      bucketType:
+          data.bucketType.present ? data.bucketType.value : this.bucketType,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AllocationTemplateItemTableData(')
+          ..write('id: $id, ')
+          ..write('templateId: $templateId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('allocatedAmount: $allocatedAmount, ')
+          ..write('bucketType: $bucketType, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, templateId, categoryId, allocatedAmount,
+      bucketType, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AllocationTemplateItemTableData &&
+          other.id == this.id &&
+          other.templateId == this.templateId &&
+          other.categoryId == this.categoryId &&
+          other.allocatedAmount == this.allocatedAmount &&
+          other.bucketType == this.bucketType &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class AllocationTemplateItemsCompanion
+    extends UpdateCompanion<AllocationTemplateItemTableData> {
+  final Value<int> id;
+  final Value<int> templateId;
+  final Value<int> categoryId;
+  final Value<double> allocatedAmount;
+  final Value<BucketType> bucketType;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const AllocationTemplateItemsCompanion({
+    this.id = const Value.absent(),
+    this.templateId = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.allocatedAmount = const Value.absent(),
+    this.bucketType = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  AllocationTemplateItemsCompanion.insert({
+    this.id = const Value.absent(),
+    required int templateId,
+    required int categoryId,
+    required double allocatedAmount,
+    required BucketType bucketType,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : templateId = Value(templateId),
+        categoryId = Value(categoryId),
+        allocatedAmount = Value(allocatedAmount),
+        bucketType = Value(bucketType);
+  static Insertable<AllocationTemplateItemTableData> custom({
+    Expression<int>? id,
+    Expression<int>? templateId,
+    Expression<int>? categoryId,
+    Expression<double>? allocatedAmount,
+    Expression<String>? bucketType,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (templateId != null) 'template_id': templateId,
+      if (categoryId != null) 'category_id': categoryId,
+      if (allocatedAmount != null) 'allocated_amount': allocatedAmount,
+      if (bucketType != null) 'bucket_type': bucketType,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  AllocationTemplateItemsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? templateId,
+      Value<int>? categoryId,
+      Value<double>? allocatedAmount,
+      Value<BucketType>? bucketType,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt}) {
+    return AllocationTemplateItemsCompanion(
+      id: id ?? this.id,
+      templateId: templateId ?? this.templateId,
+      categoryId: categoryId ?? this.categoryId,
+      allocatedAmount: allocatedAmount ?? this.allocatedAmount,
+      bucketType: bucketType ?? this.bucketType,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (templateId.present) {
+      map['template_id'] = Variable<int>(templateId.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (allocatedAmount.present) {
+      map['allocated_amount'] = Variable<double>(allocatedAmount.value);
+    }
+    if (bucketType.present) {
+      map['bucket_type'] = Variable<String>($AllocationTemplateItemsTable
+          .$converterbucketType
+          .toSql(bucketType.value));
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AllocationTemplateItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('templateId: $templateId, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('allocatedAmount: $allocatedAmount, ')
+          ..write('bucketType: $bucketType, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$Database extends GeneratedDatabase {
   _$Database(QueryExecutor e) : super(e);
   $DatabaseManager get managers => $DatabaseManager(this);
@@ -4428,6 +6058,13 @@ abstract class _$Database extends GeneratedDatabase {
   late final $BudgetsTable budgets = $BudgetsTable(this);
   late final $CategoryBudgetsTable categoryBudgets =
       $CategoryBudgetsTable(this);
+  late final $BudgetTemplatesTable budgetTemplates =
+      $BudgetTemplatesTable(this);
+  late final $YearEndGoalsTable yearEndGoals = $YearEndGoalsTable(this);
+  late final $AllocationTemplatesTable allocationTemplates =
+      $AllocationTemplatesTable(this);
+  late final $AllocationTemplateItemsTable allocationTemplateItems =
+      $AllocationTemplateItemsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4440,7 +6077,11 @@ abstract class _$Database extends GeneratedDatabase {
         goalAllocations,
         autoAllocationRules,
         budgets,
-        categoryBudgets
+        categoryBudgets,
+        budgetTemplates,
+        yearEndGoals,
+        allocationTemplates,
+        allocationTemplateItems
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -4478,6 +6119,20 @@ abstract class _$Database extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('category_budgets', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('allocation_templates',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('allocation_template_items', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('categories',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('allocation_template_items', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -4574,6 +6229,25 @@ final class $$CategoriesTableReferences
 
     final cache =
         $_typedResult.readTableOrNull(_categoryBudgetsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$AllocationTemplateItemsTable,
+      List<AllocationTemplateItemTableData>> _allocationTemplateItemsRefsTable(
+          _$Database db) =>
+      MultiTypedResultKey.fromTable(db.allocationTemplateItems,
+          aliasName: $_aliasNameGenerator(
+              db.categories.id, db.allocationTemplateItems.categoryId));
+
+  $$AllocationTemplateItemsTableProcessedTableManager
+      get allocationTemplateItemsRefs {
+    final manager = $$AllocationTemplateItemsTableTableManager(
+            $_db, $_db.allocationTemplateItems)
+        .filter((f) => f.categoryId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_allocationTemplateItemsRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -4697,6 +6371,29 @@ class $$CategoriesTableFilterComposer
               $removeJoinBuilderFromRootComposer:
                   $removeJoinBuilderFromRootComposer,
             ));
+    return f(composer);
+  }
+
+  Expression<bool> allocationTemplateItemsRefs(
+      Expression<bool> Function($$AllocationTemplateItemsTableFilterComposer f)
+          f) {
+    final $$AllocationTemplateItemsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.allocationTemplateItems,
+            getReferencedColumn: (t) => t.categoryId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AllocationTemplateItemsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.allocationTemplateItems,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
     return f(composer);
   }
 }
@@ -4878,6 +6575,29 @@ class $$CategoriesTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> allocationTemplateItemsRefs<T extends Object>(
+      Expression<T> Function($$AllocationTemplateItemsTableAnnotationComposer a)
+          f) {
+    final $$AllocationTemplateItemsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.allocationTemplateItems,
+            getReferencedColumn: (t) => t.categoryId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AllocationTemplateItemsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.allocationTemplateItems,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager extends RootTableManager<
@@ -4895,7 +6615,8 @@ class $$CategoriesTableTableManager extends RootTableManager<
         {bool parentCategoryId,
         bool eventsRefs,
         bool autoAllocationRulesRefs,
-        bool categoryBudgetsRefs})> {
+        bool categoryBudgetsRefs,
+        bool allocationTemplateItemsRefs})> {
   $$CategoriesTableTableManager(_$Database db, $CategoriesTable table)
       : super(TableManagerState(
           db: db,
@@ -4964,13 +6685,15 @@ class $$CategoriesTableTableManager extends RootTableManager<
               {parentCategoryId = false,
               eventsRefs = false,
               autoAllocationRulesRefs = false,
-              categoryBudgetsRefs = false}) {
+              categoryBudgetsRefs = false,
+              allocationTemplateItemsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (eventsRefs) db.events,
                 if (autoAllocationRulesRefs) db.autoAllocationRules,
-                if (categoryBudgetsRefs) db.categoryBudgets
+                if (categoryBudgetsRefs) db.categoryBudgets,
+                if (allocationTemplateItemsRefs) db.allocationTemplateItems
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -5036,6 +6759,18 @@ class $$CategoriesTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.categoryId == item.id),
+                        typedResults: items),
+                  if (allocationTemplateItemsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$CategoriesTableReferences
+                            ._allocationTemplateItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CategoriesTableReferences(db, table, p0)
+                                .allocationTemplateItemsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.categoryId == item.id),
                         typedResults: items)
                 ];
               },
@@ -5059,7 +6794,8 @@ typedef $$CategoriesTableProcessedTableManager = ProcessedTableManager<
         {bool parentCategoryId,
         bool eventsRefs,
         bool autoAllocationRulesRefs,
-        bool categoryBudgetsRefs})>;
+        bool categoryBudgetsRefs,
+        bool allocationTemplateItemsRefs})>;
 typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<int> id,
   Value<int?> originalEventId,
@@ -7831,6 +9567,1113 @@ typedef $$CategoryBudgetsTableProcessedTableManager = ProcessedTableManager<
     (CategoryBudgetTableData, $$CategoryBudgetsTableReferences),
     CategoryBudgetTableData,
     PrefetchHooks Function({bool budgetId, bool categoryId})>;
+typedef $$BudgetTemplatesTableCreateCompanionBuilder = BudgetTemplatesCompanion
+    Function({
+  Value<int> id,
+  required String name,
+  required String description,
+  Value<double> needsPercentage,
+  Value<double> wantsPercentage,
+  Value<double> savingsPercentage,
+  Value<bool> isPreset,
+  Value<DateTime> createdAt,
+  Value<DateTime?> updatedAt,
+});
+typedef $$BudgetTemplatesTableUpdateCompanionBuilder = BudgetTemplatesCompanion
+    Function({
+  Value<int> id,
+  Value<String> name,
+  Value<String> description,
+  Value<double> needsPercentage,
+  Value<double> wantsPercentage,
+  Value<double> savingsPercentage,
+  Value<bool> isPreset,
+  Value<DateTime> createdAt,
+  Value<DateTime?> updatedAt,
+});
+
+class $$BudgetTemplatesTableFilterComposer
+    extends Composer<_$Database, $BudgetTemplatesTable> {
+  $$BudgetTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get needsPercentage => $composableBuilder(
+      column: $table.needsPercentage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get wantsPercentage => $composableBuilder(
+      column: $table.wantsPercentage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get savingsPercentage => $composableBuilder(
+      column: $table.savingsPercentage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isPreset => $composableBuilder(
+      column: $table.isPreset, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$BudgetTemplatesTableOrderingComposer
+    extends Composer<_$Database, $BudgetTemplatesTable> {
+  $$BudgetTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get needsPercentage => $composableBuilder(
+      column: $table.needsPercentage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get wantsPercentage => $composableBuilder(
+      column: $table.wantsPercentage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get savingsPercentage => $composableBuilder(
+      column: $table.savingsPercentage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isPreset => $composableBuilder(
+      column: $table.isPreset, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$BudgetTemplatesTableAnnotationComposer
+    extends Composer<_$Database, $BudgetTemplatesTable> {
+  $$BudgetTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<double> get needsPercentage => $composableBuilder(
+      column: $table.needsPercentage, builder: (column) => column);
+
+  GeneratedColumn<double> get wantsPercentage => $composableBuilder(
+      column: $table.wantsPercentage, builder: (column) => column);
+
+  GeneratedColumn<double> get savingsPercentage => $composableBuilder(
+      column: $table.savingsPercentage, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPreset =>
+      $composableBuilder(column: $table.isPreset, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$BudgetTemplatesTableTableManager extends RootTableManager<
+    _$Database,
+    $BudgetTemplatesTable,
+    BudgetTemplateTableData,
+    $$BudgetTemplatesTableFilterComposer,
+    $$BudgetTemplatesTableOrderingComposer,
+    $$BudgetTemplatesTableAnnotationComposer,
+    $$BudgetTemplatesTableCreateCompanionBuilder,
+    $$BudgetTemplatesTableUpdateCompanionBuilder,
+    (
+      BudgetTemplateTableData,
+      BaseReferences<_$Database, $BudgetTemplatesTable, BudgetTemplateTableData>
+    ),
+    BudgetTemplateTableData,
+    PrefetchHooks Function()> {
+  $$BudgetTemplatesTableTableManager(_$Database db, $BudgetTemplatesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BudgetTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BudgetTemplatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BudgetTemplatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> description = const Value.absent(),
+            Value<double> needsPercentage = const Value.absent(),
+            Value<double> wantsPercentage = const Value.absent(),
+            Value<double> savingsPercentage = const Value.absent(),
+            Value<bool> isPreset = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
+          }) =>
+              BudgetTemplatesCompanion(
+            id: id,
+            name: name,
+            description: description,
+            needsPercentage: needsPercentage,
+            wantsPercentage: wantsPercentage,
+            savingsPercentage: savingsPercentage,
+            isPreset: isPreset,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            required String description,
+            Value<double> needsPercentage = const Value.absent(),
+            Value<double> wantsPercentage = const Value.absent(),
+            Value<double> savingsPercentage = const Value.absent(),
+            Value<bool> isPreset = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
+          }) =>
+              BudgetTemplatesCompanion.insert(
+            id: id,
+            name: name,
+            description: description,
+            needsPercentage: needsPercentage,
+            wantsPercentage: wantsPercentage,
+            savingsPercentage: savingsPercentage,
+            isPreset: isPreset,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$BudgetTemplatesTableProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    $BudgetTemplatesTable,
+    BudgetTemplateTableData,
+    $$BudgetTemplatesTableFilterComposer,
+    $$BudgetTemplatesTableOrderingComposer,
+    $$BudgetTemplatesTableAnnotationComposer,
+    $$BudgetTemplatesTableCreateCompanionBuilder,
+    $$BudgetTemplatesTableUpdateCompanionBuilder,
+    (
+      BudgetTemplateTableData,
+      BaseReferences<_$Database, $BudgetTemplatesTable, BudgetTemplateTableData>
+    ),
+    BudgetTemplateTableData,
+    PrefetchHooks Function()>;
+typedef $$YearEndGoalsTableCreateCompanionBuilder = YearEndGoalsCompanion
+    Function({
+  Value<int> id,
+  required int year,
+  required double needsPercentage,
+  required double wantsPercentage,
+  required double savingsPercentage,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$YearEndGoalsTableUpdateCompanionBuilder = YearEndGoalsCompanion
+    Function({
+  Value<int> id,
+  Value<int> year,
+  Value<double> needsPercentage,
+  Value<double> wantsPercentage,
+  Value<double> savingsPercentage,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+class $$YearEndGoalsTableFilterComposer
+    extends Composer<_$Database, $YearEndGoalsTable> {
+  $$YearEndGoalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get year => $composableBuilder(
+      column: $table.year, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get needsPercentage => $composableBuilder(
+      column: $table.needsPercentage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get wantsPercentage => $composableBuilder(
+      column: $table.wantsPercentage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get savingsPercentage => $composableBuilder(
+      column: $table.savingsPercentage,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$YearEndGoalsTableOrderingComposer
+    extends Composer<_$Database, $YearEndGoalsTable> {
+  $$YearEndGoalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get year => $composableBuilder(
+      column: $table.year, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get needsPercentage => $composableBuilder(
+      column: $table.needsPercentage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get wantsPercentage => $composableBuilder(
+      column: $table.wantsPercentage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get savingsPercentage => $composableBuilder(
+      column: $table.savingsPercentage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$YearEndGoalsTableAnnotationComposer
+    extends Composer<_$Database, $YearEndGoalsTable> {
+  $$YearEndGoalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get year =>
+      $composableBuilder(column: $table.year, builder: (column) => column);
+
+  GeneratedColumn<double> get needsPercentage => $composableBuilder(
+      column: $table.needsPercentage, builder: (column) => column);
+
+  GeneratedColumn<double> get wantsPercentage => $composableBuilder(
+      column: $table.wantsPercentage, builder: (column) => column);
+
+  GeneratedColumn<double> get savingsPercentage => $composableBuilder(
+      column: $table.savingsPercentage, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$YearEndGoalsTableTableManager extends RootTableManager<
+    _$Database,
+    $YearEndGoalsTable,
+    YearEndGoalTableData,
+    $$YearEndGoalsTableFilterComposer,
+    $$YearEndGoalsTableOrderingComposer,
+    $$YearEndGoalsTableAnnotationComposer,
+    $$YearEndGoalsTableCreateCompanionBuilder,
+    $$YearEndGoalsTableUpdateCompanionBuilder,
+    (
+      YearEndGoalTableData,
+      BaseReferences<_$Database, $YearEndGoalsTable, YearEndGoalTableData>
+    ),
+    YearEndGoalTableData,
+    PrefetchHooks Function()> {
+  $$YearEndGoalsTableTableManager(_$Database db, $YearEndGoalsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$YearEndGoalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$YearEndGoalsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$YearEndGoalsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> year = const Value.absent(),
+            Value<double> needsPercentage = const Value.absent(),
+            Value<double> wantsPercentage = const Value.absent(),
+            Value<double> savingsPercentage = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              YearEndGoalsCompanion(
+            id: id,
+            year: year,
+            needsPercentage: needsPercentage,
+            wantsPercentage: wantsPercentage,
+            savingsPercentage: savingsPercentage,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int year,
+            required double needsPercentage,
+            required double wantsPercentage,
+            required double savingsPercentage,
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              YearEndGoalsCompanion.insert(
+            id: id,
+            year: year,
+            needsPercentage: needsPercentage,
+            wantsPercentage: wantsPercentage,
+            savingsPercentage: savingsPercentage,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$YearEndGoalsTableProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    $YearEndGoalsTable,
+    YearEndGoalTableData,
+    $$YearEndGoalsTableFilterComposer,
+    $$YearEndGoalsTableOrderingComposer,
+    $$YearEndGoalsTableAnnotationComposer,
+    $$YearEndGoalsTableCreateCompanionBuilder,
+    $$YearEndGoalsTableUpdateCompanionBuilder,
+    (
+      YearEndGoalTableData,
+      BaseReferences<_$Database, $YearEndGoalsTable, YearEndGoalTableData>
+    ),
+    YearEndGoalTableData,
+    PrefetchHooks Function()>;
+typedef $$AllocationTemplatesTableCreateCompanionBuilder
+    = AllocationTemplatesCompanion Function({
+  Value<int> id,
+  required String name,
+  Value<String?> description,
+  required double totalAmount,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$AllocationTemplatesTableUpdateCompanionBuilder
+    = AllocationTemplatesCompanion Function({
+  Value<int> id,
+  Value<String> name,
+  Value<String?> description,
+  Value<double> totalAmount,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+final class $$AllocationTemplatesTableReferences extends BaseReferences<
+    _$Database, $AllocationTemplatesTable, AllocationTemplateTableData> {
+  $$AllocationTemplatesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$AllocationTemplateItemsTable,
+      List<AllocationTemplateItemTableData>> _allocationTemplateItemsRefsTable(
+          _$Database db) =>
+      MultiTypedResultKey.fromTable(db.allocationTemplateItems,
+          aliasName: $_aliasNameGenerator(db.allocationTemplates.id,
+              db.allocationTemplateItems.templateId));
+
+  $$AllocationTemplateItemsTableProcessedTableManager
+      get allocationTemplateItemsRefs {
+    final manager = $$AllocationTemplateItemsTableTableManager(
+            $_db, $_db.allocationTemplateItems)
+        .filter((f) => f.templateId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_allocationTemplateItemsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$AllocationTemplatesTableFilterComposer
+    extends Composer<_$Database, $AllocationTemplatesTable> {
+  $$AllocationTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get totalAmount => $composableBuilder(
+      column: $table.totalAmount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> allocationTemplateItemsRefs(
+      Expression<bool> Function($$AllocationTemplateItemsTableFilterComposer f)
+          f) {
+    final $$AllocationTemplateItemsTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.allocationTemplateItems,
+            getReferencedColumn: (t) => t.templateId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AllocationTemplateItemsTableFilterComposer(
+                  $db: $db,
+                  $table: $db.allocationTemplateItems,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$AllocationTemplatesTableOrderingComposer
+    extends Composer<_$Database, $AllocationTemplatesTable> {
+  $$AllocationTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get totalAmount => $composableBuilder(
+      column: $table.totalAmount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$AllocationTemplatesTableAnnotationComposer
+    extends Composer<_$Database, $AllocationTemplatesTable> {
+  $$AllocationTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<double> get totalAmount => $composableBuilder(
+      column: $table.totalAmount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> allocationTemplateItemsRefs<T extends Object>(
+      Expression<T> Function($$AllocationTemplateItemsTableAnnotationComposer a)
+          f) {
+    final $$AllocationTemplateItemsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.allocationTemplateItems,
+            getReferencedColumn: (t) => t.templateId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AllocationTemplateItemsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.allocationTemplateItems,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$AllocationTemplatesTableTableManager extends RootTableManager<
+    _$Database,
+    $AllocationTemplatesTable,
+    AllocationTemplateTableData,
+    $$AllocationTemplatesTableFilterComposer,
+    $$AllocationTemplatesTableOrderingComposer,
+    $$AllocationTemplatesTableAnnotationComposer,
+    $$AllocationTemplatesTableCreateCompanionBuilder,
+    $$AllocationTemplatesTableUpdateCompanionBuilder,
+    (AllocationTemplateTableData, $$AllocationTemplatesTableReferences),
+    AllocationTemplateTableData,
+    PrefetchHooks Function({bool allocationTemplateItemsRefs})> {
+  $$AllocationTemplatesTableTableManager(
+      _$Database db, $AllocationTemplatesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AllocationTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AllocationTemplatesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AllocationTemplatesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<double> totalAmount = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              AllocationTemplatesCompanion(
+            id: id,
+            name: name,
+            description: description,
+            totalAmount: totalAmount,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            Value<String?> description = const Value.absent(),
+            required double totalAmount,
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              AllocationTemplatesCompanion.insert(
+            id: id,
+            name: name,
+            description: description,
+            totalAmount: totalAmount,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$AllocationTemplatesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({allocationTemplateItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (allocationTemplateItemsRefs) db.allocationTemplateItems
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (allocationTemplateItemsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$AllocationTemplatesTableReferences
+                            ._allocationTemplateItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AllocationTemplatesTableReferences(db, table, p0)
+                                .allocationTemplateItemsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.templateId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$AllocationTemplatesTableProcessedTableManager = ProcessedTableManager<
+    _$Database,
+    $AllocationTemplatesTable,
+    AllocationTemplateTableData,
+    $$AllocationTemplatesTableFilterComposer,
+    $$AllocationTemplatesTableOrderingComposer,
+    $$AllocationTemplatesTableAnnotationComposer,
+    $$AllocationTemplatesTableCreateCompanionBuilder,
+    $$AllocationTemplatesTableUpdateCompanionBuilder,
+    (AllocationTemplateTableData, $$AllocationTemplatesTableReferences),
+    AllocationTemplateTableData,
+    PrefetchHooks Function({bool allocationTemplateItemsRefs})>;
+typedef $$AllocationTemplateItemsTableCreateCompanionBuilder
+    = AllocationTemplateItemsCompanion Function({
+  Value<int> id,
+  required int templateId,
+  required int categoryId,
+  required double allocatedAmount,
+  required BucketType bucketType,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$AllocationTemplateItemsTableUpdateCompanionBuilder
+    = AllocationTemplateItemsCompanion Function({
+  Value<int> id,
+  Value<int> templateId,
+  Value<int> categoryId,
+  Value<double> allocatedAmount,
+  Value<BucketType> bucketType,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+final class $$AllocationTemplateItemsTableReferences extends BaseReferences<
+    _$Database,
+    $AllocationTemplateItemsTable,
+    AllocationTemplateItemTableData> {
+  $$AllocationTemplateItemsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $AllocationTemplatesTable _templateIdTable(_$Database db) =>
+      db.allocationTemplates.createAlias($_aliasNameGenerator(
+          db.allocationTemplateItems.templateId, db.allocationTemplates.id));
+
+  $$AllocationTemplatesTableProcessedTableManager? get templateId {
+    if ($_item.templateId == null) return null;
+    final manager =
+        $$AllocationTemplatesTableTableManager($_db, $_db.allocationTemplates)
+            .filter((f) => f.id($_item.templateId!));
+    final item = $_typedResult.readTableOrNull(_templateIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $CategoriesTable _categoryIdTable(_$Database db) =>
+      db.categories.createAlias($_aliasNameGenerator(
+          db.allocationTemplateItems.categoryId, db.categories.id));
+
+  $$CategoriesTableProcessedTableManager? get categoryId {
+    if ($_item.categoryId == null) return null;
+    final manager = $$CategoriesTableTableManager($_db, $_db.categories)
+        .filter((f) => f.id($_item.categoryId!));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$AllocationTemplateItemsTableFilterComposer
+    extends Composer<_$Database, $AllocationTemplateItemsTable> {
+  $$AllocationTemplateItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get allocatedAmount => $composableBuilder(
+      column: $table.allocatedAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<BucketType, BucketType, String>
+      get bucketType => $composableBuilder(
+          column: $table.bucketType,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$AllocationTemplatesTableFilterComposer get templateId {
+    final $$AllocationTemplatesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.templateId,
+        referencedTable: $db.allocationTemplates,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$AllocationTemplatesTableFilterComposer(
+              $db: $db,
+              $table: $db.allocationTemplates,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableFilterComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AllocationTemplateItemsTableOrderingComposer
+    extends Composer<_$Database, $AllocationTemplateItemsTable> {
+  $$AllocationTemplateItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get allocatedAmount => $composableBuilder(
+      column: $table.allocatedAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get bucketType => $composableBuilder(
+      column: $table.bucketType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$AllocationTemplatesTableOrderingComposer get templateId {
+    final $$AllocationTemplatesTableOrderingComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.templateId,
+            referencedTable: $db.allocationTemplates,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AllocationTemplatesTableOrderingComposer(
+                  $db: $db,
+                  $table: $db.allocationTemplates,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableOrderingComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AllocationTemplateItemsTableAnnotationComposer
+    extends Composer<_$Database, $AllocationTemplateItemsTable> {
+  $$AllocationTemplateItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get allocatedAmount => $composableBuilder(
+      column: $table.allocatedAmount, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<BucketType, String> get bucketType =>
+      $composableBuilder(
+          column: $table.bucketType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$AllocationTemplatesTableAnnotationComposer get templateId {
+    final $$AllocationTemplatesTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.templateId,
+            referencedTable: $db.allocationTemplates,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AllocationTemplatesTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.allocationTemplates,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AllocationTemplateItemsTableTableManager extends RootTableManager<
+    _$Database,
+    $AllocationTemplateItemsTable,
+    AllocationTemplateItemTableData,
+    $$AllocationTemplateItemsTableFilterComposer,
+    $$AllocationTemplateItemsTableOrderingComposer,
+    $$AllocationTemplateItemsTableAnnotationComposer,
+    $$AllocationTemplateItemsTableCreateCompanionBuilder,
+    $$AllocationTemplateItemsTableUpdateCompanionBuilder,
+    (AllocationTemplateItemTableData, $$AllocationTemplateItemsTableReferences),
+    AllocationTemplateItemTableData,
+    PrefetchHooks Function({bool templateId, bool categoryId})> {
+  $$AllocationTemplateItemsTableTableManager(
+      _$Database db, $AllocationTemplateItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AllocationTemplateItemsTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AllocationTemplateItemsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AllocationTemplateItemsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> templateId = const Value.absent(),
+            Value<int> categoryId = const Value.absent(),
+            Value<double> allocatedAmount = const Value.absent(),
+            Value<BucketType> bucketType = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              AllocationTemplateItemsCompanion(
+            id: id,
+            templateId: templateId,
+            categoryId: categoryId,
+            allocatedAmount: allocatedAmount,
+            bucketType: bucketType,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int templateId,
+            required int categoryId,
+            required double allocatedAmount,
+            required BucketType bucketType,
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+          }) =>
+              AllocationTemplateItemsCompanion.insert(
+            id: id,
+            templateId: templateId,
+            categoryId: categoryId,
+            allocatedAmount: allocatedAmount,
+            bucketType: bucketType,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$AllocationTemplateItemsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({templateId = false, categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (templateId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.templateId,
+                    referencedTable: $$AllocationTemplateItemsTableReferences
+                        ._templateIdTable(db),
+                    referencedColumn: $$AllocationTemplateItemsTableReferences
+                        ._templateIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (categoryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.categoryId,
+                    referencedTable: $$AllocationTemplateItemsTableReferences
+                        ._categoryIdTable(db),
+                    referencedColumn: $$AllocationTemplateItemsTableReferences
+                        ._categoryIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$AllocationTemplateItemsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$Database,
+        $AllocationTemplateItemsTable,
+        AllocationTemplateItemTableData,
+        $$AllocationTemplateItemsTableFilterComposer,
+        $$AllocationTemplateItemsTableOrderingComposer,
+        $$AllocationTemplateItemsTableAnnotationComposer,
+        $$AllocationTemplateItemsTableCreateCompanionBuilder,
+        $$AllocationTemplateItemsTableUpdateCompanionBuilder,
+        (
+          AllocationTemplateItemTableData,
+          $$AllocationTemplateItemsTableReferences
+        ),
+        AllocationTemplateItemTableData,
+        PrefetchHooks Function({bool templateId, bool categoryId})>;
 
 class $DatabaseManager {
   final _$Database _db;
@@ -7851,4 +10694,13 @@ class $DatabaseManager {
       $$BudgetsTableTableManager(_db, _db.budgets);
   $$CategoryBudgetsTableTableManager get categoryBudgets =>
       $$CategoryBudgetsTableTableManager(_db, _db.categoryBudgets);
+  $$BudgetTemplatesTableTableManager get budgetTemplates =>
+      $$BudgetTemplatesTableTableManager(_db, _db.budgetTemplates);
+  $$YearEndGoalsTableTableManager get yearEndGoals =>
+      $$YearEndGoalsTableTableManager(_db, _db.yearEndGoals);
+  $$AllocationTemplatesTableTableManager get allocationTemplates =>
+      $$AllocationTemplatesTableTableManager(_db, _db.allocationTemplates);
+  $$AllocationTemplateItemsTableTableManager get allocationTemplateItems =>
+      $$AllocationTemplateItemsTableTableManager(
+          _db, _db.allocationTemplateItems);
 }

@@ -13,12 +13,15 @@ abstract class IBudgetRepository {
   Future<Either<Failure, Budget?>> getBudgetByMonth(int month, int year);
   Future<Either<Failure, int>> createBudget(Budget budget);
   Future<Either<Failure, bool>> updateBudget(Budget budget);
+  Future<Either<Failure, bool>> deleteBudget(int budgetId);
   Future<Either<Failure, List<CategoryBudget>>> getCategoryBudgets(int budgetId);
   Future<Either<Failure, int>> createCategoryBudget(CategoryBudget categoryBudget);
   Future<Either<Failure, bool>> updateCategoryBudget(CategoryBudget categoryBudget);
   Future<Either<Failure, bool>> deleteCategoryBudget(int categoryBudgetId);
   Future<Either<Failure, List<CategoryBudget>>> getCategoryBudgetsByBucket(int budgetId, BucketType bucketType);
   Future<Either<Failure, Map<BucketType, double>>> getActualSpendingByBucket(int budgetId, DateTime start, DateTime end);
+  Future<Either<Failure, Map<int, double>>> getActualSpendingByCategoryBudget(int budgetId, DateTime start, DateTime end);
+  Future<Either<Failure, double>> getActualIncomeForMonth(DateTime start, DateTime end);
   Future<int> deleteIncomeCategoryBudgets();
 }
 
@@ -179,6 +182,16 @@ class BudgetRepository implements IBudgetRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> deleteBudget(int budgetId) async {
+    try {
+      await _db.deleteBudget(budgetId);
+      return const Right(true);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to delete budget: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<CategoryBudget>>> getCategoryBudgets(int budgetId) async {
     try {
       final results = await _db.getCategoryBudgets(budgetId);
@@ -287,6 +300,26 @@ class BudgetRepository implements IBudgetRepository {
       return Right(result);
     } catch (e) {
       return Left(DatabaseFailure('Failed to get actual spending: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<int, double>>> getActualSpendingByCategoryBudget(int budgetId, DateTime start, DateTime end) async {
+    try {
+      final spendingMap = await _db.getActualSpendingByCategoryBudget(budgetId, start, end);
+      return Right(spendingMap);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to get category spending: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, double>> getActualIncomeForMonth(DateTime start, DateTime end) async {
+    try {
+      final income = await _db.getActualIncomeForMonth(start, end);
+      return Right(income);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to get actual income: $e'));
     }
   }
 

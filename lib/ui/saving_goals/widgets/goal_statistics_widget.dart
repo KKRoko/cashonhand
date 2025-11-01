@@ -72,42 +72,11 @@ class GoalStatisticsWidget extends StatelessWidget {
     IconData icon,
     [double? numericValue]
   ) {
-    // Determine colors for dark theme based on value
-    Color getValueColor() {
-      if (Theme.of(context).brightness != Brightness.dark) {
-        return Theme.of(context).textTheme.titleMedium?.color ?? Colors.black;
-      }
-      
-      // Dark theme logic
-      if (numericValue == null || numericValue == 0) {
-        return Colors.black;
-      } else if (numericValue > 0) {
-        return Colors.green;
-      } else {
-        return Colors.red;
-      }
-    }
-
-    Color getLabelColor() {
-      if (Theme.of(context).brightness != Brightness.dark) {
-        return Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
-      }
-      
-      // Dark theme - make label black when value is zero
-      if (numericValue == null || numericValue == 0) {
-        return Colors.black;
-      } else {
-        return Colors.black54;
-      }
-    }
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-          ? DesignTokens.color('incomeLight') 
-          : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: DesignTokens.borderRadius['sm']!,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,24 +84,14 @@ class GoalStatisticsWidget extends StatelessWidget {
           Row(
             children: [
               Icon(
-                icon, 
-                size: 16, 
-                color: numericValue == null || numericValue == 0 
-                  ? (Theme.of(context).brightness == Brightness.dark 
-                      ? DesignTokens.color('textPrimary') 
-                      : DesignTokens.color('textTertiary'))
-                  : (Theme.of(context).brightness == Brightness.dark 
-                      ? DesignTokens.color('textPrimary') 
-                      : DesignTokens.color('textTertiary'))
+                icon,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 4),
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('textPrimary') 
-                    : getLabelColor(),
-                ),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
@@ -141,9 +100,7 @@ class GoalStatisticsWidget extends StatelessWidget {
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? DesignTokens.color('income') 
-                : getValueColor(),
+              color: DesignTokens.color('income'),
             ),
           ),
         ],
@@ -157,54 +114,18 @@ class GoalStatisticsWidget extends StatelessWidget {
     double historicalRate,
     DateTime projectedCompletion,
   ) {
-    // Helper function to get value color based on numeric value
-    Color getValueColor(double value) {
-      if (Theme.of(context).brightness != Brightness.dark) {
-        return Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
-      }
-      
-      // Dark theme logic
-      if (value == 0) {
-        return Colors.black;
-      } else if (value > 0) {
-        return Colors.green;
-      } else {
-        return Colors.red;
-      }
-    }
-
-    // Helper function for label colors
-    Color getLabelColor(double value) {
-      if (Theme.of(context).brightness != Brightness.dark) {
-        return Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
-      }
-      
-      // Dark theme - make label black when value is zero
-      if (value == 0) {
-        return Colors.black;
-      } else {
-        return Colors.black87; // Dark text for light green background
-      }
-    }
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-          ? DesignTokens.color('incomeLight') 
-          : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: DesignTokens.borderRadius['sm']!,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Progress Statistics',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? DesignTokens.color('textPrimary')
-                : null,
-            ),
+            style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
           Row(
@@ -212,14 +133,13 @@ class GoalStatisticsWidget extends StatelessWidget {
             children: [
               Text(
                 'Average Progress',
-                style: TextStyle(color: getLabelColor(averageProgress)),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
                 _formatPercentage(averageProgress),
                 style: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('incomeDark') 
-                    : getValueColor(averageProgress),
+                  color: DesignTokens.color('income'),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -230,14 +150,13 @@ class GoalStatisticsWidget extends StatelessWidget {
             children: [
               Text(
                 'Historical Rate',
-                style: TextStyle(color: getLabelColor(historicalRate)),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
               Text(
                 _formatMonthlyRate(historicalRate),
                 style: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('incomeDark') 
-                    : getValueColor(historicalRate),
+                  color: DesignTokens.color('income'),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -246,23 +165,15 @@ class GoalStatisticsWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               Flexible(
-                child: Text(
-                  'Projected Completion',
-                  style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.black87
-                      : null,
-                  ),
-                ),
+              const Flexible(
+                child: Text('Projected Completion'),
               ),
               Flexible(
                 child: Text(
                   FormatUtils.formatDate(projectedCompletion),
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                      ? DesignTokens.color('incomeDark')
-                      : null,
+                    color: DesignTokens.color('income'),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
