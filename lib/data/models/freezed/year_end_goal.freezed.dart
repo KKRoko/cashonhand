@@ -31,12 +31,8 @@ mixin _$YearEndGoal {
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this YearEndGoal to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of YearEndGoal
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $YearEndGoalCopyWith<YearEndGoal> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -67,8 +63,6 @@ class _$YearEndGoalCopyWithImpl<$Res, $Val extends YearEndGoal>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of YearEndGoal
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -139,8 +133,6 @@ class __$$YearEndGoalImplCopyWithImpl<$Res>
       _$YearEndGoalImpl _value, $Res Function(_$YearEndGoalImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of YearEndGoal
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -244,14 +236,12 @@ class _$YearEndGoalImpl extends _YearEndGoal {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, year, needsPercentage,
       wantsPercentage, savingsPercentage, createdAt, updatedAt);
 
-  /// Create a copy of YearEndGoal
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$YearEndGoalImplCopyWith<_$YearEndGoalImpl> get copyWith =>
@@ -282,25 +272,19 @@ abstract class _YearEndGoal extends YearEndGoal {
   @override
   int get id;
   @override
-  int get year; // e.g., 2025
-  @override
-  double
-      get needsPercentage; // annual percentage goal for needs bucket (0.0-1.0)
-  @override
-  double
-      get wantsPercentage; // annual percentage goal for wants bucket (0.0-1.0)
-  @override
-  double
-      get savingsPercentage; // annual percentage goal for savings bucket (0.0-1.0)
-  @override
+  int get year;
+  @override // e.g., 2025
+  double get needsPercentage;
+  @override // annual percentage goal for needs bucket (0.0-1.0)
+  double get wantsPercentage;
+  @override // annual percentage goal for wants bucket (0.0-1.0)
+  double get savingsPercentage;
+  @override // annual percentage goal for savings bucket (0.0-1.0)
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
-
-  /// Create a copy of YearEndGoal
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$YearEndGoalImplCopyWith<_$YearEndGoalImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

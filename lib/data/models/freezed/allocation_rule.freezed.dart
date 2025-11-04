@@ -37,12 +37,8 @@ mixin _$AllocationRule {
   String get goalTitle => throw _privateConstructorUsedError;
   String get categoryName => throw _privateConstructorUsedError;
 
-  /// Serializes this AllocationRule to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AllocationRule
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AllocationRuleCopyWith<AllocationRule> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -81,8 +77,6 @@ class _$AllocationRuleCopyWithImpl<$Res, $Val extends AllocationRule>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AllocationRule
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -201,8 +195,6 @@ class __$$AllocationRuleImplCopyWithImpl<$Res>
       _$AllocationRuleImpl _value, $Res Function(_$AllocationRuleImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AllocationRule
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -386,7 +378,7 @@ class _$AllocationRuleImpl implements _AllocationRule {
                 other.categoryName == categoryName));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -406,9 +398,7 @@ class _$AllocationRuleImpl implements _AllocationRule {
       goalTitle,
       categoryName);
 
-  /// Create a copy of AllocationRule
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AllocationRuleImplCopyWith<_$AllocationRuleImpl> get copyWith =>
@@ -469,16 +459,13 @@ abstract class _AllocationRule implements AllocationRule {
   @override
   DateTime? get createdAt;
   @override
-  DateTime? get updatedAt; // Additional fields for UI/display purposes
-  @override
+  DateTime? get updatedAt;
+  @override // Additional fields for UI/display purposes
   String get goalTitle;
   @override
   String get categoryName;
-
-  /// Create a copy of AllocationRule
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AllocationRuleImplCopyWith<_$AllocationRuleImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

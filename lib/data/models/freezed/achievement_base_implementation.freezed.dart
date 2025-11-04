@@ -38,12 +38,8 @@ mixin _$Achievement {
   String? get shareText => throw _privateConstructorUsedError;
   Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
 
-  /// Serializes this Achievement to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Achievement
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AchievementCopyWith<Achievement> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -82,8 +78,6 @@ class _$AchievementCopyWithImpl<$Res, $Val extends Achievement>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Achievement
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -202,8 +196,6 @@ class __$$AchievementImplCopyWithImpl<$Res>
       _$AchievementImpl _value, $Res Function(_$AchievementImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Achievement
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -404,7 +396,7 @@ class _$AchievementImpl extends _Achievement {
             const DeepCollectionEquality().equals(other._metadata, _metadata));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -424,9 +416,7 @@ class _$AchievementImpl extends _Achievement {
       shareText,
       const DeepCollectionEquality().hash(_metadata));
 
-  /// Create a copy of Achievement
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AchievementImplCopyWith<_$AchievementImpl> get copyWith =>
@@ -477,26 +467,23 @@ abstract class _Achievement extends Achievement {
   @override
   double get progress;
   @override
-  DateTime? get unlockedAt; // Enhanced fields for gamification
-  @override
+  DateTime? get unlockedAt;
+  @override // Enhanced fields for gamification
   String get emoji;
   @override
   String get badgeColor;
   @override
   int get points;
   @override
-  int get tier; // 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
-  @override
+  int get tier;
+  @override // 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
   List<String> get celebrationMessages;
   @override
   String? get shareText;
   @override
   Map<String, dynamic>? get metadata;
-
-  /// Create a copy of Achievement
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AchievementImplCopyWith<_$AchievementImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

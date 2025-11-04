@@ -46,6 +46,7 @@ import '../../services/smart_categorization_service.dart' as _i229;
 import '../../services/surplus_allocation_service.dart' as _i132;
 import '../../settings/settings_service.dart' as _i882;
 import '../../state/achievement_state.dart' as _i682;
+import '../../state/budget_notifier.dart' as _i460;
 import '../../state/category_notifier.dart' as _i930;
 import '../../state/event_notifier.dart' as _i184;
 import '../../state/saving_goal_notifier.dart' as _i986;
@@ -65,9 +66,9 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i16.AchievementSharingService());
     gh.singleton<_i495.Database>(() => _i495.Database());
     gh.singleton<_i583.SettingsService>(() => _i583.SettingsService());
+    gh.singleton<_i351.CurrencyService>(() => _i351.CurrencyService());
     gh.singleton<_i147.CategoryBucketMapper>(
         () => _i147.CategoryBucketMapper());
-    gh.singleton<_i351.CurrencyService>(() => _i351.CurrencyService());
     gh.lazySingleton<_i631.IBudgetTemplateRepository>(
         () => _i631.BudgetTemplateRepository(gh<_i495.Database>()));
     gh.factory<_i114.AllocationService>(
@@ -138,6 +139,12 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i269.ICategoryRepository>(),
           gh<_i147.CategoryBucketMapper>(),
         ));
+    gh.factory<_i460.BudgetNotifier>(() => _i460.BudgetNotifier(
+          gh<_i460.BudgetService>(),
+          gh<_i1017.AllocationTemplateService>(),
+          gh<_i85.NotificationService>(),
+          gh<_i132.SurplusAllocationService>(),
+        ));
     gh.factory<_i561.IEventRepository>(() => _i655.EventRepository(
           gh<_i495.Database>(),
           gh<_i78.RoundUpService>(),
@@ -173,6 +180,7 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i930.CategoryNotifier>(),
           gh<_i986.SavingGoalNotifier>(),
           gh<_i682.AchievementNotifier>(),
+          gh<_i460.BudgetNotifier>(),
         ));
     return this;
   }

@@ -32,12 +32,8 @@ mixin _$GoalAllocation {
   String get goalTitle => throw _privateConstructorUsedError;
   String get eventTitle => throw _privateConstructorUsedError;
 
-  /// Serializes this GoalAllocation to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of GoalAllocation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $GoalAllocationCopyWith<GoalAllocation> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -71,8 +67,6 @@ class _$GoalAllocationCopyWithImpl<$Res, $Val extends GoalAllocation>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of GoalAllocation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -161,8 +155,6 @@ class __$$GoalAllocationImplCopyWithImpl<$Res>
       _$GoalAllocationImpl _value, $Res Function(_$GoalAllocationImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of GoalAllocation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -292,7 +284,7 @@ class _$GoalAllocationImpl implements _GoalAllocation {
                 other.eventTitle == eventTitle));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -307,9 +299,7 @@ class _$GoalAllocationImpl implements _GoalAllocation {
       goalTitle,
       eventTitle);
 
-  /// Create a copy of GoalAllocation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$GoalAllocationImplCopyWith<_$GoalAllocationImpl> get copyWith =>
@@ -355,16 +345,13 @@ abstract class _GoalAllocation implements GoalAllocation {
   @override
   DateTime? get createdAt;
   @override
-  DateTime? get updatedAt; // Additional fields for UI/display purposes
-  @override
+  DateTime? get updatedAt;
+  @override // Additional fields for UI/display purposes
   String get goalTitle;
   @override
   String get eventTitle;
-
-  /// Create a copy of GoalAllocation
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$GoalAllocationImplCopyWith<_$GoalAllocationImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

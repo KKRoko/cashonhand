@@ -30,12 +30,8 @@ mixin _$CategoryBudget {
   DateTime get updatedAt => throw _privateConstructorUsedError;
   String? get categoryName => throw _privateConstructorUsedError;
 
-  /// Serializes this CategoryBudget to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CategoryBudget
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CategoryBudgetCopyWith<CategoryBudget> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -67,8 +63,6 @@ class _$CategoryBudgetCopyWithImpl<$Res, $Val extends CategoryBudget>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CategoryBudget
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -145,8 +139,6 @@ class __$$CategoryBudgetImplCopyWithImpl<$Res>
       _$CategoryBudgetImpl _value, $Res Function(_$CategoryBudgetImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of CategoryBudget
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -258,14 +250,12 @@ class _$CategoryBudgetImpl extends _CategoryBudget {
                 other.categoryName == categoryName));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, budgetId, categoryId,
       allocatedAmount, bucketType, createdAt, updatedAt, categoryName);
 
-  /// Create a copy of CategoryBudget
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CategoryBudgetImplCopyWith<_$CategoryBudgetImpl> get copyWith =>
@@ -302,8 +292,8 @@ abstract class _CategoryBudget extends CategoryBudget {
   @override
   int get categoryId;
   @override
-  double get allocatedAmount; // monthly dollar amount
-  @override
+  double get allocatedAmount;
+  @override // monthly dollar amount
   BucketType get bucketType;
   @override
   DateTime get createdAt;
@@ -311,11 +301,8 @@ abstract class _CategoryBudget extends CategoryBudget {
   DateTime get updatedAt;
   @override
   String? get categoryName;
-
-  /// Create a copy of CategoryBudget
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CategoryBudgetImplCopyWith<_$CategoryBudgetImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

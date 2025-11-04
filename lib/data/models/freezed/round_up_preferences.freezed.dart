@@ -30,12 +30,8 @@ mixin _$RoundUpPreferences {
   bool get onlyOnExpenses => throw _privateConstructorUsedError;
   bool get autoSelectGoal => throw _privateConstructorUsedError;
 
-  /// Serializes this RoundUpPreferences to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of RoundUpPreferences
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $RoundUpPreferencesCopyWith<RoundUpPreferences> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -68,8 +64,6 @@ class _$RoundUpPreferencesCopyWithImpl<$Res, $Val extends RoundUpPreferences>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of RoundUpPreferences
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -152,8 +146,6 @@ class __$$RoundUpPreferencesImplCopyWithImpl<$Res>
       $Res Function(_$RoundUpPreferencesImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of RoundUpPreferences
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -289,7 +281,7 @@ class _$RoundUpPreferencesImpl implements _RoundUpPreferences {
                 other.autoSelectGoal == autoSelectGoal));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -303,9 +295,7 @@ class _$RoundUpPreferencesImpl implements _RoundUpPreferences {
       onlyOnExpenses,
       autoSelectGoal);
 
-  /// Create a copy of RoundUpPreferences
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$RoundUpPreferencesImplCopyWith<_$RoundUpPreferencesImpl> get copyWith =>
@@ -353,11 +343,8 @@ abstract class _RoundUpPreferences implements RoundUpPreferences {
   bool get onlyOnExpenses;
   @override
   bool get autoSelectGoal;
-
-  /// Create a copy of RoundUpPreferences
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$RoundUpPreferencesImplCopyWith<_$RoundUpPreferencesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -33,12 +33,8 @@ mixin _$Budget {
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this Budget to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Budget
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $BudgetCopyWith<Budget> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -71,8 +67,6 @@ class _$BudgetCopyWithImpl<$Res, $Val extends Budget>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Budget
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -166,8 +160,6 @@ class __$$BudgetImplCopyWithImpl<$Res>
       _$BudgetImpl _value, $Res Function(_$BudgetImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of Budget
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -310,7 +302,7 @@ class _$BudgetImpl extends _Budget {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -326,9 +318,7 @@ class _$BudgetImpl extends _Budget {
       createdAt,
       updatedAt);
 
-  /// Create a copy of Budget
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$BudgetImplCopyWith<_$BudgetImpl> get copyWith =>
@@ -362,16 +352,16 @@ abstract class _Budget extends Budget {
   @override
   int get id;
   @override
-  int get month; // 1-12
-  @override
-  int get year; // e.g., 2025
-  @override
+  int get month;
+  @override // 1-12
+  int get year;
+  @override // e.g., 2025
   double get monthlyIncome;
   @override
-  int get cycleStartDay; // 1-31
-  @override
-  double get needsPercentage; // 0.0-1.0 (e.g., 0.50 = 50%)
-  @override
+  int get cycleStartDay;
+  @override // 1-31
+  double get needsPercentage;
+  @override // 0.0-1.0 (e.g., 0.50 = 50%)
   double get wantsPercentage;
   @override
   double get savingsPercentage;
@@ -381,11 +371,8 @@ abstract class _Budget extends Budget {
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
-
-  /// Create a copy of Budget
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$BudgetImplCopyWith<_$BudgetImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

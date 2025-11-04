@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/database/database.dart';
 import '../state/category_notifier.dart';
 import '../state/event_notifier.dart';
@@ -43,6 +44,14 @@ class SettingsService {
       await _eventNotifier.clearState();
       _budgetNotifier.clearState();
 
+      // Clear SharedPreferences (including onboarding flag and year-end goal)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      // IMPORTANT: We need to wait a moment to ensure the clear propagates
+      // to the SharedPreferences singleton before any new reads happen
+      await Future.delayed(const Duration(milliseconds: 100));
+
       // Delete all data in a transaction
       await _database.transaction(() async {
         await _database.delete(_database.events).go();
@@ -68,12 +77,9 @@ class SettingsService {
       await Future.delayed(const Duration(milliseconds: 100));
       await _database.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
 
-      // Reload all state notifiers
-      await _categoryNotifier.loadCategories();
-      await _eventNotifier.loadInitialEvents();
-      await _savingGoalNotifier.loadGoals();
-      await _achievementNotifier.reload();
-      await _budgetNotifier.loadActiveBudget(); // Will find no budget and clear state
+      // DON'T reload state here - the app will navigate to '/' and rebuild
+      // from scratch, which will initialize everything fresh anyway.
+      // Reloading state here is duplicate work that blocks the UI thread.
     } catch (e, stackTrace) {
       print("Error during reset: $e");
       print("Stack trace: $stackTrace");

@@ -1,5 +1,84 @@
 # Global Context
 
+## 🛑 CRITICAL RULES - READ BEFORE EVERY TASK
+
+These rules exist to prevent tunnel vision and accidental changes. **Reference this section explicitly before making changes.**
+
+### Before Making ANY Code Changes:
+1. ✅ **STOP**: Have I fully read and understood the user's request?
+2. ✅ **SCOPE CHECK**: What EXACTLY am I being asked to change? (Be specific)
+3. ✅ **CONFIRM**: When in doubt, ASK the user to clarify scope
+4. ✅ **SURGICAL ONLY**: Am I changing ONLY what was requested?
+
+### Before ANY Git Commit:
+1. ✅ **RUN**: `git diff` or `git diff --staged` - Review EVERY changed line
+2. ✅ **VERIFY**: Does each change match the task description?
+3. ✅ **CHECK**: Are there unintended changes (content, features, formatting)?
+4. ✅ **TEST**: If I changed UI/functionality, did I test it works?
+5. ✅ **MESSAGE**: Does my commit message accurately describe ALL changes?
+
+### Red Flags - STOP and Ask User:
+- 🚨 Changing user-facing content (text, images, descriptions) when task doesn't mention it
+- 🚨 Modifying multiple unrelated files for a single-purpose task
+- 🚨 Git diff shows more changes than expected
+- 🚨 Task is about "adding feature X" but I'm rewriting existing features
+- 🚨 Replacing entire files from git history
+
+## Preventing Tunnel Vision
+
+### How to Stay Aware of CLAUDE.md Guidelines:
+
+1. **Reference Explicitly**: When starting a task, explicitly state which guidelines apply
+   - Example: "Following CLAUDE.md: I will make surgical changes only, use DesignTokens for styling, and run git diff before committing"
+
+2. **Check-In Points**: Pause at these moments to re-read relevant guidelines:
+   - Before starting implementation
+   - Before making first edit to a file
+   - Before running git add/commit
+   - When something feels "off" or rushed
+
+3. **Verbalize the Scope**: Before making changes, state explicitly:
+   - "I am changing ONLY: [specific list]"
+   - "I am NOT changing: [explicitly state what stays the same]"
+   - If unsure, ask user to confirm
+
+4. **Git Diff is Your Friend**:
+   - Run `git diff` BEFORE and AFTER making changes
+   - If you see unexpected changes, STOP and investigate
+   - Don't commit until git diff makes 100% sense
+
+5. **Break Tasks Into Steps**:
+   - Write out steps using TodoWrite tool
+   - Check off each step only after verifying it matches guidelines
+   - This prevents rushing and maintains focus
+
+6. **Question Yourself**:
+   - "Am I following the surgical changes principle?"
+   - "Does this change match what the user asked for?"
+   - "Am I using DesignTokens/Theme instead of hardcoded values?"
+   - "Would this commit message accurately describe all my changes?"
+
+7. **When in Doubt**:
+   - STOP immediately
+   - Re-read the relevant CLAUDE.md section
+   - Ask the user for clarification
+   - Better to ask than to make wrong assumptions
+
+### Specific Anti-Tunnel-Vision Practices:
+
+**For Content Changes:**
+- User mentions "the title is wrong" → ASK: "Just the title, or is other content also wrong?"
+- Before changing ANY text → Confirm: "Should I change X to Y? Anything else?"
+
+**For Code Changes:**
+- Opening a file → Quick scan: "What does this file do? What should I NOT touch?"
+- Before Edit tool → Mental check: "Am I changing ONLY what was requested?"
+
+**For Git Operations:**
+- Before `git add` → Run `git diff` first, review every line
+- Before `git commit` → Run `git diff --staged`, verify message matches changes
+- After `git commit` → Run `git show HEAD` to review what was just committed
+
 ## Role & Communication Style
 You are a senior software engineer collaborating with a peer. Prioritize thorough planning and alignment before implementation. Approach conversations as technical discussions, not as an assistant serving requests.
 
@@ -30,6 +109,26 @@ You are a senior software engineer collaborating with a peer. Prioritize thoroug
 - Follow the agreed-upon plan precisely
 - If you discover an unforeseen issue, stop and discuss
 - Note concerns inline if you see them during implementation
+
+## CRITICAL: Avoiding Feature Deletion and Scope Creep
+
+### NEVER Do These Things:
+1. **NEVER replace entire files from git history** - This removes features and fixes that were added after that commit
+2. **NEVER delete or modify features that weren't explicitly mentioned** - Only change what was asked for
+3. **NEVER assume the scope of changes** - If unclear, ASK before making ANY changes
+4. **NEVER work on multiple unrelated things at once** - Stay focused on the specific task
+
+### ALWAYS Do These Things:
+1. **ALWAYS make surgical, minimal changes** - Change only the specific lines/sections needed
+2. **ALWAYS ask for clarification** - If you're not 100% certain what needs to change, ASK
+3. **ALWAYS confirm the full scope** - Before editing, confirm: "You want me to update X, Y, and Z. Is that correct?"
+4. **ALWAYS work slowly and methodically** - Speed causes mistakes. Take time to understand the request fully.
+
+### When Asked to Update Content:
+- Don't assume titles are the only thing to change - ASK what else needs updating
+- Don't assume you know the correct content - ASK for the specific content for each section
+- Don't look at git history to "find" the content - ASK the user directly
+- Make targeted edits to specific sections, NOT wholesale file replacements
 
 ## What to do
 - Discuss the approach before writing any code
@@ -165,3 +264,109 @@ Keeping these layers separate makes your app much easier to manage and scale.
 - No "Co-Authored-By: Claude" tags
 - Keep commit messages professional and focused solely on technical changes
 - Commit messages should reflect the work as if written by the developer
+
+## Git Workflow & Change Prevention
+
+### Pre-Commit Checklist (MANDATORY)
+Before EVERY commit, execute this checklist:
+
+```bash
+# 1. Review all changes
+git diff
+
+# 2. Check what files are staged
+git status
+
+# 3. Review staged changes specifically
+git diff --staged
+
+# 4. If changes look wrong, unstage and investigate
+git reset HEAD <file>
+```
+
+### Commit Discipline
+1. **One Purpose Per Commit**: Each commit should have ONE clear purpose
+   - ✅ Good: "Add YearEndGoalService for goal tracking"
+   - ❌ Bad: "Add year-end goals and update onboarding and fix bugs"
+
+2. **Separate Unrelated Changes**: If working on multiple things, make multiple commits
+   - New service file → Commit 1
+   - Onboarding content changes → Commit 2 (with explicit description)
+   - Bug fixes → Commit 3
+
+3. **Descriptive Messages**: If you changed user-facing content, the message MUST say so
+   - ✅ "Update onboarding: Change page 1 from 'Welcome to Cash on Hand' to 'Welcome to Smart Savings'"
+   - ❌ "Add year-end goal tracking" (doesn't mention onboarding content was changed)
+
+4. **Review Before Push**: After committing, review the commit one more time
+   ```bash
+   git show HEAD
+   git log --stat -1
+   ```
+
+### Working with Feature Branches
+For non-trivial features, use branches:
+
+```bash
+# Create feature branch
+git checkout -b feature/descriptive-name
+
+# Make changes and commit
+git add <specific-files>
+git commit -m "Clear message"
+
+# Before merging, review ALL changes since branching
+git diff main...feature/descriptive-name
+
+# If everything looks good, merge
+git checkout main
+git merge feature/descriptive-name
+```
+
+### When to Use git add -p (Interactive Staging)
+Use interactive staging when:
+- Multiple files changed
+- Unsure if all changes should be in one commit
+- Want to review each change individually
+
+```bash
+git add -p
+# Review each hunk, press:
+# y = stage this hunk
+# n = don't stage this hunk
+# s = split into smaller hunks
+# q = quit
+```
+
+### Preventing Content Loss
+1. **Never use**: `git checkout <old-commit> -- <file>` to restore old versions
+   - This REPLACES the file entirely, deleting all newer changes
+   - Instead: Manually copy specific sections needed
+
+2. **Never assume** old content is better without reviewing current content
+3. **Always compare** before replacing:
+   ```bash
+   git diff <old-commit> HEAD -- <file>
+   ```
+
+### Emergency: If You Made a Bad Commit
+If you committed unintended changes and HAVEN'T pushed:
+
+```bash
+# See what the commit changed
+git show HEAD
+
+# Option 1: Undo commit but keep changes
+git reset --soft HEAD~1
+
+# Option 2: Undo commit and unstage changes
+git reset HEAD~1
+
+# Option 3: Completely undo commit and changes (DANGEROUS)
+git reset --hard HEAD~1
+```
+
+If you ALREADY pushed: Create a revert commit
+```bash
+git revert HEAD
+```

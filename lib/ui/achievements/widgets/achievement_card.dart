@@ -28,24 +28,24 @@ class AchievementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final tierColor = _getTierColor(context);
-    
-    return Card(
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: achievement.isUnlocked ? 4 : 2,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: DesignTokens.borderRadius['md']!,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline,
+          width: 1,
+        ),
+        boxShadow: DesignTokens.shadow(achievement.isUnlocked ? 'md' : 'sm'),
+      ),
       child: InkWell(
         onTap: achievement.isUnlocked ? () => _showCelebration(context) : null,
         borderRadius: DesignTokens.borderRadius['md']!,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: DesignTokens.borderRadius['md']!,
-            border: achievement.isUnlocked 
-                ? Border.all(color: tierColor.withOpacity(0.3), width: 1)
-                : null,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header row with icon, title, and actions
@@ -256,7 +256,6 @@ class AchievementCard extends StatelessWidget {
                 ],
               ],
             ),
-          ),
         ),
       ),
     );

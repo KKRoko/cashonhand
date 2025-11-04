@@ -14,6 +14,7 @@ class SuggestionDetailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Container(
         width: double.infinity,
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
@@ -128,19 +129,21 @@ class SuggestionDetailDialog extends StatelessWidget {
                     const SizedBox(height: 20),
                     
                     // Description
-                    const Text(
+                    Text(
                       'Details',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       suggestion.description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         height: 1.5,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     
@@ -259,7 +262,10 @@ class SuggestionDetailDialog extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
                 '• $item',
-                style: const TextStyle(fontSize: 13),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             )).toList(),
           ),
@@ -328,7 +334,11 @@ class SuggestionDetailDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         step,
-                        style: const TextStyle(fontSize: 13, height: 1.4),
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],

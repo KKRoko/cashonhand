@@ -38,12 +38,8 @@ mixin _$FinancialSuggestion {
   DateTime? get dismissedAt => throw _privateConstructorUsedError;
   DateTime? get actionTakenAt => throw _privateConstructorUsedError;
 
-  /// Serializes this FinancialSuggestion to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of FinancialSuggestion
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $FinancialSuggestionCopyWith<FinancialSuggestion> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -84,8 +80,6 @@ class _$FinancialSuggestionCopyWithImpl<$Res, $Val extends FinancialSuggestion>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of FinancialSuggestion
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -216,8 +210,6 @@ class __$$FinancialSuggestionImplCopyWithImpl<$Res>
       $Res Function(_$FinancialSuggestionImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of FinancialSuggestion
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -427,7 +419,7 @@ class _$FinancialSuggestionImpl extends _FinancialSuggestion {
                 other.actionTakenAt == actionTakenAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -449,9 +441,7 @@ class _$FinancialSuggestionImpl extends _FinancialSuggestion {
       dismissedAt,
       actionTakenAt);
 
-  /// Create a copy of FinancialSuggestion
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$FinancialSuggestionImplCopyWith<_$FinancialSuggestionImpl> get copyWith =>
@@ -524,11 +514,8 @@ abstract class _FinancialSuggestion extends FinancialSuggestion {
   DateTime? get dismissedAt;
   @override
   DateTime? get actionTakenAt;
-
-  /// Create a copy of FinancialSuggestion
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$FinancialSuggestionImplCopyWith<_$FinancialSuggestionImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -552,12 +539,8 @@ mixin _$SpendingPattern {
   DateTime? get peakDate => throw _privateConstructorUsedError;
   List<String> get frequentMerchants => throw _privateConstructorUsedError;
 
-  /// Serializes this SpendingPattern to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SpendingPattern
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SpendingPatternCopyWith<SpendingPattern> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -593,8 +576,6 @@ class _$SpendingPatternCopyWithImpl<$Res, $Val extends SpendingPattern>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SpendingPattern
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -695,8 +676,6 @@ class __$$SpendingPatternImplCopyWithImpl<$Res>
       _$SpendingPatternImpl _value, $Res Function(_$SpendingPatternImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of SpendingPattern
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -863,7 +842,7 @@ class _$SpendingPatternImpl extends _SpendingPattern {
                 .equals(other._frequentMerchants, _frequentMerchants));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -880,9 +859,7 @@ class _$SpendingPatternImpl extends _SpendingPattern {
       peakDate,
       const DeepCollectionEquality().hash(_frequentMerchants));
 
-  /// Create a copy of SpendingPattern
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SpendingPatternImplCopyWith<_$SpendingPatternImpl> get copyWith =>
@@ -940,11 +917,8 @@ abstract class _SpendingPattern extends SpendingPattern {
   DateTime? get peakDate;
   @override
   List<String> get frequentMerchants;
-
-  /// Create a copy of SpendingPattern
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SpendingPatternImplCopyWith<_$SpendingPatternImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -966,12 +940,8 @@ mixin _$SavingsOpportunity {
   Map<String, dynamic>? get analysisData => throw _privateConstructorUsedError;
   DateTime get detectedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this SavingsOpportunity to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SavingsOpportunity
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SavingsOpportunityCopyWith<SavingsOpportunity> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1005,8 +975,6 @@ class _$SavingsOpportunityCopyWithImpl<$Res, $Val extends SavingsOpportunity>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SavingsOpportunity
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1095,8 +1063,6 @@ class __$$SavingsOpportunityImplCopyWithImpl<$Res>
       $Res Function(_$SavingsOpportunityImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of SavingsOpportunity
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1236,7 +1202,7 @@ class _$SavingsOpportunityImpl extends _SavingsOpportunity {
                 other.detectedAt == detectedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1251,9 +1217,7 @@ class _$SavingsOpportunityImpl extends _SavingsOpportunity {
       const DeepCollectionEquality().hash(_analysisData),
       detectedAt);
 
-  /// Create a copy of SavingsOpportunity
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SavingsOpportunityImplCopyWith<_$SavingsOpportunityImpl> get copyWith =>
@@ -1294,8 +1258,8 @@ abstract class _SavingsOpportunity extends SavingsOpportunity {
   @override
   double get potentialMonthlySavings;
   @override
-  double get confidence; // 0.0 to 1.0
-  @override
+  double get confidence;
+  @override // 0.0 to 1.0
   SuggestionType get suggestionType;
   @override
   int? get categoryId;
@@ -1305,11 +1269,8 @@ abstract class _SavingsOpportunity extends SavingsOpportunity {
   Map<String, dynamic>? get analysisData;
   @override
   DateTime get detectedAt;
-
-  /// Create a copy of SavingsOpportunity
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SavingsOpportunityImplCopyWith<_$SavingsOpportunityImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1333,12 +1294,8 @@ mixin _$GoalInsight {
   DateTime? get projectedCompletionDate => throw _privateConstructorUsedError;
   List<String> get recommendations => throw _privateConstructorUsedError;
 
-  /// Serializes this GoalInsight to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of GoalInsight
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $GoalInsightCopyWith<GoalInsight> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1374,8 +1331,6 @@ class _$GoalInsightCopyWithImpl<$Res, $Val extends GoalInsight>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of GoalInsight
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1476,8 +1431,6 @@ class __$$GoalInsightImplCopyWithImpl<$Res>
       _$GoalInsightImpl _value, $Res Function(_$GoalInsightImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of GoalInsight
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1638,7 +1591,7 @@ class _$GoalInsightImpl extends _GoalInsight {
                 .equals(other._recommendations, _recommendations));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1655,9 +1608,7 @@ class _$GoalInsightImpl extends _GoalInsight {
       projectedCompletionDate,
       const DeepCollectionEquality().hash(_recommendations));
 
-  /// Create a copy of GoalInsight
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$GoalInsightImplCopyWith<_$GoalInsightImpl> get copyWith =>
@@ -1714,11 +1665,8 @@ abstract class _GoalInsight extends GoalInsight {
   DateTime? get projectedCompletionDate;
   @override
   List<String> get recommendations;
-
-  /// Create a copy of GoalInsight
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$GoalInsightImplCopyWith<_$GoalInsightImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -30,12 +30,8 @@ mixin _$AllocationTemplateItem {
   DateTime get updatedAt => throw _privateConstructorUsedError;
   String? get categoryName => throw _privateConstructorUsedError;
 
-  /// Serializes this AllocationTemplateItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AllocationTemplateItem
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AllocationTemplateItemCopyWith<AllocationTemplateItem> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -68,8 +64,6 @@ class _$AllocationTemplateItemCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AllocationTemplateItem
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -149,8 +143,6 @@ class __$$AllocationTemplateItemImplCopyWithImpl<$Res>
       $Res Function(_$AllocationTemplateItemImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AllocationTemplateItem
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -261,14 +253,12 @@ class _$AllocationTemplateItemImpl extends _AllocationTemplateItem {
                 other.categoryName == categoryName));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, templateId, categoryId,
       allocatedAmount, bucketType, createdAt, updatedAt, categoryName);
 
-  /// Create a copy of AllocationTemplateItem
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AllocationTemplateItemImplCopyWith<_$AllocationTemplateItemImpl>
@@ -314,11 +304,8 @@ abstract class _AllocationTemplateItem extends AllocationTemplateItem {
   DateTime get updatedAt;
   @override
   String? get categoryName;
-
-  /// Create a copy of AllocationTemplateItem
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AllocationTemplateItemImplCopyWith<_$AllocationTemplateItemImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

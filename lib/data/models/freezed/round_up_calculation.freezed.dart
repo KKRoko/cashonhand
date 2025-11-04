@@ -27,12 +27,8 @@ mixin _$RoundUpCalculation {
   bool get isApplicable => throw _privateConstructorUsedError;
   String get reason => throw _privateConstructorUsedError;
 
-  /// Serializes this RoundUpCalculation to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of RoundUpCalculation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $RoundUpCalculationCopyWith<RoundUpCalculation> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,8 +58,6 @@ class _$RoundUpCalculationCopyWithImpl<$Res, $Val extends RoundUpCalculation>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of RoundUpCalculation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -128,8 +122,6 @@ class __$$RoundUpCalculationImplCopyWithImpl<$Res>
       $Res Function(_$RoundUpCalculationImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of RoundUpCalculation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -221,14 +213,12 @@ class _$RoundUpCalculationImpl implements _RoundUpCalculation {
             (identical(other.reason, reason) || other.reason == reason));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, originalAmount, roundUpAmount,
       roundedTotal, strategyUsed, isApplicable, reason);
 
-  /// Create a copy of RoundUpCalculation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$RoundUpCalculationImplCopyWith<_$RoundUpCalculationImpl> get copyWith =>
@@ -267,11 +257,8 @@ abstract class _RoundUpCalculation implements RoundUpCalculation {
   bool get isApplicable;
   @override
   String get reason;
-
-  /// Create a copy of RoundUpCalculation
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$RoundUpCalculationImplCopyWith<_$RoundUpCalculationImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

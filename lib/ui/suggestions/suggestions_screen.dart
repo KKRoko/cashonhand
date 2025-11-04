@@ -335,6 +335,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
           notification.title,
           style: DesignTokens.textStyle('titleMedium').copyWith(
             fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         subtitle: Column(
@@ -343,7 +344,9 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             VSpace('xs'),
             Text(
               notification.body,
-              style: DesignTokens.textStyle('bodyMedium'),
+              style: DesignTokens.textStyle('bodyMedium').copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             VSpace('sm'),
             Text(

@@ -27,12 +27,8 @@ mixin _$AllocationTemplate {
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this AllocationTemplate to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AllocationTemplate
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AllocationTemplateCopyWith<AllocationTemplate> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,8 +58,6 @@ class _$AllocationTemplateCopyWithImpl<$Res, $Val extends AllocationTemplate>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AllocationTemplate
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -128,8 +122,6 @@ class __$$AllocationTemplateImplCopyWithImpl<$Res>
       $Res Function(_$AllocationTemplateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AllocationTemplate
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -219,14 +211,12 @@ class _$AllocationTemplateImpl extends _AllocationTemplate {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType, id, name, description, totalAmount, createdAt, updatedAt);
 
-  /// Create a copy of AllocationTemplate
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AllocationTemplateImplCopyWith<_$AllocationTemplateImpl> get copyWith =>
@@ -266,11 +256,8 @@ abstract class _AllocationTemplate extends AllocationTemplate {
   DateTime get createdAt;
   @override
   DateTime get updatedAt;
-
-  /// Create a copy of AllocationTemplate
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AllocationTemplateImplCopyWith<_$AllocationTemplateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

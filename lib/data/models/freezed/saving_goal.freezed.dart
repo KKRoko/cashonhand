@@ -33,12 +33,8 @@ mixin _$SavingGoal {
   double? get recurringTargetAmount => throw _privateConstructorUsedError;
   List<DateTime>? get checkpoints => throw _privateConstructorUsedError;
 
-  /// Serializes this SavingGoal to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SavingGoal
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SavingGoalCopyWith<SavingGoal> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -74,8 +70,6 @@ class _$SavingGoalCopyWithImpl<$Res, $Val extends SavingGoal>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SavingGoal
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -176,8 +170,6 @@ class __$$SavingGoalImplCopyWithImpl<$Res>
       _$SavingGoalImpl _value, $Res Function(_$SavingGoalImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of SavingGoal
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -335,7 +327,7 @@ class _$SavingGoalImpl extends _SavingGoal {
                 .equals(other._checkpoints, _checkpoints));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -352,9 +344,7 @@ class _$SavingGoalImpl extends _SavingGoal {
       recurringTargetAmount,
       const DeepCollectionEquality().hash(_checkpoints));
 
-  /// Create a copy of SavingGoal
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SavingGoalImplCopyWith<_$SavingGoalImpl> get copyWith =>
@@ -411,11 +401,8 @@ abstract class _SavingGoal extends SavingGoal {
   double? get recurringTargetAmount;
   @override
   List<DateTime>? get checkpoints;
-
-  /// Create a copy of SavingGoal
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SavingGoalImplCopyWith<_$SavingGoalImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

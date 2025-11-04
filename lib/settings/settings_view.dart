@@ -7,6 +7,7 @@ import '../ui/allocation_rules/allocation_rules_screen.dart';
 import '../ui/widgets/currency_selector.dart';
 import '../services/currency_service.dart';
 import '../core/di/injection.dart';
+import '../ui/onboarding/goal_integration_onboarding.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({
@@ -42,35 +43,93 @@ class SettingsView extends StatelessWidget {
               HSpace('sm'),
               FinancialButton(
                 onPressed: () async {
-                  // Capture the navigator and scaffold messenger before popping dialog
+                  // Close confirmation dialog first
+                  Navigator.of(context).pop();
+
+                  // Capture navigator and messenger before showing new dialog
                   final navigator = Navigator.of(context, rootNavigator: true);
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-                  // Close dialog
-                  Navigator.of(context).pop();
+                  // Show a new, non-dismissible loading dialog immediately
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        child: Padding(
+                          padding: EdgeInsets.all(DesignTokens.space('lg')),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(),
+                              HSpace('md'),
+                              Text(
+                                'Resetting data...',
+                                style: DesignTokens.textStyle('bodyMedium'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+
+                  // Give the UI a frame to draw the dialog
+                  await Future.delayed(const Duration(milliseconds: 50));
 
                   try {
+                    print('🔄 RESET: Starting reset operation...');
+
+                    // Now the UI is showing a loader while this heavy task runs
                     await controller.resetAllData();
 
-                    // Navigate to home using the captured navigator
+                    print('✅ RESET: Reset complete, waiting before navigation...');
+
+                    // CRITICAL: For hot restarts (VSCode), SharedPreferences singleton persists
+                    // We need to wait even longer and force a complete reload
+                    await Future.delayed(const Duration(milliseconds: 800));
+
+                    print('✅ RESET: Closing dialog and preparing navigation...');
+
+                    // Close the loading dialog first
+                    navigator.pop();
+
+                    // Wait to ensure dialog is fully closed
+                    await Future.delayed(const Duration(milliseconds: 100));
+
+                    // Force onboarding to show even if SharedPreferences is cached (hot restart)
+                    // This static flag persists across hot restarts and bypasses SharedPreferences
+                    GoalIntegrationOnboarding.forceShowOnboarding();
+                    print('✅ RESET: Force flag set, triggering navigation...');
+
+                    // Navigate to home, which will create a fresh MainNavigationScreen
+                    // The force flag will ensure onboarding shows even with cached SharedPreferences
                     navigator.pushNamedAndRemoveUntil(
                       '/',
                       (route) => false,
                     );
 
-                    // Show success message
-                    await Future.delayed(const Duration(milliseconds: 100));
+                    // Show success message after a brief delay
+                    await Future.delayed(const Duration(milliseconds: 500));
                     scaffoldMessenger.showSnackBar(
                       const SnackBar(
                         content: Text('All data has been reset successfully'),
                         backgroundColor: Colors.green,
+                        duration: Duration(seconds: 2),
                       ),
                     );
-                  } catch (e) {
+                  } catch (e, stackTrace) {
+                    print('❌ RESET: Error during reset: $e');
+                    print('❌ RESET: Stack trace: $stackTrace');
+
+                    // If an error happens, close the loading dialog
+                    navigator.pop(); // This closes the loading dialog
+
                     scaffoldMessenger.showSnackBar(
                       SnackBar(
                         content: Text('Error resetting data: $e'),
                         backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 4),
                       ),
                     );
                   }
@@ -243,16 +302,22 @@ class SettingsView extends StatelessWidget {
             child: ListTile(
               title: Text(
                 'Reset All Data',
-                style: DesignTokens.textStyle('titleMedium'),
+                style: DesignTokens.textStyle('titleMedium').copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                    ? DesignTokens.color('onPrimary')
+                    : null,
+                ),
               ),
               subtitle: Text(
                 'Delete all transactions, categories, and savings goals',
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: DesignTokens.color('textSecondary'),
+                  color: Theme.of(context).brightness == Brightness.dark
+                    ? DesignTokens.color('onPrimary')
+                    : DesignTokens.color('textSecondary'),
                 ),
               ),
               trailing: Icon(
-                Icons.warning, 
+                Icons.warning,
                 color: DesignTokens.color('error'),
               ),
             ),

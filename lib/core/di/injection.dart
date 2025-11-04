@@ -165,6 +165,7 @@ Future<void> configureDependencies() async {
         getIt<CategoryNotifier>(),
         getIt<SavingGoalNotifier>(),
         getIt<AchievementNotifier>(),
+        getIt<BudgetNotifier>(),
       ),
     );
   }
@@ -237,8 +238,9 @@ Future<void> configureDependencies() async {
   }
 
   // Add Budget Notifier registration (with optional services)
+  // IMPORTANT: Must be lazy singleton so all parts of app share the same instance
   if (!getIt.isRegistered<BudgetNotifier>()) {
-    getIt.registerFactory<BudgetNotifier>(
+    getIt.registerLazySingleton<BudgetNotifier>(
       () => BudgetNotifier(
         getIt<BudgetService>(),
         getIt<AllocationTemplateService>(),

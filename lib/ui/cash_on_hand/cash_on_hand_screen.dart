@@ -188,7 +188,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         if (!eventDate.isAfter(_endOfMonth)) {
           _updateTotals('month', amount.abs(), amount >= 0);
         }
-        if (!eventDate.isAfter(nowDate)) {
+        if (!eventDate.isAfter(_endOfYear)) {
           _updateTotals('year', amount.abs(), amount >= 0);
         }
       }
@@ -253,7 +253,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           if (!eventDate.isAfter(_endOfMonth)) {
             _totals['month']!['goalAllocations'] = (_totals['month']!['goalAllocations'] ?? 0) + allocationAmount;
           }
-          if (!eventDate.isAfter(nowDate)) {
+          if (!eventDate.isAfter(_endOfYear)) {
             _totals['year']!['goalAllocations'] = (_totals['year']!['goalAllocations'] ?? 0) + allocationAmount;
           }
         }
@@ -823,17 +823,17 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   // Time Period Mini Cards (Horizontal Scroll)
   Widget _buildTimePeriodSection() {
     final periods = [
-      {'key': 'day', 'title': 'Today', 'subtitle': 'Daily'},
-      {'key': 'week', 'title': 'This Week', 'subtitle': 'Weekly'},
-      {'key': 'month', 'title': 'This Month', 'subtitle': 'Monthly'},
-      {'key': 'year', 'title': 'This Year', 'subtitle': 'Yearly'},
+      {'key': 'day', 'title': 'End of Day', 'subtitle': 'Daily'},
+      {'key': 'week', 'title': 'End of Week', 'subtitle': 'Weekly'},
+      {'key': 'month', 'title': 'End of Month', 'subtitle': 'Monthly'},
+      {'key': 'year', 'title': 'End of Year', 'subtitle': 'Yearly'},
     ];
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ResponsiveText(
-          'Time Periods',
+          'Projected from Jan 1',
           styleToken: 'titleLarge',
         ),
         VSpace('md'),
@@ -1259,7 +1259,10 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       textAlign: TextAlign.center,
                     ),
                     VSpace('xs'),
-                    FinancialAmount(amount: amounts['negative']!, showSign: false),
+                    FinancialAmount(
+                      amount: -amounts['negative']!,
+                      showSign: false,
+                    ),
                   ],
                 ),
                 Column(
@@ -1270,7 +1273,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       textAlign: TextAlign.center,
                     ),
                     VSpace('xs'),
-                    FinancialAmount(amount: amounts['positive']! - amounts['negative']!),
+                    FinancialAmount(
+                      amount: amounts['positive']! - amounts['negative']!,
+                    ),
                   ],
                 ),
               ],

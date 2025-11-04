@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:injectable/injectable.dart';
 import '../data/models/freezed/budget.dart';
 import '../data/models/freezed/category_budget.dart';
 import '../data/models/freezed/allocation_template.dart';
@@ -44,6 +45,7 @@ class BudgetAlert {
   bool get isCritical => level == AlertLevel.critical;
 }
 
+@injectable
 class BudgetNotifier extends ChangeNotifier {
   final BudgetService _service;
   final AllocationTemplateService _templateService;

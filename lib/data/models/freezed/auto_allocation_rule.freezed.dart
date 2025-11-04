@@ -37,12 +37,8 @@ mixin _$AutoAllocationRule {
   String? get goalTitle => throw _privateConstructorUsedError;
   String? get categoryName => throw _privateConstructorUsedError;
 
-  /// Serializes this AutoAllocationRule to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AutoAllocationRule
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AutoAllocationRuleCopyWith<AutoAllocationRule> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -81,8 +77,6 @@ class _$AutoAllocationRuleCopyWithImpl<$Res, $Val extends AutoAllocationRule>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AutoAllocationRule
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -201,8 +195,6 @@ class __$$AutoAllocationRuleImplCopyWithImpl<$Res>
       $Res Function(_$AutoAllocationRuleImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AutoAllocationRule
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -385,7 +377,7 @@ class _$AutoAllocationRuleImpl extends _AutoAllocationRule {
                 other.categoryName == categoryName));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -405,9 +397,7 @@ class _$AutoAllocationRuleImpl extends _AutoAllocationRule {
       goalTitle,
       categoryName);
 
-  /// Create a copy of AutoAllocationRule
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AutoAllocationRuleImplCopyWith<_$AutoAllocationRuleImpl> get copyWith =>
@@ -469,16 +459,13 @@ abstract class _AutoAllocationRule extends AutoAllocationRule {
   @override
   DateTime? get createdAt;
   @override
-  DateTime? get updatedAt; // Additional computed fields for UI
-  @override
+  DateTime? get updatedAt;
+  @override // Additional computed fields for UI
   String? get goalTitle;
   @override
   String? get categoryName;
-
-  /// Create a copy of AutoAllocationRule
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AutoAllocationRuleImplCopyWith<_$AutoAllocationRuleImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -503,12 +490,8 @@ mixin _$AutoAllocationRuleForm {
   bool get isActive => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
 
-  /// Serializes this AutoAllocationRuleForm to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AutoAllocationRuleForm
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AutoAllocationRuleFormCopyWith<AutoAllocationRuleForm> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -544,8 +527,6 @@ class _$AutoAllocationRuleFormCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AutoAllocationRuleForm
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -643,8 +624,6 @@ class __$$AutoAllocationRuleFormImplCopyWithImpl<$Res>
       $Res Function(_$AutoAllocationRuleFormImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of AutoAllocationRuleForm
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -792,7 +771,7 @@ class _$AutoAllocationRuleFormImpl extends _AutoAllocationRuleForm {
                 other.description == description));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -808,9 +787,7 @@ class _$AutoAllocationRuleFormImpl extends _AutoAllocationRuleForm {
       isActive,
       description);
 
-  /// Create a copy of AutoAllocationRuleForm
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AutoAllocationRuleFormImplCopyWith<_$AutoAllocationRuleFormImpl>
@@ -856,8 +833,8 @@ abstract class _AutoAllocationRuleForm extends AutoAllocationRuleForm {
   @override
   AllocationMethod get allocationMethod;
   @override
-  double get allocationValue; // Default 10%
-  @override
+  double get allocationValue;
+  @override // Default 10%
   double? get minimumTriggerAmount;
   @override
   double? get maximumAllocationAmount;
@@ -865,11 +842,8 @@ abstract class _AutoAllocationRuleForm extends AutoAllocationRuleForm {
   bool get isActive;
   @override
   String get description;
-
-  /// Create a copy of AutoAllocationRuleForm
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AutoAllocationRuleFormImplCopyWith<_$AutoAllocationRuleFormImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
