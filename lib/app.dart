@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'localization/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/di/injection.dart';
 import 'state/category_notifier.dart';
 import 'state/event_notifier.dart';
@@ -163,8 +164,8 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  // Remove const so screens can rebuild when notifiers change
-  List<Widget> get _screens => [
+  // Create screens only once to avoid re-initialization on tab changes
+  late final List<Widget> _screens = [
     const CashOnHandScreen(),
     const SavingGoalsScreen(),
     const CalendarScreen(),
@@ -230,12 +231,54 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     ),
   ];
 
+  bool? _showOnboarding; // null = checking, true = show onboarding, false = show main app
+
   @override
   void initState() {
     super.initState();
-    // Show onboarding after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      OnboardingManager.checkAndShowOnboarding(context);
+    _checkOnboardingStatus();
+  }
+
+  void _checkOnboardingStatus() async {
+    try {
+      print('🎯 MainNavigation: Checking onboarding status...');
+
+      final completed = await _checkOnboardingFlag();
+
+      print('🎯 MainNavigation: Onboarding completed = $completed, will show onboarding = ${!completed}');
+
+      if (mounted) {
+        setState(() {
+          _showOnboarding = !completed; // true if not completed, false if completed
+          print('🎯 MainNavigation: setState called, _showOnboarding = $_showOnboarding');
+        });
+      } else {
+        print('❌ MainNavigation: Widget not mounted, cannot setState');
+      }
+    } catch (e, stackTrace) {
+      print('❌ MainNavigation: Error checking onboarding status: $e');
+      print('❌ Stack trace: $stackTrace');
+      // Default to showing onboarding on error
+      if (mounted) {
+        setState(() {
+          _showOnboarding = true;
+        });
+      }
+    }
+  }
+
+  Future<bool> _checkOnboardingFlag() async {
+    // Use the GoalIntegrationOnboarding method which checks the force flag
+    // This ensures hot restarts work correctly
+    final shouldShow = await GoalIntegrationOnboarding.shouldShowOnboarding();
+    return !shouldShow; // Return 'completed' status (inverse of shouldShow)
+  }
+
+  void _onOnboardingComplete() {
+    print('🎯 MainNavigation: _onOnboardingComplete() called!');
+    print('🎯 Stack trace: ${StackTrace.current}');
+    setState(() {
+      _showOnboarding = false;
     });
   }
 
@@ -250,6 +293,46 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if this route is still active
+    final route = ModalRoute.of(context);
+    final bool isActive = route?.isActive ?? false;
+
+    print('🏗️ MainNavigation build: _showOnboarding = $_showOnboarding, isActive = $isActive');
+
+    // If this widget is building, but its route is NOT active,
+    // AND it thinks it should show the main app...
+    // then it's the OLD widget. Show a loader to prevent the flash.
+    if (!isActive && _showOnboarding == false) {
+      print('🏗️ MainNavigation: OLD widget, not active, showing loader to prevent flash');
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // If still checking onboarding status, show loading screen
+    if (_showOnboarding == null) {
+      print('🏗️ MainNavigation: Showing loading screen');
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // If onboarding should be shown, show it instead of main navigation
+    if (_showOnboarding == true) {
+      print('🏗️ MainNavigation: Showing onboarding');
+      // Use a unique key to force a fresh widget instance
+      return GoalIntegrationOnboarding(
+        key: ValueKey('onboarding_${DateTime.now().millisecondsSinceEpoch}'),
+        onComplete: _onOnboardingComplete,
+      );
+    }
+
+    // Otherwise show the main app
+    print('🏗️ MainNavigation: Showing main app');
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
@@ -262,14 +345,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         elevation: 0,
         height: 65,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.black 
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.black
           : DesignTokens.color('surface'),
-        indicatorColor: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.grey.shade800 
+        indicatorColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.grey.shade800
           : DesignTokens.color('primaryContainer'),
-        surfaceTintColor: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.white 
+        surfaceTintColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
           : DesignTokens.color('primary'),
       ),
     );

@@ -14,16 +14,36 @@ class GoalIntegrationOnboarding extends StatefulWidget {
 
   static const String _onboardingKey = 'goal_integration_onboarding_completed';
 
+  // Flag to force onboarding to be shown even if completed
+  // This is used during app reset to work around hot restart caching
+  static bool _forceShowOnboarding = false;
+
+  /// Force onboarding to be shown on next check (used during reset)
+  static void forceShowOnboarding() {
+    print('🎯 Onboarding: Force flag set - will show onboarding on next check');
+    _forceShowOnboarding = true;
+  }
+
   /// Check if the user has already seen the onboarding
   static Future<bool> shouldShowOnboarding() async {
+    // Check force flag first (handles hot restart case)
+    if (_forceShowOnboarding) {
+      print('🎯 Onboarding check: Force flag is set, returning shouldShow=true');
+      _forceShowOnboarding = false; // Reset flag after checking
+      return true;
+    }
+
     final prefs = await SharedPreferences.getInstance();
-    return !(prefs.getBool(_onboardingKey) ?? false);
+    final completed = prefs.getBool(_onboardingKey) ?? false;
+    print('🎯 Onboarding check: key=$_onboardingKey, completed=$completed, shouldShow=${!completed}');
+    return !completed;
   }
 
   /// Mark onboarding as completed
   static Future<void> markOnboardingCompleted() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardingKey, true);
+    _forceShowOnboarding = false; // Clear force flag
   }
 
   /// Show onboarding if needed
@@ -61,30 +81,33 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
   @override
   void initState() {
     super.initState();
+    print('🎯 GoalIntegrationOnboarding: initState called');
     _pageController = PageController();
     
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
-    
+
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
-    
-    // Start animations
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+
+    // Start animations (fast - 150-200ms)
+    print('🎯 GoalIntegrationOnboarding: Starting fast animations at ${DateTime.now()}');
     _fadeController.forward();
     _slideController.forward();
+    print('🎯 GoalIntegrationOnboarding: initState complete');
   }
 
   @override
@@ -126,21 +149,31 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
   }
 
   void _completeOnboarding() async {
+    print('🎯 GoalIntegrationOnboarding: _completeOnboarding() called');
     // Save year-end goal if set
     if (_hasYearEndGoal && _yearEndGoalController.text.isNotEmpty) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble('year_end_goal', double.tryParse(_yearEndGoalController.text) ?? 0.0);
     }
-    
+
     await GoalIntegrationOnboarding.markOnboardingCompleted();
+    print('🎯 GoalIntegrationOnboarding: Onboarding marked complete, calling onComplete callback');
     if (mounted) {
-      Navigator.of(context).pop();
+      // Don't call Navigator.pop() when used as a direct widget (not modal)
+      // Just call the completion callback which will handle the transition
       widget.onComplete?.call();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    print('🎯 GoalIntegrationOnboarding: build() called at ${DateTime.now()}');
+
+    // Check when first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('🎯 GoalIntegrationOnboarding: ✅ FIRST FRAME RENDERED at ${DateTime.now()}');
+    });
+
     return Scaffold(
       body: SafeArea(
         child: FadeTransition(
@@ -199,7 +232,11 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
                 Expanded(
                   child: PageView(
                     controller: _pageController,
-                    onPageChanged: (page) => setState(() => _currentPage = page),
+                    onPageChanged: (page) {
+                      // Dismiss keyboard when changing pages
+                      FocusScope.of(context).unfocus();
+                      setState(() => _currentPage = page);
+                    },
                     children: [
                       _buildWelcomePage(),
                       _buildSmartSavingsPage(),
@@ -262,32 +299,45 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
   }
 
   Widget _buildWelcomePage() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    print('🎯 GoalIntegrationOnboarding: _buildWelcomePage() called at ${DateTime.now()}');
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           // Welcome animation/illustration
-          Container(
-            width: 200,
-            height: 200,
-            decoration: BoxDecoration(
-              color: DesignTokens.color('success').withOpacity(0.1),
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.savings,
-                size: 80,
-                color: DesignTokens.color('success'),
-              ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(100),
+            child: Image.asset(
+              'assets/images/CashOnHand.png',
+              width: 200,
+              height: 200,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.account_balance_wallet,
+                      size: 80,
+                      color: Colors.green.shade600,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           
           const SizedBox(height: 32),
           
           Text(
-            'Welcome to Smart Savings!',
+            'Welcome to Cash on Hand!',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: DesignTokens.color('success'),
@@ -298,7 +348,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 16),
           
           Text(
-            'Transform your spending into smart savings with our integrated goal system. Let\'s show you how!',
+            'See Your Financial Future Today',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
@@ -307,53 +357,62 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           ),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildSmartSavingsPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Smart allocations illustration
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          // Year-end forecast illustration
           Container(
             width: 200,
             height: 200,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: DesignTokens.color('info').withOpacity(0.1),
+              color: Colors.green.shade50,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.flash_on, size: 40, color: DesignTokens.color('info')),
+                Icon(Icons.calendar_today, size: 40, color: Colors.green.shade600),
                 const SizedBox(height: 8),
                 Text(
-                  'Smart Allocation',
+                  'Dec 31, ${DateTime.now().year}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: DesignTokens.color('info'),
+                    color: Colors.green.shade700,
+                    fontSize: 16,
                   ),
                 ),
-                const Divider(),
-                Row(
-                  children: [
-                    Icon(Icons.flag, size: 16, color: DesignTokens.color('success')),
-                    const SizedBox(width: 4),
-                    const Expanded(child: Text('Emergency Fund')),
-                    const Text('\$50'),
-                  ],
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '\$12,450',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade800,
+                      fontSize: 24,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.flag, size: 16, color: DesignTokens.color('warning')),
-                    const SizedBox(width: 4),
-                    const Expanded(child: Text('Vacation')),
-                    const Text('\$30'),
-                  ],
+                const SizedBox(height: 8),
+                Text(
+                  'Your Projected Cash',
+                  style: TextStyle(
+                    color: Colors.green.shade600,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -362,9 +421,10 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 32),
           
           Text(
-            'Automatic Goal Allocation',
+            'See Your Year-End Cash',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: Colors.green.shade700,
             ),
             textAlign: TextAlign.center,
           ),
@@ -372,7 +432,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 16),
           
           Text(
-            'Every transaction can automatically contribute to your savings goals. Set up rules for round-ups, percentage allocations, and more!',
+            'Know exactly how much money you\'ll have by December 31st based on your current spending and income patterns.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
@@ -383,48 +443,74 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 24),
           
           // Feature highlights
-          _buildFeatureRow(Icons.autorenew, 'Auto round-up on purchases'),
-          _buildFeatureRow(Icons.percent, 'Percentage-based allocations'),
-          _buildFeatureRow(Icons.rule, 'Custom allocation rules'),
+          _buildFeatureRow(Icons.trending_up, 'Real-time year-end projection'),
+          _buildFeatureRow(Icons.insights, 'Based on your actual patterns'),
+          _buildFeatureRow(Icons.update, 'Updates with every transaction'),
         ],
+      ),
       ),
     );
   }
 
   Widget _buildTrackingPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Analytics illustration
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          // Motivational insights illustration
           Container(
             width: 200,
             height: 200,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: DesignTokens.color('primary').withOpacity(0.1),
+              color: Colors.blue.shade50,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.analytics, size: 40, color: DesignTokens.color('primary')),
+                Icon(Icons.psychology, size: 40, color: Colors.blue.shade600),
                 const SizedBox(height: 8),
                 Text(
-                  'Advanced Analytics',
+                  'Smart Motivation',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: DesignTokens.color('primary'),
+                    color: Colors.blue.shade700,
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Mock progress bars
-                _buildMiniProgressBar(0.7, DesignTokens.color('success')),
-                const SizedBox(height: 4),
-                _buildMiniProgressBar(0.4, DesignTokens.color('info')),
-                const SizedBox(height: 4),
-                _buildMiniProgressBar(0.9, DesignTokens.color('warning')),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.trending_up, size: 16, color: Colors.green.shade600),
+                      const SizedBox(height: 2),
+                      Text(
+                        'You\'re 85% to your goal!',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        'Keep up the momentum',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: Colors.green.shade600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -432,19 +518,20 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 32),
           
           Text(
-            'Smart Insights & Tracking',
+            'Stay Motivated Daily',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
+              color: Colors.blue.shade700,
             ),
             textAlign: TextAlign.center,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Text(
-            'Get powerful insights into your savings velocity, goal predictions, and spending vs. savings balance to make informed decisions.',
+            'Get personalized insights that motivate better financial decisions. See how small changes today create big results by year-end.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: Colors.grey.shade600,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -452,38 +539,57 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           
           const SizedBox(height: 24),
           
-          _buildFeatureRow(Icons.speed, 'Savings velocity tracking'),
-          _buildFeatureRow(Icons.timeline, 'Goal completion predictions'),
-          _buildFeatureRow(Icons.balance, 'Spending vs. savings balance'),
+          _buildFeatureRow(Icons.lightbulb, 'Smart spending insights'),
+          _buildFeatureRow(Icons.track_changes, 'Progress tracking'),
+          _buildFeatureRow(Icons.chat_bubble, 'Motivational messages'),
         ],
+      ),
       ),
     );
   }
 
   Widget _buildCelebrationPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Celebration illustration
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          // Control/Future illustration
           Container(
             width: 200,
             height: 200,
             decoration: BoxDecoration(
-              color: DesignTokens.color('warning').withOpacity(0.1),
+              color: Colors.purple.shade50,
               borderRadius: BorderRadius.circular(100),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
                 Icon(
-                  Icons.celebration,
+                  Icons.control_camera,
                   size: 80,
-                  color: DesignTokens.color('warning'),
+                  color: Colors.purple.shade600,
                 ),
-                // Animated sparkles
-                ..._buildSparkles(),
+                // Future visualization elements
+                Positioned(
+                  top: 30,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${DateTime.now().year}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green.shade700,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -491,10 +597,10 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 32),
           
           Text(
-            'Celebrate Your Success!',
+            'Take Control of Your Future',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: DesignTokens.color('warning'),
+              color: Colors.purple.shade700,
             ),
             textAlign: TextAlign.center,
           ),
@@ -502,7 +608,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           const SizedBox(height: 16),
           
           Text(
-            'Unlock achievements, track streaks, and celebrate milestones! Share your progress and stay motivated on your savings journey.',
+            'Your financial future is in your hands. Make informed decisions today and watch your year-end cash grow. Change your habits, change your life.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.5,
@@ -512,9 +618,9 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
           
           const SizedBox(height: 24),
           
-          _buildFeatureRow(Icons.emoji_events, 'Achievement system'),
-          _buildFeatureRow(Icons.local_fire_department, 'Savings streaks'),
-          _buildFeatureRow(Icons.share, 'Share your progress'),
+          _buildFeatureRow(Icons.gps_fixed, 'Set your year-end goal'),
+          _buildFeatureRow(Icons.timeline, 'Track your progress'),
+          _buildFeatureRow(Icons.auto_awesome, 'Transform your habits'),
           
           const SizedBox(height: 32),
           
@@ -526,7 +632,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
               border: Border.all(color: DesignTokens.color('success').withOpacity(0.3)),
             ),
             child: Text(
-              '🎉 You\'re ready to start your smart savings journey!',
+              '🚀 Ready to see your financial future?',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: DesignTokens.color('success'),
                 fontWeight: FontWeight.bold,
@@ -535,6 +641,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -605,11 +712,12 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
   }
 
   Widget _buildYearEndGoalPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           // Year-end goal illustration
           Container(
             width: 200,
@@ -723,6 +831,7 @@ class _GoalIntegrationOnboardingState extends State<GoalIntegrationOnboarding>
             ),
           ],
         ],
+      ),
       ),
     );
   }
