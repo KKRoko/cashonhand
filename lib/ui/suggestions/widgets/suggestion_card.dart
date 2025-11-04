@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../theme/design_tokens.dart';
 import '../../../data/models/freezed/financial_suggestion.dart';
+import '../../components/cash_components.dart';
 
 class SuggestionCard extends StatelessWidget {
   final FinancialSuggestion suggestion;
@@ -18,17 +19,14 @@ class SuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    return CashCard(
+      margin: EdgeInsets.only(bottom: DesignTokens.space('md')),
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.all(DesignTokens.space('md')),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
               // Header with icon, type, and priority
               Row(
                 children: [
@@ -36,7 +34,7 @@ class SuggestionCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getPriorityColor(context, suggestion.priority).withOpacity(0.1),
+                      color: _getPriorityColor(context, suggestion.priority).withOpacity(0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -67,13 +65,17 @@ class SuggestionCard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: _getPriorityColor(context, suggestion.priority),
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: _getPriorityColor(context, suggestion.priority),
+                                  width: 1.5,
+                                ),
                               ),
                               child: Text(
                                 _getPriorityLabel(suggestion.priority),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -84,13 +86,17 @@ class SuggestionCard extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: DesignTokens.color('success'),
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: DesignTokens.color('success'),
+                                    width: 1.5,
+                                  ),
                                 ),
                                 child: Text(
                                   'Save \$${suggestion.potentialSavings!.toStringAsFixed(0)}',
                                   style: TextStyle(
-                                    color: DesignTokens.color('success'),
+                                    color: Theme.of(context).colorScheme.onSurface,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -124,10 +130,11 @@ class SuggestionCard extends StatelessWidget {
               // Title
               Text(
                 suggestion.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   height: 1.3,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               
@@ -138,7 +145,7 @@ class SuggestionCard extends StatelessWidget {
                 suggestion.description,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.4,
                 ),
               ),
@@ -153,7 +160,7 @@ class SuggestionCard extends StatelessWidget {
                     _formatTimestamp(suggestion.createdAt),
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   
@@ -175,7 +182,6 @@ class SuggestionCard extends StatelessWidget {
                 ],
               ),
             ],
-          ),
         ),
       ),
     );
@@ -198,7 +204,7 @@ class SuggestionCard extends StatelessWidget {
   Color _getPriorityColor(BuildContext context, SuggestionPriority priority) {
     switch (priority) {
       case SuggestionPriority.low:
-        return Theme.of(context).colorScheme.surfaceContainerHighest;
+        return DesignTokens.color('neutral');
       case SuggestionPriority.medium:
         return DesignTokens.color('info');
       case SuggestionPriority.high:

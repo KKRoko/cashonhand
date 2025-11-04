@@ -81,7 +81,10 @@ class SuggestionsFilterBar extends StatelessWidget {
                         child: FilterChip(
                           label: Text(
                             _getTypeLabel(type),
-                            style: const TextStyle(fontSize: 11),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                           selected: isSelected,
                           onSelected: (selected) {
@@ -93,8 +96,10 @@ class SuggestionsFilterBar extends StatelessWidget {
                             }
                             onTypesChanged(newTypes);
                           },
-                          selectedColor: _getTypeColor(type).withOpacity(0.2),
+                          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          selectedColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                           checkmarkColor: _getTypeColor(type),
+                          side: isSelected ? BorderSide(color: _getTypeColor(type), width: 1.5) : null,
                         ),
                       );
                     }).toList(),
@@ -132,7 +137,10 @@ class SuggestionsFilterBar extends StatelessWidget {
                           child: FilterChip(
                             label: Text(
                               _getPriorityLabel(priority),
-                              style: const TextStyle(fontSize: 11),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                             selected: isSelected,
                             onSelected: (selected) {
@@ -144,8 +152,10 @@ class SuggestionsFilterBar extends StatelessWidget {
                               }
                               onPrioritiesChanged(newPriorities);
                             },
-                            selectedColor: _getPriorityColor(context, priority).withOpacity(0.2),
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            selectedColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                             checkmarkColor: _getPriorityColor(context, priority),
+                            side: isSelected ? BorderSide(color: _getPriorityColor(context, priority), width: 1.5) : null,
                           ),
                         );
                       }).toList(),
@@ -154,14 +164,19 @@ class SuggestionsFilterBar extends StatelessWidget {
 
                       // Active only filter
                       FilterChip(
-                        label: const Text(
+                        label: Text(
                           'Active Only',
-                          style: TextStyle(fontSize: 11),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                         selected: showOnlyActive,
                         onSelected: onActiveFilterChanged,
-                        selectedColor: DesignTokens.color('success').withOpacity(0.2),
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        selectedColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                         checkmarkColor: DesignTokens.color('success'),
+                        side: showOnlyActive ? BorderSide(color: DesignTokens.color('success'), width: 1.5) : null,
                       ),
                     ],
                   ),
@@ -241,7 +256,7 @@ class SuggestionsFilterBar extends StatelessWidget {
   Color _getPriorityColor(BuildContext context, SuggestionPriority priority) {
     switch (priority) {
       case SuggestionPriority.low:
-        return Theme.of(context).colorScheme.surfaceContainerHighest;
+        return DesignTokens.color('neutral');
       case SuggestionPriority.medium:
         return DesignTokens.color('info');
       case SuggestionPriority.high:
