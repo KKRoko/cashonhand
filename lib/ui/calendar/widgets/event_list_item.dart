@@ -219,7 +219,7 @@ class _EventListItemState extends State<EventListItem> {
                                 const SizedBox(width: 6),
                                 Text(
                                   'Loading allocations...',
-                                  style: DesignTokens.textStyle('bodySmall').copyWith(
+                                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     fontStyle: FontStyle.italic,
                                   ),
@@ -253,7 +253,7 @@ class _EventListItemState extends State<EventListItem> {
                             ),
                             child: Text(
                               '\$${_getTotalAllocatedAmount().toStringAsFixed(2)}',
-                              style: DesignTokens.textStyle('labelSmall').copyWith(
+                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
                                 color: DesignTokens.color('income'),
                                 fontWeight: FontWeight.w600,
                               ),
@@ -334,7 +334,7 @@ class _EventListItemState extends State<EventListItem> {
                                 const SizedBox(width: 12),
                                 Text(
                                   'Loading goal allocations...',
-                                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     fontStyle: FontStyle.italic,
                                   ),
@@ -668,7 +668,7 @@ class _EventListItemState extends State<EventListItem> {
           const SizedBox(width: 4),
           Text(
             '$totalCount goal${totalCount == 1 ? '' : 's'} • \$${totalAmount.toStringAsFixed(2)}',
-            style: DesignTokens.textStyle('bodySmall').copyWith(
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
               color: DesignTokens.color('income'),
               fontWeight: FontWeight.w600,
             ),
@@ -692,7 +692,7 @@ class _EventListItemState extends State<EventListItem> {
             const SizedBox(width: 8),
             Text(
               'Goal Allocations',
-              style: DesignTokens.textStyle('titleSmall').copyWith(
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
                 color: DesignTokens.color('income'),
                 fontWeight: FontWeight.w600,
               ),
@@ -735,7 +735,7 @@ class _EventListItemState extends State<EventListItem> {
                     Expanded(
                       child: Text(
                         goalTitle,
-                        style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: DesignTokens.color('income'),
                           fontWeight: FontWeight.w500,
                         ),
@@ -749,7 +749,7 @@ class _EventListItemState extends State<EventListItem> {
                       ),
                       child: Text(
                         '\$${allocation.amount.toStringAsFixed(2)}',
-                        style: DesignTokens.textStyle('labelMedium').copyWith(
+                        style: Theme.of(context).textTheme.labelMedium!.copyWith(
                           fontWeight: FontWeight.w700,
                           color: DesignTokens.color('income'),
                         ),

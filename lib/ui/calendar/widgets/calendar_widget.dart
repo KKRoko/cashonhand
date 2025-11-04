@@ -571,7 +571,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Expanded(
                 child: Text(
                   'Monthly Summary',
-                  style: DesignTokens.textStyle('titleMedium'),
+                  style: Theme.of(context).textTheme.titleMedium!,
                 ),
               ),
               Icon(
@@ -588,7 +588,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             children: [
               Text(
                 '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
-                style: DesignTokens.textStyle('titleLarge'),
+                style: Theme.of(context).textTheme.titleLarge!,
               ),
               FinancialAmount(
                 amount: currentMonthTotal,
@@ -647,7 +647,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   children: [
                     Text(
                       'Monthly Summary',
-                      style: DesignTokens.textStyle('titleLarge').copyWith(
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -665,7 +665,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   children: [
                     Text(
                       '${widget.focusedDay.year} ${_getMonthName(widget.focusedDay)}',
-                      style: DesignTokens.textStyle('titleMedium'),
+                      style: Theme.of(context).textTheme.titleMedium!,
                     ),
                     FinancialAmount(
                       amount: currentMonthTotal,
@@ -718,7 +718,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                     VSpace('xs'),
                     Text(
                       'Income',
-                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -745,7 +745,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                     VSpace('xs'),
                     Text(
                       'Expenses',
-                      style: DesignTokens.textStyle('labelMedium').copyWith(
+                      style: Theme.of(context).textTheme.labelMedium!.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -787,7 +787,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
         // Detailed transaction lists using design system
         Text(
           'Transaction Details',
-          style: DesignTokens.textStyle('titleMedium').copyWith(
+          style: Theme.of(context).textTheme.titleMedium!.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -848,7 +848,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               HSpace('sm'),
               Text(
                 title,
-                style: DesignTokens.textStyle('titleSmall').copyWith(
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -864,7 +864,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   Expanded(
                     child: Text(
                       entry.key,
-                      style: DesignTokens.textStyle('bodySmall'),
+                      style: Theme.of(context).textTheme.bodySmall!,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -877,7 +877,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                   HSpace('xs'),
                   Text(
                     '(${percentage.toStringAsFixed(1)}%)',
-                    style: DesignTokens.textStyle('bodySmall').copyWith(
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
@@ -890,7 +890,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               padding: EdgeInsets.only(top: DesignTokens.space('xs')),
               child: Text(
                 '+ ${sortedEntries.length - 5} more categories',
-                style: DesignTokens.textStyle('bodySmall').copyWith(
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
                 ),
@@ -914,14 +914,14 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           children: [
             Text(
               title,
-              style: DesignTokens.textStyle('titleSmall').copyWith(
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             VSpace('sm'),
             Text(
               'No transactions this month',
-              style: DesignTokens.textStyle('bodySmall').copyWith(
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,
               ),
@@ -949,7 +949,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             ),
             child: Text(
               title,
-              style: DesignTokens.textStyle('titleSmall').copyWith(
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
@@ -998,7 +998,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Expanded(
                 child: Text(
                   transaction.title,
-                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1021,7 +1021,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                     final categoryName = snapshot.data ?? 'Loading...';
                     return Text(
                       categoryName,
-                      style: DesignTokens.textStyle('bodySmall').copyWith(
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -1031,7 +1031,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               ),
               Text(
                 _formatTransactionDate(transaction.dateTime),
-                style: DesignTokens.textStyle('bodySmall').copyWith(
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
@@ -1229,11 +1229,11 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           ),
         ),
         daysOfWeekStyle: DaysOfWeekStyle(
-          weekdayStyle: DesignTokens.textStyle('labelMedium').copyWith(
+          weekdayStyle: Theme.of(context).textTheme.labelMedium!.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
-          weekendStyle: DesignTokens.textStyle('labelMedium').copyWith(
+          weekendStyle: Theme.of(context).textTheme.labelMedium!.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
@@ -1248,7 +1248,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             vertical: DesignTokens.space('md'),
             horizontal: DesignTokens.space('lg'),
           ),
-          titleTextStyle: DesignTokens.textStyle('titleLarge').copyWith(
+          titleTextStyle: Theme.of(context).textTheme.titleLarge!.copyWith(
             fontWeight: FontWeight.w600,
           ),
           leftChevronIcon: const Icon(Icons.chevron_left),
@@ -1304,7 +1304,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           Center(
             child: Text(
               '${date.day}',
-              style: DesignTokens.textStyle('bodyLarge').copyWith(
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 color: amount != 0
                     ? (amount > 0 ? DesignTokens.color('income') : DesignTokens.color('expense'))
                     : Theme.of(context).colorScheme.onSurface,
@@ -1426,7 +1426,7 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
         children: [
           Text(
             'Goals Summary',
-            style: DesignTokens.textStyle('titleMedium').copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
               color: DesignTokens.color('income'),
             ),
           ),
@@ -1436,7 +1436,7 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
             children: [
               Text(
                 '$activeGoals Active Goals',
-                style: DesignTokens.textStyle('bodyLarge').copyWith(
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   color: DesignTokens.color('income'),
                 ),
               ),
@@ -1482,13 +1482,13 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
               children: [
                 Text(
                   'Savings Streak',
-                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: DesignTokens.color('warning'),
                   ),
                 ),
                 Text(
                   '$currentStreak ${currentStreak == 1 ? 'day' : 'days'} of consistent saving!',
-                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -1497,7 +1497,7 @@ Widget _buildDayIndicator(BuildContext context, DateTime date, List<Event> event
           ),
           Text(
             '$currentStreak',
-            style: DesignTokens.textStyle('headlineMedium').copyWith(
+            style: Theme.of(context).textTheme.headlineMedium!.copyWith(
               color: DesignTokens.color('warning'),
               fontWeight: FontWeight.bold,
             ),

@@ -641,7 +641,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 ResponsiveText(
                   'Cash on Hand by End of Year',
                   styleToken: 'titleMedium',
-                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -691,7 +691,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                             ResponsiveText(
                               'Year-End Goal',
                               styleToken: 'labelMedium',
-                              style: DesignTokens.textStyle('labelMedium').copyWith(
+                              style: Theme.of(context).textTheme.labelMedium!.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -717,7 +717,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                             ResponsiveText(
                               goalProgress >= 1.0 ? 'Goal Achieved! 🎉' : 'Progress',
                               styleToken: 'labelSmall',
-                              style: DesignTokens.textStyle('labelSmall').copyWith(
+                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -725,7 +725,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                             ResponsiveText(
                               '${(goalProgress * 100).toStringAsFixed(0)}%',
                               styleToken: 'labelSmall',
-                              style: DesignTokens.textStyle('labelSmall').copyWith(
+                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
                                 color: currentBalance >= 0 
                                     ? DesignTokens.color('income') 
                                     : DesignTokens.color('expense'),
@@ -775,7 +775,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               child: ResponsiveText(
                 yearEndGoal > 0 ? 'Tap to change your goal' : 'Tap to set year-end goal',
                 styleToken: 'labelSmall',
-                style: DesignTokens.textStyle('labelSmall').copyWith(
+                style: Theme.of(context).textTheme.labelSmall!.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
                 ),
@@ -890,7 +890,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         ResponsiveText(
                           period['subtitle'] as String,
                           styleToken: 'bodySmall',
-                          style: DesignTokens.textStyle('bodySmall').copyWith(
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
@@ -931,7 +931,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               child: ResponsiveText(
                 'View All',
                 styleToken: 'labelMedium',
-                style: DesignTokens.textStyle('labelMedium').copyWith(
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 maxWidth: 60,
@@ -955,7 +955,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       ResponsiveText(
                         'No recent transactions',
                         styleToken: 'bodyMedium',
-                        style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
@@ -964,7 +964,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       ResponsiveText(
                         'Add your first transaction using the buttons above',
                         styleToken: 'bodySmall',
-                        style: DesignTokens.textStyle('bodySmall').copyWith(
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
@@ -1059,7 +1059,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 ResponsiveText(
                   transaction.title,
                   styleToken: 'bodyMedium',
-                  style: DesignTokens.textStyle('bodyMedium').copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
@@ -1071,7 +1071,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                     return ResponsiveText(
                       '$categoryName • ${formatRelativeDate(transaction.dateTime)}',
                       styleToken: 'bodySmall',
-                      style: DesignTokens.textStyle('bodySmall').copyWith(
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 1,
@@ -1124,7 +1124,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               child: ResponsiveText(
                 'View All',
                 styleToken: 'labelMedium',
-                style: DesignTokens.textStyle('labelMedium').copyWith(
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 maxWidth: 60,
@@ -1152,7 +1152,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 return Center(
                   child: Text(
                     'No achievements yet',
-                    style: DesignTokens.textStyle('bodyMedium').copyWith(
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),

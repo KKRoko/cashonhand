@@ -654,7 +654,7 @@ class _CalendarScreenState extends State<CalendarScreen> with WidgetsBindingObse
         children: [
           Text(
             'Goals Summary',
-            style: DesignTokens.textStyle('titleMedium').copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
               color: Theme.of(context).brightness == Brightness.dark 
                 ? DesignTokens.color('income') 
                 : DesignTokens.color('income'),
@@ -666,7 +666,7 @@ class _CalendarScreenState extends State<CalendarScreen> with WidgetsBindingObse
             children: [
               Text(
                 '$activeGoals Active Goals',
-                style: DesignTokens.textStyle('bodyLarge').copyWith(
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? DesignTokens.color('income') 
                     : DesignTokens.color('income'),

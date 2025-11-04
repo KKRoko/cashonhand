@@ -234,7 +234,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   child: ResponsiveText(
                     transaction.title,
                     styleToken: 'titleSmall',
-                    style: DesignTokens.textStyle('titleSmall').copyWith(
+                    style: Theme.of(context).textTheme.titleSmall!.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.white
@@ -270,7 +270,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       return ResponsiveText(
                         snapshot.data ?? 'Loading...',
                         styleToken: 'bodyMedium',
-                        style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       );
@@ -280,7 +280,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 ResponsiveText(
                   _formatDate(transaction.dateTime),
                   styleToken: 'bodySmall',
-                  style: DesignTokens.textStyle('bodySmall').copyWith(
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -300,7 +300,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   ResponsiveText(
                     'Recurring',
                     styleToken: 'bodySmall',
-                    style: DesignTokens.textStyle('bodySmall').copyWith(
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontStyle: FontStyle.italic,
                     ),
@@ -342,7 +342,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           ResponsiveText(
                             'Total: ',
                             styleToken: 'bodyMedium',
-                            style: DesignTokens.textStyle('bodyMedium').copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
@@ -366,7 +366,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                   ResponsiveText(
                                     'No transactions found',
                                     styleToken: 'titleMedium',
-                                    style: DesignTokens.textStyle('titleMedium').copyWith(
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                     textAlign: TextAlign.center,
@@ -377,7 +377,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                         ? 'Try adjusting your search or filters'
                                         : 'Start adding transactions to see them here',
                                     styleToken: 'bodyMedium',
-                                    style: DesignTokens.textStyle('bodyMedium').copyWith(
+                                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                     textAlign: TextAlign.center,

@@ -175,7 +175,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             VSpace('lg'),
             Text(
               'Analyzing your financial data...',
-              style: DesignTokens.textStyle('bodyLarge').copyWith(
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -199,13 +199,13 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               VSpace('lg'),
               Text(
                 'Error Loading Suggestions',
-                style: DesignTokens.textStyle('headlineSmall'),
+                style: Theme.of(context).textTheme.headlineSmall!,
               ),
               VSpace('sm'),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: DesignTokens.textStyle('bodyMedium').copyWith(
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -290,7 +290,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               VSpace('xl'),
               Text(
                 'No Active Notifications',
-                style: DesignTokens.textStyle('headlineMedium').copyWith(
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -298,7 +298,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               Text(
                 'We\'ll notify you about important financial insights and goal updates.',
                 textAlign: TextAlign.center,
-                style: DesignTokens.textStyle('bodyLarge').copyWith(
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -333,7 +333,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
         ),
         title: Text(
           notification.title,
-          style: DesignTokens.textStyle('titleMedium').copyWith(
+          style: Theme.of(context).textTheme.titleMedium!.copyWith(
             fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w600,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -344,14 +344,14 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             VSpace('xs'),
             Text(
               notification.body,
-              style: DesignTokens.textStyle('bodyMedium').copyWith(
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             VSpace('sm'),
             Text(
               _formatNotificationTime(notification.createdAt),
-              style: DesignTokens.textStyle('bodySmall').copyWith(
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -394,7 +394,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             VSpace('xl'),
             Text(
               'No Suggestions Available',
-              style: DesignTokens.textStyle('headlineMedium').copyWith(
+              style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
@@ -402,7 +402,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Text(
               'Keep using the app and we\'ll provide personalized financial insights based on your spending patterns.',
               textAlign: TextAlign.center,
-              style: DesignTokens.textStyle('bodyLarge').copyWith(
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),

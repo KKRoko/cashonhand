@@ -124,7 +124,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
               Expanded(
                 child: Text(
                   'Overall Savings Progress',
-                  style: DesignTokens.textStyle('titleMedium').copyWith(
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.white
                       : DesignTokens.color('income'),
@@ -186,7 +186,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                     children: [
                       Text(
                         'Your Goals',
-                        style: DesignTokens.textStyle('titleLarge'),
+                        style: Theme.of(context).textTheme.titleLarge!,
                       ),
                       PrimaryButton(
                         onPressed: () => _showAddEditGoalDialog(),
@@ -226,7 +226,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
                           VSpace('lg'),
                           Text(
                             'No saving goals yet',
-                            style: DesignTokens.textStyle('bodyLarge').copyWith(
+                            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),

@@ -27,13 +27,13 @@ class SettingsView extends StatelessWidget {
           return AlertDialog(
             title: Text(
               'Reset All Data?',
-              style: DesignTokens.textStyle('titleLarge'),
+              style: Theme.of(context).textTheme.titleLarge!,
             ),
             content: Text(
               'This action will permanently delete all your data including transactions, '
               'categories, and savings goals. This cannot be undone. Are you sure you '
               'want to proceed?',
-              style: DesignTokens.textStyle('bodyMedium'),
+              style: Theme.of(context).textTheme.bodyMedium!,
             ),
             actions: [
               SecondaryButton(
@@ -65,7 +65,7 @@ class SettingsView extends StatelessWidget {
                               HSpace('md'),
                               Text(
                                 'Resetting data...',
-                                style: DesignTokens.textStyle('bodyMedium'),
+                                style: Theme.of(context).textTheme.bodyMedium!,
                               ),
                             ],
                           ),
@@ -154,7 +154,7 @@ class SettingsView extends StatelessWidget {
             child: ListTile(
               title: Text(
                 'Theme',
-                style: DesignTokens.textStyle('titleMedium').copyWith(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? DesignTokens.color('onPrimary') 
                     : null,
@@ -171,7 +171,7 @@ class SettingsView extends StatelessWidget {
                     value: ThemeMode.system,
                     child: Text(
                       'System Theme',
-                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark 
                           ? DesignTokens.color('onPrimary') 
                           : null,
@@ -182,7 +182,7 @@ class SettingsView extends StatelessWidget {
                     value: ThemeMode.light,
                     child: Text(
                       'Light Theme',
-                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark 
                           ? DesignTokens.color('onPrimary') 
                           : null,
@@ -193,7 +193,7 @@ class SettingsView extends StatelessWidget {
                     value: ThemeMode.dark,
                     child: Text(
                       'Dark Theme',
-                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark 
                           ? DesignTokens.color('onPrimary') 
                           : null,
@@ -243,7 +243,7 @@ class SettingsView extends StatelessWidget {
               ),
               title: Text(
                 'Round-Up Savings',
-                style: DesignTokens.textStyle('titleMedium').copyWith(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? DesignTokens.color('onPrimary') 
                     : null,
@@ -251,7 +251,7 @@ class SettingsView extends StatelessWidget {
               ),
               subtitle: Text(
                 'Automatically round up purchases and save the difference',
-                style: DesignTokens.textStyle('bodySmall').copyWith(
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? DesignTokens.color('onPrimary') 
                     : DesignTokens.color('textSecondary'),
@@ -275,7 +275,7 @@ class SettingsView extends StatelessWidget {
               ),
               title: Text(
                 'Auto-Allocation Rules',
-                style: DesignTokens.textStyle('titleMedium').copyWith(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? DesignTokens.color('onPrimary') 
                     : null,
@@ -283,7 +283,7 @@ class SettingsView extends StatelessWidget {
               ),
               subtitle: Text(
                 'Create rules to automatically allocate money to goals',
-                style: DesignTokens.textStyle('bodySmall').copyWith(
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark 
                     ? DesignTokens.color('onPrimary') 
                     : DesignTokens.color('textSecondary'),
@@ -302,7 +302,7 @@ class SettingsView extends StatelessWidget {
             child: ListTile(
               title: Text(
                 'Reset All Data',
-                style: DesignTokens.textStyle('titleMedium').copyWith(
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
                     ? DesignTokens.color('onPrimary')
                     : null,
@@ -310,7 +310,7 @@ class SettingsView extends StatelessWidget {
               ),
               subtitle: Text(
                 'Delete all transactions, categories, and savings goals',
-                style: DesignTokens.textStyle('bodySmall').copyWith(
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
                     ? DesignTokens.color('onPrimary')
                     : DesignTokens.color('textSecondary'),

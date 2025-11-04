@@ -381,7 +381,7 @@ class PrimaryButton extends StatelessWidget {
             horizontal: _getHorizontalPadding(size),
             vertical: DesignTokens.space('sm'),
           ),
-          textStyle: _getTextStyle(size),
+          textStyle: _getTextStyle(context, size),
         ),
       ),
     );
@@ -420,14 +420,14 @@ class PrimaryButton extends StatelessWidget {
     }
   }
 
-  TextStyle _getTextStyle(ButtonSize size) {
+  TextStyle _getTextStyle(BuildContext context, ButtonSize size) {
     switch (size) {
       case ButtonSize.small:
-        return DesignTokens.textStyle('labelMedium');
+        return Theme.of(context).textTheme.labelMedium!;
       case ButtonSize.medium:
-        return DesignTokens.textStyle('labelLarge');
+        return Theme.of(context).textTheme.labelLarge!;
       case ButtonSize.large:
-        return DesignTokens.textStyle('titleSmall');
+        return Theme.of(context).textTheme.titleSmall!;
     }
   }
 }
@@ -463,7 +463,7 @@ class SecondaryButton extends StatelessWidget {
                   horizontal: _getHorizontalPadding(size),
                   vertical: DesignTokens.space('sm'),
                 ),
-                textStyle: _getTextStyle(size),
+                textStyle: _getTextStyle(context, size),
               ),
             )
           : OutlinedButton(
@@ -473,7 +473,7 @@ class SecondaryButton extends StatelessWidget {
                   horizontal: _getHorizontalPadding(size),
                   vertical: DesignTokens.space('sm'),
                 ),
-                textStyle: _getTextStyle(size),
+                textStyle: _getTextStyle(context, size),
               ),
               child: child,
             )
@@ -513,14 +513,14 @@ class SecondaryButton extends StatelessWidget {
     }
   }
 
-  TextStyle _getTextStyle(ButtonSize size) {
+  TextStyle _getTextStyle(BuildContext context, ButtonSize size) {
     switch (size) {
       case ButtonSize.small:
-        return DesignTokens.textStyle('labelMedium');
+        return Theme.of(context).textTheme.labelMedium!;
       case ButtonSize.medium:
-        return DesignTokens.textStyle('labelLarge');
+        return Theme.of(context).textTheme.labelLarge!;
       case ButtonSize.large:
-        return DesignTokens.textStyle('titleSmall');
+        return Theme.of(context).textTheme.titleSmall!;
     }
   }
 }
@@ -589,7 +589,7 @@ class FinancialButton extends StatelessWidget {
                   horizontal: _getHorizontalPadding(size),
                   vertical: DesignTokens.space('sm'),
                 ),
-                textStyle: _getTextStyle(size),
+                textStyle: _getTextStyle(context, size),
               ),
             )
           : FilledButton(
@@ -601,7 +601,7 @@ class FinancialButton extends StatelessWidget {
                   horizontal: _getHorizontalPadding(size),
                   vertical: DesignTokens.space('sm'),
                 ),
-                textStyle: _getTextStyle(size),
+                textStyle: _getTextStyle(context, size),
               ),
               child: child,
             ),
@@ -642,14 +642,14 @@ class FinancialButton extends StatelessWidget {
     }
   }
 
-  TextStyle _getTextStyle(ButtonSize size) {
+  TextStyle _getTextStyle(BuildContext context, ButtonSize size) {
     switch (size) {
       case ButtonSize.small:
-        return DesignTokens.textStyle('labelMedium');
+        return Theme.of(context).textTheme.labelMedium!;
       case ButtonSize.medium:
-        return DesignTokens.textStyle('labelLarge');
+        return Theme.of(context).textTheme.labelLarge!;
       case ButtonSize.large:
-        return DesignTokens.textStyle('titleSmall');
+        return Theme.of(context).textTheme.titleSmall!;
     }
   }
 }
@@ -706,11 +706,11 @@ class FinancialProgressBar extends StatelessWidget {
               if (label != null)
                 Text(
                   label!,
-                  style: DesignTokens.textStyle('labelMedium'),
+                  style: Theme.of(context).textTheme.labelMedium!,
                 ),
               Text(
                 '${(progress * 100).toStringAsFixed(0)}%',
-                style: DesignTokens.textStyle('labelMedium').copyWith(
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
                   color: progressColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -822,7 +822,7 @@ class CategoryChip extends StatelessWidget {
           horizontal: DesignTokens.space('xs'),
           vertical: DesignTokens.space('xs') / 2,
         );
-        textStyle = DesignTokens.textStyle('labelSmall');
+        textStyle = Theme.of(context).textTheme.labelSmall!;
         iconSize = 14;
         break;
       case ChipSize.medium:
@@ -830,7 +830,7 @@ class CategoryChip extends StatelessWidget {
           horizontal: DesignTokens.space('sm'),
           vertical: DesignTokens.space('xs'),
         );
-        textStyle = DesignTokens.textStyle('labelMedium');
+        textStyle = Theme.of(context).textTheme.labelMedium!;
         iconSize = 16;
         break;
       case ChipSize.large:
@@ -838,7 +838,7 @@ class CategoryChip extends StatelessWidget {
           horizontal: DesignTokens.space('md'),
           vertical: DesignTokens.space('sm'),
         );
-        textStyle = DesignTokens.textStyle('labelLarge');
+        textStyle = Theme.of(context).textTheme.labelLarge!;
         iconSize = 18;
         break;
     }

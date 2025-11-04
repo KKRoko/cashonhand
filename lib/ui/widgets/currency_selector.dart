@@ -26,7 +26,7 @@ class CurrencySelector extends StatelessWidget {
           ResponsiveText(
             title!,
             styleToken: 'titleMedium',
-            style: DesignTokens.textStyle('titleMedium').copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white
                   : DesignTokens.color('textPrimary'),
@@ -39,7 +39,7 @@ class CurrencySelector extends StatelessWidget {
           ResponsiveText(
             subtitle!,
             styleToken: 'bodyMedium',
-            style: DesignTokens.textStyle('bodyMedium').copyWith(
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white
                   : DesignTokens.color('textSecondary'),
@@ -65,7 +65,7 @@ class CurrencySelector extends StatelessWidget {
                           ResponsiveText(
                             selectedCurrency.symbol,
                             styleToken: 'titleLarge',
-                            style: DesignTokens.textStyle('titleLarge').copyWith(
+                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
                               color: Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : DesignTokens.color('primaryDark'),
@@ -76,7 +76,7 @@ class CurrencySelector extends StatelessWidget {
                           ResponsiveText(
                             selectedCurrency.code,
                             styleToken: 'titleMedium',
-                            style: DesignTokens.textStyle('titleMedium').copyWith(
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               color: Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : DesignTokens.color('textSecondary'),
@@ -89,7 +89,7 @@ class CurrencySelector extends StatelessWidget {
                       ResponsiveText(
                         selectedCurrency.name,
                         styleToken: 'bodyMedium',
-                        style: DesignTokens.textStyle('bodyMedium').copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.white
                               : DesignTokens.color('textSecondary'),
@@ -145,7 +145,7 @@ class CurrencySelector extends StatelessWidget {
             ResponsiveText(
               'Select Currency',
               styleToken: 'titleLarge',
-              style: DesignTokens.textStyle('titleLarge').copyWith(
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
                     : DesignTokens.color('textPrimary'),
@@ -184,7 +184,7 @@ class CurrencySelector extends StatelessWidget {
                         child: ResponsiveText(
                           currency.symbol,
                           styleToken: 'titleMedium',
-                          style: DesignTokens.textStyle('titleMedium').copyWith(
+                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
                             color: isSelected
                                 ? Colors.white
                                 : DesignTokens.color('income'),
@@ -196,7 +196,7 @@ class CurrencySelector extends StatelessWidget {
                     title: ResponsiveText(
                       currency.name,
                       styleToken: 'bodyLarge',
-                      style: DesignTokens.textStyle('bodyLarge').copyWith(
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.white
                             : DesignTokens.color('textPrimary'),
@@ -206,7 +206,7 @@ class CurrencySelector extends StatelessWidget {
                     subtitle: ResponsiveText(
                       '${currency.symbol} (${currency.code})',
                       styleToken: 'bodyMedium',
-                      style: DesignTokens.textStyle('bodyMedium').copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.white70
                             : DesignTokens.color('textSecondary'),

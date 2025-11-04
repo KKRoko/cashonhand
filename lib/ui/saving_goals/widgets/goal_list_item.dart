@@ -57,11 +57,11 @@ class GoalListItem extends StatelessWidget {
                           children: [
                             Text(
                               goal.title,
-                              style: DesignTokens.textStyle('titleMedium'),
+                              style: Theme.of(context).textTheme.titleMedium!,
                             ),
                             Text(
                               'Target: ${FormatUtils.formatCurrency(goal.targetAmount)}',
-                              style: DesignTokens.textStyle('bodySmall').copyWith(
+                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
@@ -147,11 +147,11 @@ class GoalListItem extends StatelessWidget {
       children: [
         Text(
           label,
-          style: DesignTokens.textStyle('bodyMedium'),
+          style: Theme.of(context).textTheme.bodyMedium!,
         ),
         Text(
           value,
-          style: DesignTokens.textStyle('bodyMedium').copyWith(
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
             fontWeight: FontWeight.w500,
           ),
         ),
