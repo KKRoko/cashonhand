@@ -840,14 +840,23 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
           // Pie Chart
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            child: BudgetPieChart(
-              bucketAmounts: _viewMode == BudgetViewMode.plan ? planData : actualData,
-              centerText: '\$${(budget.monthlyIncome * multiplier).toStringAsFixed(0)}',
-              subtitle: _viewMode == BudgetViewMode.plan
-                  ? '${_getTimePeriodLabel()} Plan'
-                  : '${_getTimePeriodLabel()} Spending',
-              showLegend: false,
-              isActualView: _viewMode == BudgetViewMode.actual,
+            child: Builder(
+              builder: (context) {
+                // Calculate totals based on view mode
+                final isActual = _viewMode == BudgetViewMode.actual;
+                final currentData = isActual ? actualData : planData;
+                final totalAmount = currentData.values.fold<double>(0.0, (sum, amount) => sum + amount);
+
+                return BudgetPieChart(
+                  bucketAmounts: currentData,
+                  centerText: '\$${totalAmount.toStringAsFixed(0)}',
+                  subtitle: isActual
+                      ? 'Current Spending'
+                      : '${_getTimePeriodLabel()} Plan',
+                  showLegend: false,
+                  isActualView: isActual,
+                );
+              }
             ),
           ),
           const SizedBox(height: 32),
@@ -2091,7 +2100,12 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
     return selectedMonth != oldDelegate.selectedMonth ||
         isCurrentMonth != oldDelegate.isCurrentMonth ||
         canGoPrev != oldDelegate.canGoPrev ||
-        canGoNext != oldDelegate.canGoNext;
+        canGoNext != oldDelegate.canGoNext ||
+        backgroundColor != oldDelegate.backgroundColor ||
+        surfaceColor != oldDelegate.surfaceColor ||
+        onSurfaceColor != oldDelegate.onSurfaceColor ||
+        onSurfaceVariantColor != oldDelegate.onSurfaceVariantColor ||
+        primaryColor != oldDelegate.primaryColor;
   }
 }
 

@@ -404,9 +404,7 @@ class _EventListItemState extends State<EventListItem> {
           Text(
             'Loading category...',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark 
-                ? Theme.of(context).colorScheme.onPrimary 
-                : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -420,13 +418,13 @@ class _EventListItemState extends State<EventListItem> {
           Icon(
             Icons.help_outline,
             size: 14,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
           ),
           const SizedBox(width: 4),
           Text(
             'Unknown category',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -457,7 +455,7 @@ class _EventListItemState extends State<EventListItem> {
           child: Text(
             _category!.name,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               fontWeight: FontWeight.w500,
             ),
             overflow: TextOverflow.ellipsis,
@@ -470,14 +468,14 @@ class _EventListItemState extends State<EventListItem> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               'Sub',
               style: TextStyle(
                 fontSize: 9,
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -538,7 +536,7 @@ class _EventListItemState extends State<EventListItem> {
           Text(
             'Category: Unknown',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
           ),
         ],
@@ -617,7 +615,7 @@ class _EventListItemState extends State<EventListItem> {
                         return Text(
                           'Part of: ${snapshot.data!.icon ?? '📁'} ${snapshot.data!.name}',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                             fontStyle: FontStyle.italic,
                           ),
                         );

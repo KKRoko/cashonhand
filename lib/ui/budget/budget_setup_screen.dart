@@ -176,6 +176,11 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
       _needsPercentage = template.needsPercentage * 100;
       _wantsPercentage = template.wantsPercentage * 100;
       _savingsPercentage = template.savingsPercentage * 100;
+
+      // Pre-fill monthly income if template has one
+      if (template.monthlyIncome != null && template.monthlyIncome! > 0) {
+        _incomeController.text = template.monthlyIncome!.toStringAsFixed(2);
+      }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(

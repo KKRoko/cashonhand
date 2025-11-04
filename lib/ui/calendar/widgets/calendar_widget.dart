@@ -799,7 +799,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             // Income transactions column
             Expanded(
               child: _buildTransactionList(
-                'Income Transactions',
+                'Income\nTransactions',
                 _monthlyIncomeTransactions,
                 FinancialContext.income,
               ),
@@ -808,7 +808,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
             // Expense transactions column
             Expanded(
               child: _buildTransactionList(
-                'Expense Transactions',
+                'Expense\nTransactions',
                 _monthlyExpenseTransactions,
                 FinancialContext.expense,
               ),
@@ -943,7 +943,10 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
           // Header
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(DesignTokens.space('md')),
+            padding: EdgeInsets.symmetric(
+              horizontal: DesignTokens.space('xs'),
+              vertical: DesignTokens.space('xs') / 2,
+            ),
             child: Text(
               title,
               style: DesignTokens.textStyle('titleSmall').copyWith(
@@ -1019,7 +1022,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
                     return Text(
                       categoryName,
                       style: DesignTokens.textStyle('bodySmall').copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                       ),
                       overflow: TextOverflow.ellipsis,
                     );
@@ -1029,7 +1032,7 @@ class EnhancedCalendarWidgetState extends State<EnhancedCalendarWidget> {
               Text(
                 _formatTransactionDate(transaction.dateTime),
                 style: DesignTokens.textStyle('bodySmall').copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ],
