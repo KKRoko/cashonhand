@@ -138,6 +138,7 @@ class BudgetTemplates extends Table {
   BoolColumn get isPreset => boolean().withDefault(const Constant(false))(); // true for system presets
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().nullable()();
+  RealColumn get monthlyIncome => real().nullable()(); // Optional: Store the income used when template was created
 }
 
 @DataClassName('YearEndGoalTableData')

@@ -26,10 +26,9 @@ mixin _$BudgetTemplate {
       throw _privateConstructorUsedError; // True for system presets, false for user-created
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
+  double? get monthlyIncome => throw _privateConstructorUsedError;
 
-  /// Create a copy of BudgetTemplate
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $BudgetTemplateCopyWith<BudgetTemplate> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,7 +48,8 @@ abstract class $BudgetTemplateCopyWith<$Res> {
       double savingsPercentage,
       bool isPreset,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      double? monthlyIncome});
 }
 
 /// @nodoc
@@ -62,8 +62,6 @@ class _$BudgetTemplateCopyWithImpl<$Res, $Val extends BudgetTemplate>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of BudgetTemplate
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -76,6 +74,7 @@ class _$BudgetTemplateCopyWithImpl<$Res, $Val extends BudgetTemplate>
     Object? isPreset = null,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? monthlyIncome = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -114,6 +113,10 @@ class _$BudgetTemplateCopyWithImpl<$Res, $Val extends BudgetTemplate>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      monthlyIncome: freezed == monthlyIncome
+          ? _value.monthlyIncome
+          : monthlyIncome // ignore: cast_nullable_to_non_nullable
+              as double?,
     ) as $Val);
   }
 }
@@ -135,7 +138,8 @@ abstract class _$$BudgetTemplateImplCopyWith<$Res>
       double savingsPercentage,
       bool isPreset,
       DateTime createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      double? monthlyIncome});
 }
 
 /// @nodoc
@@ -146,8 +150,6 @@ class __$$BudgetTemplateImplCopyWithImpl<$Res>
       _$BudgetTemplateImpl _value, $Res Function(_$BudgetTemplateImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of BudgetTemplate
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -160,6 +162,7 @@ class __$$BudgetTemplateImplCopyWithImpl<$Res>
     Object? isPreset = null,
     Object? createdAt = null,
     Object? updatedAt = freezed,
+    Object? monthlyIncome = freezed,
   }) {
     return _then(_$BudgetTemplateImpl(
       id: freezed == id
@@ -198,6 +201,10 @@ class __$$BudgetTemplateImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      monthlyIncome: freezed == monthlyIncome
+          ? _value.monthlyIncome
+          : monthlyIncome // ignore: cast_nullable_to_non_nullable
+              as double?,
     ));
   }
 }
@@ -214,7 +221,8 @@ class _$BudgetTemplateImpl extends _BudgetTemplate {
       required this.savingsPercentage,
       required this.isPreset,
       required this.createdAt,
-      this.updatedAt})
+      this.updatedAt,
+      this.monthlyIncome})
       : super._();
 
   @override
@@ -236,10 +244,12 @@ class _$BudgetTemplateImpl extends _BudgetTemplate {
   final DateTime createdAt;
   @override
   final DateTime? updatedAt;
+  @override
+  final double? monthlyIncome;
 
   @override
   String toString() {
-    return 'BudgetTemplate(id: $id, name: $name, description: $description, needsPercentage: $needsPercentage, wantsPercentage: $wantsPercentage, savingsPercentage: $savingsPercentage, isPreset: $isPreset, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'BudgetTemplate(id: $id, name: $name, description: $description, needsPercentage: $needsPercentage, wantsPercentage: $wantsPercentage, savingsPercentage: $savingsPercentage, isPreset: $isPreset, createdAt: $createdAt, updatedAt: $updatedAt, monthlyIncome: $monthlyIncome)';
   }
 
   @override
@@ -262,7 +272,9 @@ class _$BudgetTemplateImpl extends _BudgetTemplate {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.monthlyIncome, monthlyIncome) ||
+                other.monthlyIncome == monthlyIncome));
   }
 
   @override
@@ -276,11 +288,10 @@ class _$BudgetTemplateImpl extends _BudgetTemplate {
       savingsPercentage,
       isPreset,
       createdAt,
-      updatedAt);
+      updatedAt,
+      monthlyIncome);
 
-  /// Create a copy of BudgetTemplate
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$BudgetTemplateImplCopyWith<_$BudgetTemplateImpl> get copyWith =>
@@ -298,7 +309,8 @@ abstract class _BudgetTemplate extends BudgetTemplate {
       required final double savingsPercentage,
       required final bool isPreset,
       required final DateTime createdAt,
-      final DateTime? updatedAt}) = _$BudgetTemplateImpl;
+      final DateTime? updatedAt,
+      final double? monthlyIncome}) = _$BudgetTemplateImpl;
   const _BudgetTemplate._() : super._();
 
   @override
@@ -314,16 +326,15 @@ abstract class _BudgetTemplate extends BudgetTemplate {
   @override
   double get savingsPercentage;
   @override
-  bool get isPreset; // True for system presets, false for user-created
-  @override
+  bool get isPreset;
+  @override // True for system presets, false for user-created
   DateTime get createdAt;
   @override
   DateTime? get updatedAt;
-
-  /// Create a copy of BudgetTemplate
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  double? get monthlyIncome;
+  @override
+  @JsonKey(ignore: true)
   _$$BudgetTemplateImplCopyWith<_$BudgetTemplateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

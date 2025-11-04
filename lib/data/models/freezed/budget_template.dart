@@ -15,6 +15,7 @@ class BudgetTemplate with _$BudgetTemplate {
     required bool isPreset, // True for system presets, false for user-created
     required DateTime createdAt,
     DateTime? updatedAt,
+    double? monthlyIncome, // Optional: Store the income used when template was created
   }) = _BudgetTemplate;
 
   const BudgetTemplate._();

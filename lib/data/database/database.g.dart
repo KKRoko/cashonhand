@@ -4490,6 +4490,12 @@ class $BudgetTemplatesTable extends BudgetTemplates
   late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
       'updated_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _monthlyIncomeMeta =
+      const VerificationMeta('monthlyIncome');
+  @override
+  late final GeneratedColumn<double> monthlyIncome = GeneratedColumn<double>(
+      'monthly_income', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4500,7 +4506,8 @@ class $BudgetTemplatesTable extends BudgetTemplates
         savingsPercentage,
         isPreset,
         createdAt,
-        updatedAt
+        updatedAt,
+        monthlyIncome
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4560,6 +4567,12 @@ class $BudgetTemplatesTable extends BudgetTemplates
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
     }
+    if (data.containsKey('monthly_income')) {
+      context.handle(
+          _monthlyIncomeMeta,
+          monthlyIncome.isAcceptableOrUnknown(
+              data['monthly_income']!, _monthlyIncomeMeta));
+    }
     return context;
   }
 
@@ -4588,6 +4601,8 @@ class $BudgetTemplatesTable extends BudgetTemplates
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
+      monthlyIncome: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}monthly_income']),
     );
   }
 
@@ -4608,6 +4623,7 @@ class BudgetTemplateTableData extends DataClass
   final bool isPreset;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final double? monthlyIncome;
   const BudgetTemplateTableData(
       {required this.id,
       required this.name,
@@ -4617,7 +4633,8 @@ class BudgetTemplateTableData extends DataClass
       required this.savingsPercentage,
       required this.isPreset,
       required this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      this.monthlyIncome});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4631,6 +4648,9 @@ class BudgetTemplateTableData extends DataClass
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    if (!nullToAbsent || monthlyIncome != null) {
+      map['monthly_income'] = Variable<double>(monthlyIncome);
     }
     return map;
   }
@@ -4648,6 +4668,9 @@ class BudgetTemplateTableData extends DataClass
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      monthlyIncome: monthlyIncome == null && nullToAbsent
+          ? const Value.absent()
+          : Value(monthlyIncome),
     );
   }
 
@@ -4664,6 +4687,7 @@ class BudgetTemplateTableData extends DataClass
       isPreset: serializer.fromJson<bool>(json['isPreset']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+      monthlyIncome: serializer.fromJson<double?>(json['monthlyIncome']),
     );
   }
   @override
@@ -4679,6 +4703,7 @@ class BudgetTemplateTableData extends DataClass
       'isPreset': serializer.toJson<bool>(isPreset),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+      'monthlyIncome': serializer.toJson<double?>(monthlyIncome),
     };
   }
 
@@ -4691,7 +4716,8 @@ class BudgetTemplateTableData extends DataClass
           double? savingsPercentage,
           bool? isPreset,
           DateTime? createdAt,
-          Value<DateTime?> updatedAt = const Value.absent()}) =>
+          Value<DateTime?> updatedAt = const Value.absent(),
+          Value<double?> monthlyIncome = const Value.absent()}) =>
       BudgetTemplateTableData(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -4702,6 +4728,8 @@ class BudgetTemplateTableData extends DataClass
         isPreset: isPreset ?? this.isPreset,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+        monthlyIncome:
+            monthlyIncome.present ? monthlyIncome.value : this.monthlyIncome,
       );
   BudgetTemplateTableData copyWithCompanion(BudgetTemplatesCompanion data) {
     return BudgetTemplateTableData(
@@ -4721,6 +4749,9 @@ class BudgetTemplateTableData extends DataClass
       isPreset: data.isPreset.present ? data.isPreset.value : this.isPreset,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      monthlyIncome: data.monthlyIncome.present
+          ? data.monthlyIncome.value
+          : this.monthlyIncome,
     );
   }
 
@@ -4735,14 +4766,24 @@ class BudgetTemplateTableData extends DataClass
           ..write('savingsPercentage: $savingsPercentage, ')
           ..write('isPreset: $isPreset, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('monthlyIncome: $monthlyIncome')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, description, needsPercentage,
-      wantsPercentage, savingsPercentage, isPreset, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+      id,
+      name,
+      description,
+      needsPercentage,
+      wantsPercentage,
+      savingsPercentage,
+      isPreset,
+      createdAt,
+      updatedAt,
+      monthlyIncome);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4755,7 +4796,8 @@ class BudgetTemplateTableData extends DataClass
           other.savingsPercentage == this.savingsPercentage &&
           other.isPreset == this.isPreset &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.monthlyIncome == this.monthlyIncome);
 }
 
 class BudgetTemplatesCompanion
@@ -4769,6 +4811,7 @@ class BudgetTemplatesCompanion
   final Value<bool> isPreset;
   final Value<DateTime> createdAt;
   final Value<DateTime?> updatedAt;
+  final Value<double?> monthlyIncome;
   const BudgetTemplatesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -4779,6 +4822,7 @@ class BudgetTemplatesCompanion
     this.isPreset = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.monthlyIncome = const Value.absent(),
   });
   BudgetTemplatesCompanion.insert({
     this.id = const Value.absent(),
@@ -4790,6 +4834,7 @@ class BudgetTemplatesCompanion
     this.isPreset = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.monthlyIncome = const Value.absent(),
   })  : name = Value(name),
         description = Value(description);
   static Insertable<BudgetTemplateTableData> custom({
@@ -4802,6 +4847,7 @@ class BudgetTemplatesCompanion
     Expression<bool>? isPreset,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<double>? monthlyIncome,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4813,6 +4859,7 @@ class BudgetTemplatesCompanion
       if (isPreset != null) 'is_preset': isPreset,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (monthlyIncome != null) 'monthly_income': monthlyIncome,
     });
   }
 
@@ -4825,7 +4872,8 @@ class BudgetTemplatesCompanion
       Value<double>? savingsPercentage,
       Value<bool>? isPreset,
       Value<DateTime>? createdAt,
-      Value<DateTime?>? updatedAt}) {
+      Value<DateTime?>? updatedAt,
+      Value<double?>? monthlyIncome}) {
     return BudgetTemplatesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -4836,6 +4884,7 @@ class BudgetTemplatesCompanion
       isPreset: isPreset ?? this.isPreset,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      monthlyIncome: monthlyIncome ?? this.monthlyIncome,
     );
   }
 
@@ -4869,6 +4918,9 @@ class BudgetTemplatesCompanion
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (monthlyIncome.present) {
+      map['monthly_income'] = Variable<double>(monthlyIncome.value);
+    }
     return map;
   }
 
@@ -4883,7 +4935,8 @@ class BudgetTemplatesCompanion
           ..write('savingsPercentage: $savingsPercentage, ')
           ..write('isPreset: $isPreset, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('monthlyIncome: $monthlyIncome')
           ..write(')'))
         .toString();
   }
@@ -9578,6 +9631,7 @@ typedef $$BudgetTemplatesTableCreateCompanionBuilder = BudgetTemplatesCompanion
   Value<bool> isPreset,
   Value<DateTime> createdAt,
   Value<DateTime?> updatedAt,
+  Value<double?> monthlyIncome,
 });
 typedef $$BudgetTemplatesTableUpdateCompanionBuilder = BudgetTemplatesCompanion
     Function({
@@ -9590,6 +9644,7 @@ typedef $$BudgetTemplatesTableUpdateCompanionBuilder = BudgetTemplatesCompanion
   Value<bool> isPreset,
   Value<DateTime> createdAt,
   Value<DateTime?> updatedAt,
+  Value<double?> monthlyIncome,
 });
 
 class $$BudgetTemplatesTableFilterComposer
@@ -9630,6 +9685,9 @@ class $$BudgetTemplatesTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get monthlyIncome => $composableBuilder(
+      column: $table.monthlyIncome, builder: (column) => ColumnFilters(column));
 }
 
 class $$BudgetTemplatesTableOrderingComposer
@@ -9670,6 +9728,10 @@ class $$BudgetTemplatesTableOrderingComposer
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get monthlyIncome => $composableBuilder(
+      column: $table.monthlyIncome,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$BudgetTemplatesTableAnnotationComposer
@@ -9707,6 +9769,9 @@ class $$BudgetTemplatesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<double> get monthlyIncome => $composableBuilder(
+      column: $table.monthlyIncome, builder: (column) => column);
 }
 
 class $$BudgetTemplatesTableTableManager extends RootTableManager<
@@ -9744,6 +9809,7 @@ class $$BudgetTemplatesTableTableManager extends RootTableManager<
             Value<bool> isPreset = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime?> updatedAt = const Value.absent(),
+            Value<double?> monthlyIncome = const Value.absent(),
           }) =>
               BudgetTemplatesCompanion(
             id: id,
@@ -9755,6 +9821,7 @@ class $$BudgetTemplatesTableTableManager extends RootTableManager<
             isPreset: isPreset,
             createdAt: createdAt,
             updatedAt: updatedAt,
+            monthlyIncome: monthlyIncome,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -9766,6 +9833,7 @@ class $$BudgetTemplatesTableTableManager extends RootTableManager<
             Value<bool> isPreset = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime?> updatedAt = const Value.absent(),
+            Value<double?> monthlyIncome = const Value.absent(),
           }) =>
               BudgetTemplatesCompanion.insert(
             id: id,
@@ -9777,6 +9845,7 @@ class $$BudgetTemplatesTableTableManager extends RootTableManager<
             isPreset: isPreset,
             createdAt: createdAt,
             updatedAt: updatedAt,
+            monthlyIncome: monthlyIncome,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

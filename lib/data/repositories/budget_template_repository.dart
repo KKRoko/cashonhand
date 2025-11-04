@@ -101,6 +101,7 @@ class BudgetTemplateRepository implements IBudgetTemplateRepository {
               isPreset: drift.Value(template.isPreset),
               createdAt: drift.Value(template.createdAt),
               updatedAt: drift.Value(template.updatedAt),
+              monthlyIncome: drift.Value(template.monthlyIncome),
             ),
           );
 
@@ -127,6 +128,7 @@ class BudgetTemplateRepository implements IBudgetTemplateRepository {
           wantsPercentage: drift.Value(template.wantsPercentage),
           savingsPercentage: drift.Value(template.savingsPercentage),
           updatedAt: drift.Value(DateTime.now()),
+          monthlyIncome: drift.Value(template.monthlyIncome),
         ),
       );
 
@@ -177,6 +179,7 @@ class BudgetTemplateRepository implements IBudgetTemplateRepository {
       isPreset: data.isPreset,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
+      monthlyIncome: data.monthlyIncome,
     );
   }
 }

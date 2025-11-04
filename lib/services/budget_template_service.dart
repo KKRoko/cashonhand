@@ -54,6 +54,7 @@ class BudgetTemplateService {
         isPreset: false,
         createdAt: DateTime.now(),
         updatedAt: null,
+        monthlyIncome: budget.monthlyIncome, // Include the monthly income
       );
 
       return await _repository.createTemplate(template);
@@ -69,6 +70,7 @@ class BudgetTemplateService {
     required double needsPercentage,
     required double wantsPercentage,
     required double savingsPercentage,
+    double? monthlyIncome, // Optional monthly income
   }) async {
     try {
       // Validate percentages sum to 1.0 (with 1% tolerance for floating point rounding)
@@ -87,6 +89,7 @@ class BudgetTemplateService {
         isPreset: false,
         createdAt: DateTime.now(),
         updatedAt: null,
+        monthlyIncome: monthlyIncome, // Include optional monthly income
       );
 
       return await _repository.createTemplate(template);
@@ -103,6 +106,7 @@ class BudgetTemplateService {
     required double needsPercentage,
     required double wantsPercentage,
     required double savingsPercentage,
+    double? monthlyIncome, // Optional monthly income
   }) async {
     try {
       // Validate percentages sum to 1.0 (with 1% tolerance for floating point rounding)
@@ -135,6 +139,7 @@ class BudgetTemplateService {
             isPreset: false,
             createdAt: existingTemplate.createdAt,
             updatedAt: DateTime.now(),
+            monthlyIncome: monthlyIncome, // Include optional monthly income
           );
 
           return await _repository.updateTemplate(updatedTemplate);

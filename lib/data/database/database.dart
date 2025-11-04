@@ -33,7 +33,7 @@ class Database extends _$Database {
   Database() : super(_openConnection());
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration {
@@ -288,6 +288,15 @@ class Database extends _$Database {
           await m.createTable(allocationTemplateItems);
           print('Database migrated to v16: Added allocation template tables');
         }
+        if (from < 17) {
+          // Migration from v16 to v17: Add monthlyIncome column to budget_templates
+          await m.addColumn(budgetTemplates, budgetTemplates.monthlyIncome);
+          print('Database migrated to v17: Added monthlyIncome column to budget_templates');
+        }
+      },
+      beforeOpen: (details) async {
+        // Run data integrity checks before database is ready
+        await ensureSingleActiveBudget();
       },
     );
   }
@@ -1291,8 +1300,14 @@ Future<Map<String, double>> getSpendingByCategory(DateTime start, DateTime end) 
 }
 
 // Budget CRUD operations
-Future<BudgetTableData?> getActiveBudget() =>
-    (select(budgets)..where((b) => b.isActive.equals(true))).getSingleOrNull();
+Future<BudgetTableData?> getActiveBudget() async {
+  final results = await (select(budgets)
+    ..where((b) => b.isActive.equals(true))
+    ..orderBy([(b) => OrderingTerm.desc(b.updatedAt)])
+    ..limit(1)
+  ).get();
+  return results.firstOrNull;
+}
 
 Future<BudgetTableData?> getBudgetById(int id) =>
     (select(budgets)..where((b) => b.id.equals(id))).getSingleOrNull();
@@ -1313,6 +1328,28 @@ Future<void> deactivateAllBudgets() async {
   await (update(budgets)
     ..where((b) => b.isActive.equals(true)))
     .write(const BudgetsCompanion(isActive: Value(false)));
+}
+
+/// Fix data integrity: ensure only one budget is active
+/// If multiple budgets are active, keep the most recently updated one
+Future<void> ensureSingleActiveBudget() async {
+  final activeBudgets = await (select(budgets)
+    ..where((b) => b.isActive.equals(true))
+    ..orderBy([(b) => OrderingTerm.desc(b.updatedAt)])
+  ).get();
+
+  if (activeBudgets.length > 1) {
+    print('⚠️ Found ${activeBudgets.length} active budgets. Fixing data integrity...');
+
+    // Keep the first one (most recent), deactivate the rest
+    final budgetToKeep = activeBudgets.first;
+    for (int i = 1; i < activeBudgets.length; i++) {
+      await (update(budgets)..where((b) => b.id.equals(activeBudgets[i].id)))
+        .write(const BudgetsCompanion(isActive: Value(false)));
+    }
+
+    print('✅ Fixed: Kept budget ID ${budgetToKeep.id} as active, deactivated ${activeBudgets.length - 1} others');
+  }
 }
 
 // CategoryBudget CRUD operations
