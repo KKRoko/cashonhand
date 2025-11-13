@@ -18,6 +18,7 @@ import 'surplus_allocation_screen.dart';
 import 'budget_month_summary_screen.dart';
 import 'budget_analytics_screen.dart';
 import 'budget_template_library_screen.dart';
+import 'allocation_template_library_screen.dart';
 import 'widgets/budget_pie_chart.dart';
 
 enum BudgetViewMode {
@@ -104,9 +105,13 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
   }
 
   void _navigateToSetup() async {
+    // Capture the current selected month BEFORE navigating
+    final targetMonth = _budgetNotifier.selectedMonth;
+
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BudgetSetupScreen(
+          targetMonth: targetMonth,
           onCreateBudget: ({
             required double monthlyIncome,
             required int cycleStartDay,
@@ -114,17 +119,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
             required double wantsPercentage,
             required double savingsPercentage,
           }) async {
-            final success = await _budgetNotifier.createBudget(
-              monthlyIncome: monthlyIncome,
-              cycleStartDay: cycleStartDay,
-              needsPercentage: needsPercentage,
-              wantsPercentage: wantsPercentage,
-              savingsPercentage: savingsPercentage,
-            );
-
-            if (success && mounted) {
-              Navigator.of(context).pop(true);
-            }
+            // This callback is no longer used since BudgetSetupScreen handles
+            // budget creation and navigation internally
+            // Keeping it for interface compatibility
           },
         ),
       ),
@@ -216,6 +213,36 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
     }
   }
 
+  void _navigateToAllocationTemplateLibrary() async {
+    final templateId = await Navigator.of(context).push<int>(
+      MaterialPageRoute(
+        builder: (context) => const AllocationTemplateLibraryScreen(),
+      ),
+    );
+
+    if (templateId != null && mounted) {
+      final success = await _budgetNotifier.applyTemplate(templateId);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Allocation template applied successfully'),
+              backgroundColor: DesignTokens.color('success'),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_budgetNotifier.error ?? 'Failed to apply template'),
+              backgroundColor: DesignTokens.color('error'),
+            ),
+          );
+        }
+      }
+    }
+  }
+
   void _showSaveTemplateDialog(BudgetNotifier notifier) async {
     final budget = notifier.activeBudget;
     if (budget == null) return;
@@ -228,7 +255,7 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
-          'Save as Template',
+          'Save Budget Template',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -467,16 +494,16 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Category template applied successfully'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: const Text('Budget template applied successfully'),
+              backgroundColor: DesignTokens.color('success'),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(_budgetNotifier.error ?? 'Failed to apply template'),
-              backgroundColor: Colors.red,
+              backgroundColor: DesignTokens.color('error'),
             ),
           );
         }
@@ -516,6 +543,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                         _showSaveTemplateDialog(notifier);
                       } else if (value == 'load_allocation_template') {
                         _showLoadAllocationTemplateDialog();
+                      } else if (value == 'allocation_template_library') {
+                        _navigateToAllocationTemplateLibrary();
                       }
                     },
                     itemBuilder: (context) => [
@@ -565,7 +594,7 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                           children: [
                             Icon(Icons.library_books_outlined),
                             SizedBox(width: 12),
-                            Text('Template Library'),
+                            Text('Budget Template Library'),
                           ],
                         ),
                       ),
@@ -575,7 +604,17 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                           children: [
                             Icon(Icons.save_alt_outlined),
                             SizedBox(width: 12),
-                            Text('Save as Template'),
+                            Text('Save Budget Template'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'allocation_template_library',
+                        child: Row(
+                          children: [
+                            Icon(Icons.folder_outlined),
+                            SizedBox(width: 12),
+                            Text('Allocation Template Library'),
                           ],
                         ),
                       ),
@@ -585,7 +624,7 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                           children: [
                             Icon(Icons.file_download_outlined),
                             SizedBox(width: 12),
-                            Text('Use Category Template'),
+                            Text('Load Budget Template'),
                           ],
                         ),
                       ),
@@ -2037,10 +2076,10 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  double get minExtent => 88.0; // Minimum height when scrolled
+  double get minExtent => 88.0;
 
   @override
-  double get maxExtent => 88.0; // Maximum height
+  double get maxExtent => 88.0;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -2048,9 +2087,9 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
 
     return Container(
       color: backgroundColor,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
         decoration: BoxDecoration(
           color: surfaceColor,
           borderRadius: DesignTokens.borderRadius['md']!,
@@ -2078,8 +2117,9 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
                   Text(
                     selectedMonth.isBefore(DateTime(now.year, now.month, 1)) ? 'Past Month' : 'Future Month',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       color: onSurfaceVariantColor,
+                      height: 1.0,
                     ),
                   ),
               ],
@@ -2144,14 +2184,14 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Deleted template "${template.name}"'),
-          backgroundColor: Colors.green,
+          backgroundColor: DesignTokens.color('success'),
         ),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to delete template: ${widget.budgetNotifier.error ?? "Unknown error"}'),
-          backgroundColor: Colors.red,
+          backgroundColor: DesignTokens.color('error'),
         ),
       );
     }
@@ -2160,11 +2200,22 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Load Category Template'),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      title: Text(
+        'Load Budget Template',
+        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
       content: _localTemplates.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('No templates available'),
+          ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'No templates available',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             )
           : SizedBox(
               width: double.maxFinite,
@@ -2177,7 +2228,7 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                     key: Key('template_${template.id}'),
                     direction: DismissDirection.endToStart,
                     background: Container(
-                      color: Colors.red,
+                      color: DesignTokens.color('error'),
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 16.0),
                       child: const Icon(
@@ -2189,8 +2240,19 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                       return await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Delete Template'),
-                          content: Text('Are you sure you want to delete "${template.name}"?'),
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          title: Text(
+                            'Delete Template',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          content: Text(
+                            'Are you sure you want to delete "${template.name}"?',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
@@ -2208,11 +2270,25 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                       _deleteTemplate(template);
                     },
                     child: ListTile(
-                      title: Text(template.name),
+                      tileColor: Theme.of(context).colorScheme.surface,
+                      title: Text(
+                        template.name,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
                       subtitle: template.description != null
-                          ? Text(template.description!)
+                          ? Text(
+                              template.description!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            )
                           : null,
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       onTap: () => Navigator.pop(context, template.id),
                     ),
                   );

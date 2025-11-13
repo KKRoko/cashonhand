@@ -16,10 +16,12 @@ class BudgetSetupScreen extends StatefulWidget {
     required double wantsPercentage,
     required double savingsPercentage,
   }) onCreateBudget;
+  final DateTime targetMonth;
 
   const BudgetSetupScreen({
     super.key,
     required this.onCreateBudget,
+    required this.targetMonth,
   });
 
   @override
@@ -38,6 +40,11 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
   void dispose() {
     _incomeController.dispose();
     super.dispose();
+  }
+
+  String _getMonthYearString(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${months[date.month - 1]} ${date.year}';
   }
 
   void _updatePercentages(String type, double value) {
@@ -65,27 +72,22 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
     if (_formKey.currentState!.validate() && _isPercentageValid) {
       final income = double.parse(_incomeController.text);
 
-      // Create the budget
-      widget.onCreateBudget(
-        monthlyIncome: income,
-        cycleStartDay: 1, // Always use 1st of month
-        needsPercentage: _needsPercentage / 100,
-        wantsPercentage: _wantsPercentage / 100,
-        savingsPercentage: _savingsPercentage / 100,
-      );
-
-      // Wait a bit for budget creation to complete
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (!mounted) return;
-
-      // Ask if user wants to load a category allocation template
+      // Ask if user wants to load a category allocation template FIRST
       final loadTemplate = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Load Category Allocations?'),
-          content: const Text(
-            'Would you like to load a saved category allocation template to quickly set up your budget categories?',
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Text(
+            'Load Allocation Template?',
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          content: Text(
+            'Would you like to load a saved allocation template to quickly set up your budget categories?',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           actions: [
             TextButton(
@@ -100,14 +102,77 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
         ),
       );
 
+      // Show the template selection dialog if user wants to load
+      int? selectedTemplateId;
       if (loadTemplate == true && mounted) {
-        await _showLoadAllocationTemplateDialog();
+        selectedTemplateId = await _showLoadAllocationTemplateDialogAndReturn();
+      }
+
+      // Create the budget first
+      final budgetNotifier = getIt<BudgetNotifier>();
+
+      // Ensure we're creating the budget for the target month, not the current selected month
+      final previousMonth = budgetNotifier.selectedMonth;
+      budgetNotifier.setSelectedMonth(widget.targetMonth);
+
+      print('🔵 SETUP: Creating budget for target month ${widget.targetMonth}');
+      print('🔵 SETUP: Income=$income, Needs=${_needsPercentage / 100}, Wants=${_wantsPercentage / 100}, Savings=${_savingsPercentage / 100}');
+
+      final success = await budgetNotifier.createBudget(
+        monthlyIncome: income,
+        cycleStartDay: 1,
+        needsPercentage: _needsPercentage / 100,
+        wantsPercentage: _wantsPercentage / 100,
+        savingsPercentage: _savingsPercentage / 100,
+      );
+
+      print('🔵 SETUP: Budget creation result: $success, error: ${budgetNotifier.error}');
+
+      if (!success) {
+        // Budget creation failed, show error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to create budget: ${budgetNotifier.error ?? "Unknown error"}'),
+              backgroundColor: DesignTokens.color('error'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Apply the selected template after budget is created
+      if (selectedTemplateId != null && mounted) {
+        final templateSuccess = await budgetNotifier.applyTemplate(selectedTemplateId);
+
+        if (!templateSuccess && mounted) {
+          // Template application failed, show error but still navigate back
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Budget created but failed to apply template: ${budgetNotifier.error ?? "Unknown error"}'),
+              backgroundColor: DesignTokens.color('warning'),
+            ),
+          );
+        } else if (mounted) {
+          // Success
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Budget created with allocation template'),
+              backgroundColor: DesignTokens.color('success'),
+            ),
+          );
+        }
+      }
+
+      // Navigate back after everything is complete
+      if (mounted) {
+        Navigator.of(context).pop(true);
       }
     }
   }
 
-  /// Show dialog to load and apply a category allocation template
-  Future<void> _showLoadAllocationTemplateDialog() async {
+  /// Show dialog to select an allocation template and return the ID
+  Future<int?> _showLoadAllocationTemplateDialogAndReturn() async {
     final budgetNotifier = getIt<BudgetNotifier>();
 
     // Load templates if not already loaded
@@ -115,17 +180,20 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
       await budgetNotifier.loadTemplates();
     }
 
-    if (!mounted) return;
+    if (!mounted) return null;
 
     final templates = budgetNotifier.templates;
 
     if (templates.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No saved allocation templates found'),
-        ),
-      );
-      return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No saved allocation templates found'),
+            backgroundColor: DesignTokens.color('info'),
+          ),
+        );
+      }
+      return null;
     }
 
     final selectedTemplate = await showDialog<int>(
@@ -136,22 +204,30 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
       ),
     );
 
-    if (selectedTemplate != null && mounted) {
-      final success = await budgetNotifier.applyTemplate(selectedTemplate);
+    return selectedTemplate;
+  }
+
+  /// Show dialog to load and apply a category allocation template
+  Future<void> _showLoadAllocationTemplateDialog() async {
+    final selectedTemplateId = await _showLoadAllocationTemplateDialogAndReturn();
+
+    if (selectedTemplateId != null && mounted) {
+      final budgetNotifier = getIt<BudgetNotifier>();
+      final success = await budgetNotifier.applyTemplate(selectedTemplateId);
 
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Category template applied successfully'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: const Text('Allocation template applied successfully'),
+              backgroundColor: DesignTokens.color('success'),
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(budgetNotifier.error ?? 'Failed to apply template'),
-              backgroundColor: Colors.red,
+              backgroundColor: DesignTokens.color('error'),
             ),
           );
         }
@@ -167,11 +243,11 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
     );
 
     if (template != null) {
-      _applyTemplate(template);
+      await _applyTemplate(template);
     }
   }
 
-  void _applyTemplate(BudgetTemplate template) {
+  Future<void> _applyTemplate(BudgetTemplate template) async {
     setState(() {
       _needsPercentage = template.needsPercentage * 100;
       _wantsPercentage = template.wantsPercentage * 100;
@@ -183,12 +259,110 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
       }
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Applied "${template.name}" template'),
-        backgroundColor: DesignTokens.color('success'),
-      ),
-    );
+    // If template has income, automatically create the budget
+    if (template.monthlyIncome != null && template.monthlyIncome! > 0) {
+      // Validate the form
+      if (_formKey.currentState!.validate() && _isPercentageValid) {
+        // Ask if user wants to load a category allocation template FIRST
+        final loadTemplate = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Text(
+              'Load Allocation Template?',
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            content: Text(
+              'Would you like to load a saved allocation template to quickly set up your budget categories?',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Skip'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Load Template'),
+              ),
+            ],
+          ),
+        );
+
+        // Show the template selection dialog if user wants to load
+        int? selectedTemplateId;
+        if (loadTemplate == true && mounted) {
+          selectedTemplateId = await _showLoadAllocationTemplateDialogAndReturn();
+        }
+
+        // Create the budget first
+        final budgetNotifier = getIt<BudgetNotifier>();
+
+        // Ensure we're creating the budget for the target month
+        budgetNotifier.setSelectedMonth(widget.targetMonth);
+
+        final success = await budgetNotifier.createBudget(
+          monthlyIncome: template.monthlyIncome!,
+          cycleStartDay: 1,
+          needsPercentage: _needsPercentage / 100,
+          wantsPercentage: _wantsPercentage / 100,
+          savingsPercentage: _savingsPercentage / 100,
+        );
+
+        if (!success) {
+          // Budget creation failed, show error
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to create budget: ${budgetNotifier.error ?? "Unknown error"}'),
+                backgroundColor: DesignTokens.color('error'),
+              ),
+            );
+          }
+          return;
+        }
+
+        // Apply the selected template after budget is created
+        if (selectedTemplateId != null && mounted) {
+          final templateSuccess = await budgetNotifier.applyTemplate(selectedTemplateId);
+
+          if (!templateSuccess && mounted) {
+            // Template application failed, show error but still navigate back
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Budget created but failed to apply template: ${budgetNotifier.error ?? "Unknown error"}'),
+                backgroundColor: DesignTokens.color('warning'),
+              ),
+            );
+          } else if (mounted) {
+            // Success
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Budget created with allocation template'),
+                backgroundColor: DesignTokens.color('success'),
+              ),
+            );
+          }
+        }
+
+        // Navigate back after everything is complete
+        if (mounted) {
+          Navigator.of(context).pop(true);
+        }
+      }
+    } else {
+      // If no income in template, just show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Applied "${template.name}" template. Please enter your monthly income.'),
+          backgroundColor: DesignTokens.color('success'),
+        ),
+      );
+    }
   }
 
   @override
@@ -197,7 +371,7 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Set Up Budget'),
+        title: Text('Set Up Budget - ${_getMonthYearString(widget.targetMonth)}'),
         backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
       ),
@@ -209,7 +383,7 @@ class _BudgetSetupScreenState extends State<BudgetSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Monthly Budget Setup',
+                'Budget Setup for ${_getMonthYearString(widget.targetMonth)}',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -493,14 +667,14 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Deleted template "${template.name}"'),
-          backgroundColor: Colors.green,
+          backgroundColor: DesignTokens.color('success'),
         ),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to delete template: ${widget.budgetNotifier.error ?? "Unknown error"}'),
-          backgroundColor: Colors.red,
+          backgroundColor: DesignTokens.color('error'),
         ),
       );
     }
@@ -509,11 +683,22 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Load Category Template'),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      title: Text(
+        'Load Allocation Template',
+        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
       content: _localTemplates.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('No templates available'),
+          ? Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'No templates available',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             )
           : SizedBox(
               width: double.maxFinite,
@@ -526,7 +711,7 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                     key: Key('template_${template.id}'),
                     direction: DismissDirection.endToStart,
                     background: Container(
-                      color: Colors.red,
+                      color: DesignTokens.color('error'),
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 16.0),
                       child: const Icon(
@@ -538,8 +723,19 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                       return await showDialog<bool>(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Delete Template'),
-                          content: Text('Are you sure you want to delete "${template.name}"?'),
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          title: Text(
+                            'Delete Template',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          content: Text(
+                            'Are you sure you want to delete "${template.name}"?',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
@@ -557,11 +753,26 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                       _deleteTemplate(template);
                     },
                     child: ListTile(
-                      title: Text(template.name),
+                      tileColor: Theme.of(context).colorScheme.surface,
+                      title: Text(
+                        template.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
                       subtitle: template.description != null
-                          ? Text(template.description!)
+                          ? Text(
+                              template.description!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            )
                           : null,
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: Icon(
+                        Icons.chevron_right,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       onTap: () => Navigator.pop(context, template.id),
                     ),
                   );
