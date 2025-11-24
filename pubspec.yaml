@@ -4,7 +4,7 @@ description: "Smart savings tracker with goal-based financial planning and year-
 # Prevent accidental publishing to pub.dev.
 publish_to: 'none'
 
-version: 1.1.0+10
+version: 1.1.0+11
 
 environment:
   sdk: ^3.5.2
