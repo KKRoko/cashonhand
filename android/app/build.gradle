@@ -28,7 +28,7 @@ android {
     defaultConfig {
         applicationId = "com.skillpoint.cashonhand"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 34  // Android 14 - bypass 16 KB requirement temporarily
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
