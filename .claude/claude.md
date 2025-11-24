@@ -265,6 +265,29 @@ Keeping these layers separate makes your app much easier to manage and scale.
 - Keep commit messages professional and focused solely on technical changes
 - Commit messages should reflect the work as if written by the developer
 
+### When to Create Commits
+**IMPORTANT**: Only create commits when explicitly requested by the user or when it's clearly appropriate.
+
+**DO commit when:**
+- User explicitly asks you to commit ("commit this", "make a commit", "save this to git")
+- You've completed a significant, well-defined task that the user approved
+- You're about to switch contexts and need to save coherent work
+- The user is about to test changes and wants a clean state to revert to
+
+**DO NOT commit when:**
+- You're in the middle of implementing a feature
+- The user hasn't reviewed or approved the changes yet
+- You've only made partial progress on a task
+- The user is still iterating on requirements
+- Making exploratory or experimental changes
+- Only investigating/reading code without making changes
+
+**Ask first if uncertain:**
+- "Would you like me to commit these changes?"
+- "Should I create a commit now, or would you like to review first?"
+
+This prevents premature commits and gives users control over their git history.
+
 ## Git Workflow & Change Prevention
 
 ### Pre-Commit Checklist (MANDATORY)
