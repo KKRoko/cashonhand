@@ -4,7 +4,7 @@ description: "Smart savings tracker with goal-based financial planning and year-
 # Prevent accidental publishing to pub.dev.
 publish_to: 'none'
 
-version: 1.1.0+13
+version: 1.1.0+14
 
 environment:
   sdk: ^3.5.2
@@ -30,7 +30,7 @@ dependencies:
   shared_preferences: ^2.2.2
   lottie: ^3.3.2
   confetti: ^0.7.0
-  share_plus: ^7.2.2
+  share_plus: ^12.0.1
   decimal: ^3.0.1
   fl_chart: ^0.69.0
   sqlite3_flutter_libs: ^0.5.0
