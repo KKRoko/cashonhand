@@ -393,3 +393,381 @@ If you ALREADY pushed: Create a revert commit
 ```bash
 git revert HEAD
 ```
+## Git Workflow
+
+### Branch Strategy (Simplified Flow for Solo Developer)
+
+We use a simplified Git Flow optimized for solo development with professional standards:
+
+```
+production-prep → Production code (live in App Stores)
+develop → Daily development work
+hotfix/* → Emergency production fixes (branch from production-prep)
+feature/* → New features (branch from develop)
+```
+
+**Why `production-prep` instead of `main`?**
+- Historical: `main` branch contains legacy v0.2 code
+- `production-prep` contains current production code (v1.1.0+14) deployed to stores
+- Future: Consider renaming `production-prep` → `main` for clarity
+
+### Branch Workflow
+
+#### For New Features:
+```bash
+git checkout develop
+git checkout -b feature/your-feature-name
+# ... work on feature ...
+git add .
+git commit -m "Add feature description"
+git checkout develop
+git merge feature/your-feature-name
+git branch -d feature/your-feature-name
+```
+
+#### For Production Hotfixes (CRITICAL BUGS):
+```bash
+# 1. Start from production
+git checkout production-prep
+git checkout -b hotfix/descriptive-name
+
+# 2. Make the fix with proper comments
+# ... make changes ...
+
+# 3. Test thoroughly
+flutter test
+flutter build appbundle --release  # Android
+flutter build ipa --release  # iOS
+
+# 4. Commit with detailed message
+git add .
+git commit -m "Fix: detailed description
+- What the bug was
+- What caused it
+- How it's fixed
+- How to avoid it in the future"
+
+# 5. Merge back to production
+git checkout production-prep
+git merge hotfix/descriptive-name
+
+# 6. IMPORTANT: Also merge to develop so fix persists
+git checkout develop
+git merge hotfix/descriptive-name
+
+# 7. Clean up
+git branch -d hotfix/descriptive-name
+
+# 8. Deploy
+# ... build and upload to stores ...
+```
+
+### Commit Message Standards
+
+**Format:**
+```
+<type>: <short summary> (50 chars max)
+
+<detailed description>
+- What changed
+- Why it changed
+- Impact/consequences
+- How to test
+
+<optional sections>
+BREAKING CHANGES: (if any)
+REFERENCES: (commit hashes, issues)
+SEARCH KEYWORDS: (for future searching)
+```
+
+**Types:**
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `hotfix:` - Emergency production fix
+- `refactor:` - Code restructuring (no behavior change)
+- `docs:` - Documentation only
+- `test:` - Adding/fixing tests
+- `chore:` - Build process, dependencies
+
+**Examples:**
+```
+hotfix: Fix database migration v17 duplicate column crash
+
+Users upgrading from TestFlight builds were experiencing crashes due to
+migration v17 attempting to add monthly_income column that already existed.
+
+Changes:
+- Updated migration v17 to use _addColumnIfNotExists() instead of m.addColumn()
+- Added detailed inline comments explaining the fix
+- Version bump: 1.1.0+14 → 1.1.0+15
+
+REFERENCES: Caused by deploying schema changes before migration (common mistake)
+SEARCH KEYWORDS: SqliteException, duplicate column, migration crash, v17
+```
+
+### When to Commit
+
+**DO commit:**
+- After completing a logical unit of work
+- Before switching context/branches
+- After fixing a bug (even if more work remains)
+- When requested by user
+
+**DON'T commit:**
+- Incomplete/broken code that won't compile
+- Multiple unrelated changes together
+- Without running tests first
+- Without reviewing `git diff`
+
+### Stash Usage
+
+When you need to switch contexts without committing:
+```bash
+# Save current work
+git stash save "WIP: descriptive message"
+
+# Switch branches and work on something else
+git checkout other-branch
+
+# Come back and restore
+git checkout original-branch
+git stash pop  # Applies and removes from stash
+# OR
+git stash apply  # Applies but keeps in stash
+
+# List stashes
+git stash list
+
+# Delete specific stash
+git stash drop stash@{0}
+```
+
+## Database Migration Guidelines
+
+### CRITICAL: How to Add Database Changes Safely
+
+**The Problem:**
+Users can have complex version histories (TestFlight → Production → Hotfix), causing migrations to run in unexpected orders or skip versions. Direct column additions can crash if the column already exists.
+
+**The Solution:**
+Always use defensive migration helpers that check before modifying.
+
+### Migration Checklist (MANDATORY)
+
+Before adding ANY database change:
+
+1. ✅ **Increment schema version**
+   ```dart
+   @override
+   int get schemaVersion => 18;  // Increment by 1
+   ```
+
+2. ✅ **Use safe migration helpers**
+   - ❌ NEVER: `await m.addColumn(table, column)`
+   - ✅ ALWAYS: `await _addColumnIfNotExists('table_name', 'column_name', 'TYPE')`
+
+3. ✅ **Add comprehensive comments**
+   ```dart
+   if (from < 18) {
+     // Migration from v17 to v18: Add new_column to some_table
+     // SAFE: Uses _addColumnIfNotExists() to prevent duplicate column crashes
+     // This protects users upgrading from mixed version histories
+     await _addColumnIfNotExists('some_table', 'new_column', 'TEXT NULL');
+     print('Database migrated to v18: Added new_column to some_table');
+   }
+   ```
+
+4. ✅ **Test BOTH scenarios**
+   - Fresh install (schema built from scratch)
+   - Upgrade from previous version (migration runs)
+
+5. ✅ **Document in commit message**
+   - What table/column changed
+   - Why the change was needed
+   - How it's protected from crashes
+
+### Safe Migration Patterns
+
+#### Adding a Column (CORRECT WAY):
+```dart
+if (from < X) {
+  await _addColumnIfNotExists('table_name', 'column_name', 'TYPE CONSTRAINTS');
+  print('Database migrated to vX: Added column_name to table_name');
+}
+```
+
+#### Adding a Table (Always Safe):
+```dart
+if (from < X) {
+  await m.createTable(tableName);
+  print('Database migrated to vX: Created tableName table');
+}
+```
+
+#### Dropping a Column (Use Custom SQL):
+```dart
+if (from < X) {
+  try {
+    await customStatement('ALTER TABLE table_name DROP COLUMN column_name');
+    print('Database migrated to vX: Dropped column_name from table_name');
+  } catch (e) {
+    print('⚠️ Migration vX: Column may not exist (ok to continue): $e');
+  }
+}
+```
+
+#### Complex Migration (Recreate Table):
+```dart
+if (from < X) {
+  // Back up data
+  await customStatement('CREATE TEMPORARY TABLE backup AS SELECT * FROM table_name');
+  
+  // Drop old table
+  await customStatement('DROP TABLE IF EXISTS table_name');
+  
+  // Create new table with updated schema
+  await m.createTable(tableName);
+  
+  // Restore data (adjust columns as needed)
+  await customStatement('INSERT INTO table_name SELECT * FROM backup');
+  
+  // Clean up
+  await customStatement('DROP TABLE backup');
+  
+  print('Database migrated to vX: Recreated table_name with new schema');
+}
+```
+
+### Common Migration Mistakes to Avoid
+
+❌ **Mistake 1: Deploying schema before migration**
+```dart
+// DON'T DO THIS SEQUENCE:
+1. Update table class with new column
+2. Deploy to TestFlight
+3. Later add migration
+// Result: TestFlight users have column, migration tries to add it again → crash
+```
+
+✅ **Correct Sequence:**
+```dart
+1. Write migration first
+2. Increment schema version
+3. THEN update table class
+4. Test both fresh install AND upgrade
+5. Deploy
+```
+
+❌ **Mistake 2: Using unsafe migration methods**
+```dart
+// DON'T:
+await m.addColumn(budgetTemplates, budgetTemplates.monthlyIncome);
+
+// DO:
+await _addColumnIfNotExists('budget_templates', 'monthly_income', 'REAL NULL');
+```
+
+❌ **Mistake 3: Assuming linear version history**
+```dart
+// Users don't always upgrade linearly
+// They might skip versions or use TestFlight then downgrade
+// Always write defensive migrations
+```
+
+❌ **Mistake 4: Not testing upgrades**
+```dart
+// ALWAYS test:
+1. Fresh install (onCreate)
+2. Upgrade from previous version (onUpgrade)
+3. Upgrade from 2 versions ago (multiple migrations)
+```
+
+### Testing Migrations Locally
+
+```bash
+# 1. Install version N-1 on device
+flutter install
+
+# 2. Use the app (create some data)
+
+# 3. Checkout new version with migration
+git checkout feature/with-migration
+
+# 4. Install version N on same device
+flutter install
+
+# 5. Open app - verify migration succeeds and data persists
+
+# 6. Check logs for migration success messages
+flutter logs | grep "Database migrated"
+```
+
+### When Migration Fails in Production
+
+If users report database crashes:
+
+1. **Immediate Response:**
+   - Create hotfix branch from production
+   - Fix migration using safe helper
+   - Add defensive comments
+   - Bump build number
+   - Deploy ASAP
+
+2. **Communication:**
+   - If 100s of users: Push hotfix immediately
+   - If 1000s of users: Consider if users can reinstall
+   - Document the issue in commit message
+
+3. **Prevention:**
+   - Update CLAUDE.md with new learnings
+   - Add the mistake to "Common Migration Mistakes"
+   - Set up automated migration tests (future improvement)
+
+### Migration Version History
+
+Current schema version: **17**
+
+**Recent migrations:**
+- v17: Added monthlyIncome to budget_templates (HOTFIXED in v1.1.0+15)
+- v16: Added allocation template tables
+- v15: Fixed isSystem flags for categories
+- v14: Cleaned up duplicate Books category
+- v13: Converted year-end goals to percentages
+
+**Known Issues Fixed:**
+- v17 initial deployment used unsafe m.addColumn() → Caused crashes for TestFlight upgraders → Fixed in hotfix/database-migration-v17
+
+### _addColumnIfNotExists Helper (Reference)
+
+```dart
+// This helper is already in database.dart
+// Use it for ALL column additions in migrations
+Future<void> _addColumnIfNotExists(
+  String tableName,
+  String columnName,
+  String columnDefinition,
+) async {
+  try {
+    // Check if column exists
+    final result = await customSelect(
+      "PRAGMA table_info('$tableName')",
+    ).get();
+    
+    final columnExists = result.any((row) => row.data['name'] == columnName);
+    
+    if (!columnExists) {
+      // Column doesn't exist, safe to add
+      await customStatement(
+        'ALTER TABLE "$tableName" ADD COLUMN "$columnName" $columnDefinition',
+      );
+      print('✅ Added column $columnName to $tableName');
+    } else {
+      print('ℹ️ Column $columnName already exists in $tableName (skipping)');
+    }
+  } catch (e) {
+    print('⚠️ Error checking/adding column $columnName: $e');
+    rethrow;
+  }
+}
+```
+

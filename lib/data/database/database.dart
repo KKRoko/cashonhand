@@ -290,7 +290,12 @@ class Database extends _$Database {
         }
         if (from < 17) {
           // Migration from v16 to v17: Add monthlyIncome column to budget_templates
-          await m.addColumn(budgetTemplates, budgetTemplates.monthlyIncome);
+          // CRITICAL FIX: Use _addColumnIfNotExists() instead of m.addColumn() to prevent
+          // duplicate column crashes for users upgrading from TestFlight/dev builds.
+          // m.addColumn() throws SqliteException if column already exists.
+          // This caused production crash for users with mixed version history.
+          // See CLAUDE.md "Database Migration Guidelines" for details.
+          await _addColumnIfNotExists('budget_templates', 'monthly_income', 'REAL NULL');
           print('Database migrated to v17: Added monthlyIncome column to budget_templates');
         }
       },
