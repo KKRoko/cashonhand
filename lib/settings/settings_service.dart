@@ -60,6 +60,7 @@ class SettingsService {
         await _database.delete(_database.achievements).go();
         await _database.delete(_database.budgets).go();
         await _database.delete(_database.categoryBudgets).go();
+        await _database.delete(_database.budgetTemplates).go();
         await _database.delete(_database.allocationTemplates).go();
       });
 
@@ -68,9 +69,10 @@ class SettingsService {
       await _database.customStatement('PRAGMA busy_timeout = 5000');
       await _database.customStatement('PRAGMA wal_checkpoint(RESTART)');
 
-      // Add default categories in a new transaction
+      // Restore system defaults in a new transaction
       await _database.transaction(() async {
         await _database.ensureDefaultCategories();
+        await _database.ensureDefaultTemplates();
       });
 
       // Final checkpoint after all operations

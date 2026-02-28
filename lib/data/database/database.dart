@@ -727,6 +727,18 @@ List<EventsCompanion> _generateYearInstances(EventTableData source) {
     }
   }
 
+  Future<void> ensureDefaultTemplates() async {
+    final presets = await (select(budgetTemplates)
+          ..where((t) => t.isPreset.equals(true)))
+        .get();
+    if (presets.isEmpty) {
+      print("No preset templates found, adding defaults");
+      await _addDefaultTemplates();
+    } else {
+      print("Preset templates already exist: ${presets.length}");
+    }
+  }
+
   // Categories CRUD operations
   Future<List<CategoryTableData>> getAllCategories() =>
       select(categories).get();
