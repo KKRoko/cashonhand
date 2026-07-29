@@ -10,6 +10,7 @@ import 'package:cash_on_hand/state/saving_goal_notifier.dart';
 import 'package:cash_on_hand/services/notification_service.dart';
 import 'package:cash_on_hand/services/achievement_service.dart';
 import 'package:cash_on_hand/services/currency_service.dart';
+import 'package:cash_on_hand/paywall/subscription_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,11 @@ void main() async {
   final settingsController = getIt<SettingsController>();
   await settingsController.loadSettings();
   print('✅ MAIN: Theme settings loaded');
+
+  // Subscribe to the purchase stream before the app renders — the plugin
+  // will otherwise miss any purchase update delivered from a prior session.
+  await SubscriptionService.instance.startListening();
+  print('✅ MAIN: Subscription purchase stream attached');
 
   // Run the app immediately - heavy initialization will happen after first frame
   runApp(
@@ -119,6 +125,12 @@ class _AppInitializerState extends State<AppInitializer> {
         final eventNotifier = getIt<EventNotifier>();
         await eventNotifier.loadInitialEvents();
         print('✅ INIT: Events loaded');
+      }(),
+
+      // Query subscription products and reconcile entitlement with the store
+      () async {
+        await SubscriptionService.instance.initialize();
+        print('✅ INIT: Subscription products loaded');
       }(),
     ]);
 

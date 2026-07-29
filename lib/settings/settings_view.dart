@@ -8,6 +8,10 @@ import '../ui/widgets/currency_selector.dart';
 import '../services/currency_service.dart';
 import '../core/di/injection.dart';
 import '../ui/onboarding/goal_integration_onboarding.dart';
+import '../paywall/subscription_service.dart';
+import '../paywall/models/subscription_plan.dart';
+import '../paywall/paywall_screen.dart';
+import '../paywall/manage_subscription_screen.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({
@@ -83,13 +87,15 @@ class SettingsView extends StatelessWidget {
                     // Now the UI is showing a loader while this heavy task runs
                     await controller.resetAllData();
 
-                    print('✅ RESET: Reset complete, waiting before navigation...');
+                    print(
+                        '✅ RESET: Reset complete, waiting before navigation...');
 
                     // CRITICAL: For hot restarts (VSCode), SharedPreferences singleton persists
                     // We need to wait even longer and force a complete reload
                     await Future.delayed(const Duration(milliseconds: 800));
 
-                    print('✅ RESET: Closing dialog and preparing navigation...');
+                    print(
+                        '✅ RESET: Closing dialog and preparing navigation...');
 
                     // Close the loading dialog first
                     navigator.pop();
@@ -155,27 +161,28 @@ class SettingsView extends StatelessWidget {
               title: Text(
                 'Theme',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('onPrimary') 
-                    : null,
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : null,
+                    ),
               ),
               trailing: DropdownButton<ThemeMode>(
                 value: controller.themeMode,
                 onChanged: controller.updateThemeMode,
-                dropdownColor: Theme.of(context).brightness == Brightness.dark 
-                  ? Colors.black 
-                  : null,
+                dropdownColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black
+                    : null,
                 items: [
                   DropdownMenuItem(
                     value: ThemeMode.system,
                     child: Text(
                       'System Theme',
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? DesignTokens.color('onPrimary') 
-                          : null,
-                      ),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? DesignTokens.color('onPrimary')
+                                    : null,
+                          ),
                     ),
                   ),
                   DropdownMenuItem(
@@ -183,10 +190,11 @@ class SettingsView extends StatelessWidget {
                     child: Text(
                       'Light Theme',
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? DesignTokens.color('onPrimary') 
-                          : null,
-                      ),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? DesignTokens.color('onPrimary')
+                                    : null,
+                          ),
                     ),
                   ),
                   DropdownMenuItem(
@@ -194,10 +202,11 @@ class SettingsView extends StatelessWidget {
                     child: Text(
                       'Dark Theme',
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).brightness == Brightness.dark 
-                          ? DesignTokens.color('onPrimary') 
-                          : null,
-                      ),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? DesignTokens.color('onPrimary')
+                                    : null,
+                          ),
                     ),
                   ),
                 ],
@@ -219,7 +228,8 @@ class SettingsView extends StatelessWidget {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Currency updated to ${currency.name}'),
+                            content:
+                                Text('Currency updated to ${currency.name}'),
                             backgroundColor: Colors.green,
                             duration: const Duration(seconds: 2),
                           ),
@@ -232,30 +242,74 @@ class SettingsView extends StatelessWidget {
             ),
           ),
           VSpace('lg'),
+          ListenableBuilder(
+            listenable: SubscriptionService.instance,
+            builder: (context, _) {
+              final subscription = SubscriptionService.instance;
+              return CashCard(
+                onTap: () {
+                  Navigator.of(context).pushNamed(
+                    subscription.isPremium
+                        ? ManageSubscriptionScreen.routeName
+                        : PaywallScreen.routeName,
+                  );
+                },
+                child: ListTile(
+                  leading: Icon(
+                    Icons.workspace_premium,
+                    color: DesignTokens.color('primary'),
+                  ),
+                  title: Text(
+                    'Cash on Hand Premium',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DesignTokens.color('onPrimary')
+                              : null,
+                        ),
+                  ),
+                  subtitle: Text(
+                    subscription.isPremium
+                        ? '${subscription.activeProductId == SubscriptionPlan.monthlyProductId ? SubscriptionPlan.monthly.displayName : SubscriptionPlan.annual.displayName} — manage your subscription'
+                        : 'Unlock unlimited budgets, savings challenges & advanced insights',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? DesignTokens.color('onPrimary')
+                              : DesignTokens.color('textSecondary'),
+                        ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: DesignTokens.color('textSecondary'),
+                  ),
+                ),
+              );
+            },
+          ),
+          VSpace('lg'),
           CashCard(
             onTap: () {
               Navigator.of(context).pushNamed(RoundUpSettingsScreen.routeName);
             },
             child: ListTile(
               leading: Icon(
-                Icons.auto_awesome, 
+                Icons.auto_awesome,
                 color: DesignTokens.color('info'),
               ),
               title: Text(
                 'Round-Up Savings',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('onPrimary') 
-                    : null,
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : null,
+                    ),
               ),
               subtitle: Text(
                 'Automatically round up purchases and save the difference',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('onPrimary') 
-                    : DesignTokens.color('textSecondary'),
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : DesignTokens.color('textSecondary'),
+                    ),
               ),
               trailing: Icon(
                 Icons.chevron_right,
@@ -270,24 +324,24 @@ class SettingsView extends StatelessWidget {
             },
             child: ListTile(
               leading: Icon(
-                Icons.rule, 
+                Icons.rule,
                 color: DesignTokens.color('secondary'),
               ),
               title: Text(
                 'Auto-Allocation Rules',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('onPrimary') 
-                    : null,
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : null,
+                    ),
               ),
               subtitle: Text(
                 'Create rules to automatically allocate money to goals',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? DesignTokens.color('onPrimary') 
-                    : DesignTokens.color('textSecondary'),
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : DesignTokens.color('textSecondary'),
+                    ),
               ),
               trailing: Icon(
                 Icons.chevron_right,
@@ -303,18 +357,18 @@ class SettingsView extends StatelessWidget {
               title: Text(
                 'Reset All Data',
                 style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark
-                    ? DesignTokens.color('onPrimary')
-                    : null,
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : null,
+                    ),
               ),
               subtitle: Text(
                 'Delete all transactions, categories, and savings goals',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark
-                    ? DesignTokens.color('onPrimary')
-                    : DesignTokens.color('textSecondary'),
-                ),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? DesignTokens.color('onPrimary')
+                          : DesignTokens.color('textSecondary'),
+                    ),
               ),
               trailing: Icon(
                 Icons.warning,
