@@ -1,0 +1,105 @@
+{
+  "columns": ["backlog", "in-progress", "done"],
+  "cards": [
+    {
+      "id": "card-001",
+      "title": "Create docs/architecture.md",
+      "description": "Write the standard architecture document covering overview, tech stack, project structure, key systems, data flow, database schema, routes, and dev tooling.",
+      "column": "done",
+      "priority": "high",
+      "createdAt": "2026-05-27",
+      "updatedAt": "2026-05-27",
+      "notes": "Created 2026-05-27. Covers all 12 systems, full DB schema (v17), all 19 routes, complete tech stack."
+    },
+    {
+      "id": "card-002",
+      "title": "Create architecture_screen.dart",
+      "description": "Flutter in-app architecture viewer at /architecture route. Visual mirror of docs/architecture.md.",
+      "column": "done",
+      "priority": "high",
+      "createdAt": "2026-05-27",
+      "updatedAt": "2026-05-27",
+      "notes": "Created 2026-05-27. Accessible at /architecture route — dev only, not linked from main nav."
+    },
+    {
+      "id": "card-003",
+      "title": "Initialize board.json",
+      "description": "Create the standard .claude/board.json for task tracking.",
+      "column": "done",
+      "priority": "medium",
+      "createdAt": "2026-05-27",
+      "updatedAt": "2026-05-27",
+      "notes": "This file."
+    },
+    {
+      "id": "card-004",
+      "title": "Fix navigation-xxx/routes-xxx.dart",
+      "description": "Routes stub is outdated — only defines 4 routes but app.dart registers 10+. Either bring it in sync or delete it (it's misleading as-is).",
+      "column": "done",
+      "priority": "low",
+      "createdAt": "2026-05-27",
+      "updatedAt": "2026-05-27",
+      "notes": "Updated 2026-05-27 to reflect all current routes defined in app.dart."
+    },
+    {
+      "id": "card-005",
+      "title": "Register /architecture route in app.dart",
+      "description": "The architecture screen exists but isn't registered in app.dart's onGenerateRoute switch — add it so it's navigable in dev builds.",
+      "column": "backlog",
+      "priority": "low",
+      "createdAt": "2026-05-27",
+      "updatedAt": "2026-05-27",
+      "notes": ""
+    },
+    {
+      "id": "card-006",
+      "title": "Migrate state management from Provider to Riverpod",
+      "description": "Current code uses Provider (ChangeNotifier). Global flutter.md standard requires Riverpod. Not urgent — no functional impact, but a known divergence from the standard stack.",
+      "column": "backlog",
+      "priority": "low",
+      "createdAt": "2026-05-27",
+      "updatedAt": "2026-05-27",
+      "notes": "Large refactor — only worth doing if touching state layer for another reason."
+    },
+    {
+      "id": "card-007",
+      "title": "Accessibility Phase 1 — IconButton tooltips",
+      "description": "Add tooltip: to all 27 IconButton instances across ~15 files. Mechanical fix — every IconButton must have a tooltip per accessibility.md rules.",
+      "column": "done",
+      "priority": "high",
+      "createdAt": "2026-06-02",
+      "updatedAt": "2026-06-02",
+      "notes": "Done 2026-06-02. Added tooltips to 23 IconButtons across 13 files (3 already had tooltips). Verified zero missing with Python regex scan."
+    },
+    {
+      "id": "card-008",
+      "title": "Accessibility Phase 2 — Form labels",
+      "description": "Add labelText: to all TextFields/TextFormFields using hintText as their only label (~20 instances across ~10 files). Convert hints to format examples only.",
+      "column": "done",
+      "priority": "high",
+      "createdAt": "2026-06-02",
+      "updatedAt": "2026-06-02",
+      "notes": "Done 2026-06-02. Added labelText to: amount + description fields in add_edit_event_dialog; monthly income fields in budget_setup_screen and budget_settings_screen; parent category + category name fields in manage_categories_screen (removed redundant external Text widget labels); search field in transactions_screen. Used Semantics wrapper (instead of labelText) for the compact inline amount field in category_allocation_screen to preserve row layout. Several files (add_edit_allocation_rule_dialog, budget_analytics_screen, budget_screen, saving_goals dialog, calendar_widget, onboarding) already had labelText — no changes needed."
+    },
+    {
+      "id": "card-009",
+      "title": "Accessibility Phase 3 — Semantics wrappers",
+      "description": "Add Semantics/ExcludeSemantics/MergeSemantics throughout the app. Wrap GestureDetectors (12 instances), exclude decorative icons, merge card children, mark section headings, add liveRegion to dynamic content. Fix 1 Image missing semanticLabel.",
+      "column": "done",
+      "priority": "medium",
+      "createdAt": "2026-06-02",
+      "updatedAt": "2026-06-02",
+      "notes": "Done 2026-06-02. Wrapped 8 GestureDetectors with Semantics: 3 toggle buttons (budget_screen, surplus_allocation_screen, budget_analytics_screen) got Semantics(button:true, selected:isSelected); surplus card got Semantics(button:true, label:'...', excludeSemantics:true, onTap:...); 2 dismiss overlays (streak_celebration_widget, achievement_celebration_overlay) got Semantics(button:true, label:'Dismiss'); long-press progress bar in calendar_widget got Semantics(onLongPressHint:'Configure progress threshold'); tappable chip in cash_components got Semantics(button:true). Fixed Image.asset in goal_integration_onboarding with semanticLabel:'Cash on Hand app logo'. Skipped 3 infrastructure GestureDetectors (keyboard dismiss, pan tracking, RawGestureDetector). Skipped MergeSemantics — InkWell already merges, goal_list_item already has comprehensive Semantics, non-interactive cards don't need it. Decorative Icon() without semanticLabel is already excluded from semantic tree by Flutter. Phase 4: section headings (Semantics(header:true))."
+    },
+    {
+      "id": "card-010",
+      "title": "Cash on Hand Premium — subscription paywall",
+      "description": "Paywall, purchase confirmation, and manage-subscription screens for the Cash on Hand Premium auto-renewable subscription (Monthly/Annual). Started as a UI-only prototype for App Store screenshots, then upgraded to a real StoreKit/Play Billing integration via the in_app_purchase plugin so the actual subscription can be submitted for review.",
+      "column": "in-progress",
+      "priority": "high",
+      "createdAt": "2026-07-29",
+      "updatedAt": "2026-07-29",
+      "notes": "Code complete: lib/paywall/ (SubscriptionService wraps InAppPurchase.instance — real product queries, buyNonConsumable, purchaseStream handling, completePurchase, restorePurchases, local entitlement via shared_preferences; PaywallScreen, PurchaseConfirmationScreen, ManageSubscriptionScreen all wired to real data/purchases). Verification is client-side only — no backend in this app. Cancel deep-links to platform subscription settings via url_launcher (no client-side cancel API exists). Product IDs confirmed against user's App Store Connect setup: com.cashonhand.premium.monthly, com.cashonhand.premium.annually. flutter analyze clean, iOS build + pod install succeed, app launches without crash. NOT YET DONE: local purchase testing (StoreKit Configuration file set up in Xcode, iOS 26.5 Simulator was downloading as of last update — needed because Xcode 26.5 didn't have that simulator runtime installed yet), confirm Xcode 'In-App Purchase' capability enabled, confirm neither product stuck in 'Missing Metadata' in App Store Connect, bump pubspec.yaml version number, then submit the version with the subscription group attached in App Store Connect."
+    }
+  ]
+}
