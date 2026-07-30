@@ -9,10 +9,12 @@ class BudgetTemplateLibraryScreen extends StatefulWidget {
   const BudgetTemplateLibraryScreen({super.key});
 
   @override
-  State<BudgetTemplateLibraryScreen> createState() => _BudgetTemplateLibraryScreenState();
+  State<BudgetTemplateLibraryScreen> createState() =>
+      _BudgetTemplateLibraryScreenState();
 }
 
-class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScreen> {
+class _BudgetTemplateLibraryScreenState
+    extends State<BudgetTemplateLibraryScreen> {
   final _templateService = GetIt.instance<BudgetTemplateService>();
 
   List<BudgetTemplate> _presetTemplates = [];
@@ -78,7 +80,8 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(_error!, style: TextStyle(color: DesignTokens.color('error'))),
+                      Text(_error!,
+                          style: TextStyle(color: DesignTokens.color('error'))),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadTemplates,
@@ -106,11 +109,13 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                           'Choose from professionally crafted budget templates',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ...presetTemplates.map((template) => _buildTemplateCard(template, true)),
+                        ...presetTemplates.map(
+                            (template) => _buildTemplateCard(template, true)),
                         const SizedBox(height: 32),
                       ],
                       if (_customTemplates.isNotEmpty) ...[
@@ -127,11 +132,13 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                           'Your custom budget templates',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ..._customTemplates.map((template) => _buildTemplateCard(template, false)),
+                        ..._customTemplates.map(
+                            (template) => _buildTemplateCard(template, false)),
                       ] else if (_presetTemplates.isNotEmpty) ...[
                         Center(
                           child: Column(
@@ -139,14 +146,19 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                               Icon(
                                 Icons.library_add_outlined,
                                 size: 64,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withOpacity(0.5),
                               ),
                               const SizedBox(height: 16),
                               Text(
                                 'No custom templates yet',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -154,7 +166,9 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                                 'Create your own templates from your budgets',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -196,16 +210,21 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),
                             if (isPreset) ...[
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -213,7 +232,8 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -251,11 +271,14 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _buildPercentagePill('Needs', template.needsPercentage, Theme.of(context).colorScheme.primary),
+                  _buildPercentagePill('Needs', template.needsPercentage,
+                      Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 8),
-                  _buildPercentagePill('Wants', template.wantsPercentage, DesignTokens.color('info')),
+                  _buildPercentagePill('Wants', template.wantsPercentage,
+                      DesignTokens.color('info')),
                   const SizedBox(width: 8),
-                  _buildPercentagePill('Savings', template.savingsPercentage, DesignTokens.color('warning')),
+                  _buildPercentagePill('Savings', template.savingsPercentage,
+                      DesignTokens.color('warning')),
                 ],
               ),
             ],
@@ -292,7 +315,8 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
         template: template,
         onApply: () {
           Navigator.pop(context);
-          Navigator.pop(context, template); // Return template to previous screen
+          Navigator.pop(
+              context, template); // Return template to previous screen
         },
         onDelete: template.isPreset
             ? null
@@ -320,7 +344,8 @@ class _BudgetTemplateLibraryScreenState extends State<BudgetTemplateLibraryScree
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: DesignTokens.color('error')),
+            style: TextButton.styleFrom(
+                foregroundColor: DesignTokens.color('error')),
             child: const Text('Delete'),
           ),
         ],
@@ -401,6 +426,7 @@ class _TemplateDetailsSheet extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
+                  tooltip: 'Close',
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -408,7 +434,8 @@ class _TemplateDetailsSheet extends StatelessWidget {
             if (template.isPreset) ...[
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
@@ -441,11 +468,14 @@ class _TemplateDetailsSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildAllocationRow(context, 'Needs', template.needsPercentage, Theme.of(context).colorScheme.primary),
+            _buildAllocationRow(context, 'Needs', template.needsPercentage,
+                Theme.of(context).colorScheme.primary),
             const SizedBox(height: 12),
-            _buildAllocationRow(context, 'Wants', template.wantsPercentage, DesignTokens.color('info')),
+            _buildAllocationRow(context, 'Wants', template.wantsPercentage,
+                DesignTokens.color('info')),
             const SizedBox(height: 12),
-            _buildAllocationRow(context, 'Savings', template.savingsPercentage, DesignTokens.color('warning')),
+            _buildAllocationRow(context, 'Savings', template.savingsPercentage,
+                DesignTokens.color('warning')),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -485,7 +515,8 @@ class _TemplateDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildAllocationRow(BuildContext context, String label, double percentage, Color color) {
+  Widget _buildAllocationRow(
+      BuildContext context, String label, double percentage, Color color) {
     return Row(
       children: [
         Container(

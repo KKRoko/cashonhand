@@ -19,20 +19,21 @@ class SavingGoalsScreen extends StatefulWidget {
   _SavingGoalsScreenState createState() => _SavingGoalsScreenState();
 }
 
-class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
+class _SavingGoalsScreenState extends State<SavingGoalsScreen>
+    with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   int? _expandedGoalId;
 
   @override
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {  
+  void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Listen for goal updates from other screens
     GoalUpdateNotifier().addListener(_onGoalUpdated);
-    
+
     _loadGoals();
   }
 
@@ -86,7 +87,6 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
     _isFirstBuild = false;
   }
 
-
   Future<void> _showAddEditGoalDialog([SavingGoal? goal]) async {
     await showDialog(
       context: context,
@@ -95,11 +95,13 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
   }
 
   void _navigateToGoalDetail(SavingGoal goal) {
-    Navigator.of(context).push(
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (context) => GoalDetailScreen(goal: goal),
       ),
-    ).then((_) {
+    )
+        .then((_) {
       // Refresh goals when returning from detail screen
       _loadGoals();
     });
@@ -107,7 +109,9 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
 
   Widget _buildOverallProgress() {
     return CashCard(
-      financialContext: Theme.of(context).brightness == Brightness.dark ? null : FinancialContext.income,
+      financialContext: Theme.of(context).brightness == Brightness.dark
+          ? null
+          : FinancialContext.income,
       padding: EdgeInsets.all(DesignTokens.space('lg')),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,19 +121,19 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
               Icon(
                 Icons.savings,
                 color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : DesignTokens.color('income'),
+                    ? Colors.white
+                    : DesignTokens.color('income'),
               ),
               HSpace('md'),
               Expanded(
                 child: Text(
                   'Overall Savings Progress',
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : DesignTokens.color('income'),
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : DesignTokens.color('income'),
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ),
             ],
@@ -151,6 +155,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh goals',
             onPressed: () {
               // Manual refresh triggered
               context.read<SavingGoalNotifier>().loadGoals();
@@ -158,6 +163,7 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
           ),
           IconButton(
             icon: const Icon(Icons.history),
+            tooltip: 'View savings history',
             onPressed: () {
               // TODO: Show savings history
             },
@@ -168,78 +174,85 @@ class _SavingGoalsScreenState extends State<SavingGoalsScreen> with WidgetsBindi
         child: Consumer<SavingGoalNotifier>(
           builder: (context, goalNotifier, child) {
             final goals = goalNotifier.goals;
-            
+
             return RefreshIndicator(
               onRefresh: () async {
                 await context.read<SavingGoalNotifier>().loadGoals();
               },
               child: ListView(
                 padding: EdgeInsets.all(DesignTokens.space('lg')),
-              children: [
-                _buildOverallProgress(),
-                VSpace('xl'),
-                
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: DesignTokens.space('lg')),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Your Goals',
-                        style: Theme.of(context).textTheme.titleLarge!,
-                      ),
-                      PrimaryButton(
-                        onPressed: () => _showAddEditGoalDialog(),
-                        icon: Icons.add,
-                        size: ButtonSize.medium,
-                        child: const Text('Add Goal'),
-                      ),
-                    ],
-                  ),
-                ),
-                VSpace('lg'),
-                
-                ...goals.map((goal) => Padding(
-                  padding: EdgeInsets.only(bottom: DesignTokens.space('sm')),
-                  child: GoalListItem(
-                    goal: goal,
-                    isExpanded: _expandedGoalId == goal.id,
-                    onTap: () => setState(() {
-                      _expandedGoalId = _expandedGoalId == goal.id ? null : goal.id;
-                    }),
-                    onEdit: () => _showAddEditGoalDialog(goal),
-                    onViewDetails: () => _navigateToGoalDetail(goal),
-                  ),
-                )),
-                
-                if (goals.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(DesignTokens.space('2xl')),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.savings_outlined,
-                            size: 48,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                          VSpace('lg'),
-                          Text(
-                            'No saving goals yet',
-                            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          VSpace('sm'),
-                          PrimaryButton(
-                            onPressed: () => _showAddEditGoalDialog(),
-                            child: const Text('Create Your First Goal'),
-                          ),
-                        ],
-                      ),
+                children: [
+                  _buildOverallProgress(),
+                  VSpace('xl'),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: DesignTokens.space('lg')),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Your Goals',
+                          style: Theme.of(context).textTheme.titleLarge!,
+                        ),
+                        PrimaryButton(
+                          onPressed: () => _showAddEditGoalDialog(),
+                          icon: Icons.add,
+                          size: ButtonSize.medium,
+                          child: const Text('Add Goal'),
+                        ),
+                      ],
                     ),
                   ),
-              ],
+                  VSpace('lg'),
+                  ...goals.map((goal) => Padding(
+                        padding:
+                            EdgeInsets.only(bottom: DesignTokens.space('sm')),
+                        child: GoalListItem(
+                          goal: goal,
+                          isExpanded: _expandedGoalId == goal.id,
+                          onTap: () => setState(() {
+                            _expandedGoalId =
+                                _expandedGoalId == goal.id ? null : goal.id;
+                          }),
+                          onEdit: () => _showAddEditGoalDialog(goal),
+                          onViewDetails: () => _navigateToGoalDetail(goal),
+                        ),
+                      )),
+                  if (goals.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(DesignTokens.space('2xl')),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.savings_outlined,
+                              size: 48,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                            VSpace('lg'),
+                            Text(
+                              'No saving goals yet',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                            ),
+                            VSpace('sm'),
+                            PrimaryButton(
+                              onPressed: () => _showAddEditGoalDialog(),
+                              child: const Text('Create Your First Goal'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             );
           },

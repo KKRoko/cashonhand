@@ -41,13 +41,13 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
   // Animation controller for progress bars
   late AnimationController _progressController;
-  
+
   // 🎯 FLICKER FIX: Manual EventNotifier listener instead of Consumer
   EventNotifier? _eventNotifier;
-  
+
   // 🎯 FLICKER FIX: UI update suppression for Cash page
   bool _suppressCashPageUpdates = false;
-  
+
   // 🎯 FLICKER FIX: Debounced calculation to prevent rapid rebuilds
   Timer? _calculationDebounceTimer;
 
@@ -66,10 +66,30 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
     // Initialize totals with goal-aware metrics
     _totals = {
-      'day': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
-      'week': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
-      'month': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
-      'year': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+      'day': {
+        'positive': 0,
+        'negative': 0,
+        'goalAllocations': 0,
+        'availableAfterGoals': 0
+      },
+      'week': {
+        'positive': 0,
+        'negative': 0,
+        'goalAllocations': 0,
+        'availableAfterGoals': 0
+      },
+      'month': {
+        'positive': 0,
+        'negative': 0,
+        'goalAllocations': 0,
+        'availableAfterGoals': 0
+      },
+      'year': {
+        'positive': 0,
+        'negative': 0,
+        'goalAllocations': 0,
+        'availableAfterGoals': 0
+      },
     };
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -104,15 +124,17 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     _eventNotifier?.removeListener(_onEventNotifierChanged);
     super.dispose();
   }
-  
+
   // 🎯 FLICKER FIX: Manual EventNotifier change handler with suppression
   void _onEventNotifierChanged() {
     if (_suppressCashPageUpdates) {
-      print("🚫 CashPage: EventNotifier change suppressed (flag = $_suppressCashPageUpdates)");
+      print(
+          "🚫 CashPage: EventNotifier change suppressed (flag = $_suppressCashPageUpdates)");
       return;
     }
-    
-    print("✅ CashPage: EventNotifier change allowed - triggering debounced calculation");
+
+    print(
+        "✅ CashPage: EventNotifier change allowed - triggering debounced calculation");
     _debouncedCalculateTotals();
   }
 
@@ -130,11 +152,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
   // 🎯 FLICKER FIX: setState wrapper that respects suppression
   void _setStateIfAllowed(VoidCallback fn) {
     if (_suppressCashPageUpdates) {
-      print("🚫 CashPage: setState suppressed (flag = $_suppressCashPageUpdates)");
+      print(
+          "🚫 CashPage: setState suppressed (flag = $_suppressCashPageUpdates)");
       fn(); // Execute the function but don't trigger setState
       return;
     }
-    
+
     print("✅ CashPage: setState allowed (flag = $_suppressCashPageUpdates)");
     setState(fn);
   }
@@ -165,10 +188,30 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
       // Reset totals with goal-aware metrics
       _totals = {
-        'day': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
-        'week': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
-        'month': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
-        'year': {'positive': 0, 'negative': 0, 'goalAllocations': 0, 'availableAfterGoals': 0},
+        'day': {
+          'positive': 0,
+          'negative': 0,
+          'goalAllocations': 0,
+          'availableAfterGoals': 0
+        },
+        'week': {
+          'positive': 0,
+          'negative': 0,
+          'goalAllocations': 0,
+          'availableAfterGoals': 0
+        },
+        'month': {
+          'positive': 0,
+          'negative': 0,
+          'goalAllocations': 0,
+          'availableAfterGoals': 0
+        },
+        'year': {
+          'positive': 0,
+          'negative': 0,
+          'goalAllocations': 0,
+          'availableAfterGoals': 0
+        },
       };
 
       final nowDate = DateTime(_now.year, _now.month, _now.day);
@@ -229,32 +272,39 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     }
   }
 
-  Future<void> _calculateGoalAllocations(Database database, DateTime nowDate) async {
+  Future<void> _calculateGoalAllocations(
+      Database database, DateTime nowDate) async {
     try {
       // Get all goal allocations from database
       final allocations = await database.select(database.goalAllocations).get();
-      
+
       for (var allocation in allocations) {
         // Get the event associated with this allocation to check its date
         final event = await (database.select(database.events)
-          ..where((t) => t.id.equals(allocation.eventId))).getSingleOrNull();
-        
+              ..where((t) => t.id.equals(allocation.eventId)))
+            .getSingleOrNull();
+
         if (event != null) {
-          final eventDate = DateTime(event.date.year, event.date.month, event.date.day);
+          final eventDate =
+              DateTime(event.date.year, event.date.month, event.date.day);
           final allocationAmount = allocation.allocationAmount;
-          
+
           // Add to goal allocations for appropriate periods
           if (!eventDate.isAfter(nowDate)) {
-            _totals['day']!['goalAllocations'] = (_totals['day']!['goalAllocations'] ?? 0) + allocationAmount;
+            _totals['day']!['goalAllocations'] =
+                (_totals['day']!['goalAllocations'] ?? 0) + allocationAmount;
           }
           if (!eventDate.isAfter(_endOfWeek)) {
-            _totals['week']!['goalAllocations'] = (_totals['week']!['goalAllocations'] ?? 0) + allocationAmount;
+            _totals['week']!['goalAllocations'] =
+                (_totals['week']!['goalAllocations'] ?? 0) + allocationAmount;
           }
           if (!eventDate.isAfter(_endOfMonth)) {
-            _totals['month']!['goalAllocations'] = (_totals['month']!['goalAllocations'] ?? 0) + allocationAmount;
+            _totals['month']!['goalAllocations'] =
+                (_totals['month']!['goalAllocations'] ?? 0) + allocationAmount;
           }
           if (!eventDate.isAfter(_endOfYear)) {
-            _totals['year']!['goalAllocations'] = (_totals['year']!['goalAllocations'] ?? 0) + allocationAmount;
+            _totals['year']!['goalAllocations'] =
+                (_totals['year']!['goalAllocations'] ?? 0) + allocationAmount;
           }
         }
       }
@@ -268,15 +318,15 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       final positive = _totals[period]!['positive'] ?? 0;
       final negative = _totals[period]!['negative'] ?? 0;
       final goalAllocations = _totals[period]!['goalAllocations'] ?? 0;
-      
+
       // Available after goals = (Income - Expenses) - Goal Allocations
       final netCashFlow = positive - negative;
       final availableAfterGoals = netCashFlow - goalAllocations;
-      
+
       _totals[period]!['availableAfterGoals'] = availableAfterGoals;
     }
   }
-  
+
   Future<void> _loadYearEndGoal() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -295,12 +345,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       }
     }
   }
-  
+
   Future<void> _showYearEndGoalDialog() async {
     final controller = TextEditingController(
       text: _yearEndGoal?.toStringAsFixed(0) ?? '',
     );
-    
+
     final result = await showDialog<double>(
       context: context,
       builder: (context) => AlertDialog(
@@ -342,7 +392,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   fontWeight: FontWeight.w600,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                fillColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: DesignTokens.borderRadius['sm']!,
                 ),
@@ -359,7 +410,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                     width: 2,
                   ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
             ),
           ],
@@ -379,7 +431,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('year_end_goal');
-                Navigator.pop(context, -1.0); // Special value to indicate removal
+                Navigator.pop(
+                    context, -1.0); // Special value to indicate removal
               },
               child: Text(
                 'Remove Goal',
@@ -406,7 +459,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         ],
       ),
     );
-    
+
     if (result != null) {
       final prefs = await SharedPreferences.getInstance();
       if (result == -1.0) {
@@ -427,39 +480,44 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
   Future<void> _loadRecentTransactions() async {
     if (_eventNotifier == null) return;
-    
+
     try {
       // Define recent days range (today and past few days, but exclude future)
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final pastWeek = today.subtract(const Duration(days: 7));
-      
+
       print("🔍 DEBUG: Recent transactions debug info:");
       print("🔍 Now: ${now.toIso8601String()}");
       print("🔍 Today boundary: ${today.toIso8601String()}");
       print("🔍 Past week boundary: ${pastWeek.toIso8601String()}");
-      
+
       // Get events from the past week to today (no future dates)
       final allEvents = _eventNotifier!.getEventsForDateRange(
         pastWeek,
-        today.add(const Duration(hours: 23, minutes: 59, seconds: 59)), // End of today
+        today.add(const Duration(
+            hours: 23, minutes: 59, seconds: 59)), // End of today
       );
-      
+
       print("🔍 Total events in range: ${allEvents.length}");
-      
+
       // Filter to only include past transactions (no future dates from recurring events)
       final recentEvents = allEvents.where((event) {
-        final eventDate = DateTime(event.dateTime.year, event.dateTime.month, event.dateTime.day);
-        final isPastOrToday = eventDate.isBefore(today) || eventDate.isAtSameMomentAs(today);
+        final eventDate = DateTime(
+            event.dateTime.year, event.dateTime.month, event.dateTime.day);
+        final isPastOrToday =
+            eventDate.isBefore(today) || eventDate.isAtSameMomentAs(today);
         final isNotFuture = !eventDate.isAfter(today);
-        
-        print("🔍 Checking ${event.title}: eventDate=${eventDate.toIso8601String()}, isPastOrToday=$isPastOrToday, isNotFuture=$isNotFuture");
-        
+
+        print(
+            "🔍 Checking ${event.title}: eventDate=${eventDate.toIso8601String()}, isPastOrToday=$isPastOrToday, isNotFuture=$isNotFuture");
+
         return isPastOrToday && isNotFuture;
       }).toList();
-      
-      print("🔍 Filtered recent events (past transactions only): ${recentEvents.length}");
-      
+
+      print(
+          "🔍 Filtered recent events (past transactions only): ${recentEvents.length}");
+
       // Sort by date (most recent first), then by creation time for same-day events
       recentEvents.sort((a, b) {
         // First compare by event date (most recent first)
@@ -470,17 +528,18 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         // If same date, sort by creation time (most recently created first)
         return b.createdAt.compareTo(a.createdAt);
       });
-      
+
       // Debug: Print final recent transactions
       print("📅 Final recent transactions (past week, no future):");
       for (int i = 0; i < recentEvents.take(5).length; i++) {
         final event = recentEvents[i];
-        print("  ${i + 1}. ${event.title} - Event: ${event.dateTime.toIso8601String()}");
+        print(
+            "  ${i + 1}. ${event.title} - Event: ${event.dateTime.toIso8601String()}");
       }
-      
+
       // Take only the most recent 5 transactions from the past week
       final finalRecentEvents = recentEvents.take(5).toList();
-      
+
       if (mounted) {
         _setStateIfAllowed(() {
           _recentTransactions = finalRecentEvents;
@@ -502,12 +561,14 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       final categoryNotifier = context.read<CategoryNotifier>();
       if (_eventNotifier == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('EventNotifier not initialized. Please wait.')),
+          const SnackBar(
+              content: Text('EventNotifier not initialized. Please wait.')),
         );
         return;
       }
-      
-      final categoryType = isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+
+      final categoryType =
+          isPositiveCashflow ? CategoryType.income : CategoryType.expense;
 
       // Load categories directly from database to get isSystem field
       final database = getIt<Database>();
@@ -520,18 +581,21 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
       if (categories.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No categories found. Please add categories first.')),
+          const SnackBar(
+              content:
+                  Text('No categories found. Please add categories first.')),
         );
         return;
       }
 
       // Get available goals for allocation
       final availableGoals = await database.getActiveGoals();
-      print("Debug: Found ${availableGoals.length} active goals for allocation");
-      
+      print(
+          "Debug: Found ${availableGoals.length} active goals for allocation");
+
       // Use current date as the selected day
       final selectedDay = DateTime.now();
-      
+
       print("About to show AddEditEventDialog from Cash page");
       final result = await showDialog<EventCreationResult>(
         context: context,
@@ -546,57 +610,63 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         },
       );
 
-      print("Dialog result: ${result != null ? 'event created with ${result.allocations.length} allocations' : 'cancelled'}");
+      print(
+          "Dialog result: ${result != null ? 'event created with ${result.allocations.length} allocations' : 'cancelled'}");
       if (result != null) {
         print("🚨 CashPage: Event result received, checking if recurring...");
         DateTime? firstEventDate;
-        
+
         // 🎯 FLICKER FIX: Suppress Cash page updates during recurring event creation
         final isRecurring = result.event.isRecurring;
-        print("🔍 CashPage DEBUG: isRecurring = $isRecurring, repeatOption = ${result.event.repeatOption}");
+        print(
+            "🔍 CashPage DEBUG: isRecurring = $isRecurring, repeatOption = ${result.event.repeatOption}");
         if (isRecurring) {
-          print("🚫 CashPage: Suppressing Cash page updates for recurring event");
+          print(
+              "🚫 CashPage: Suppressing Cash page updates for recurring event");
           // Cache current body before suppression starts
           _suppressCashPageUpdates = true;
         } else {
           print("ℹ️ CashPage: Single event detected, no suppression needed");
         }
-        
+
         try {
           if (result.allocations.isNotEmpty) {
             // Use the new method that handles allocations
-            firstEventDate = await _eventNotifier!.addEventWithAllocations(result.event.dateTime, result.event, result.allocations);
-            print("Event and allocations saved: ${result.allocations.length} allocations");
+            firstEventDate = await _eventNotifier!.addEventWithAllocations(
+                result.event.dateTime, result.event, result.allocations);
+            print(
+                "Event and allocations saved: ${result.allocations.length} allocations");
           } else {
             // Use the regular method for events without allocations
-            firstEventDate = await _eventNotifier!.addEvent(result.event.dateTime, result.event);
+            firstEventDate = await _eventNotifier!
+                .addEvent(result.event.dateTime, result.event);
           }
         } finally {
           // Note: Don't resume suppression here - wait until after calculations
         }
         print("Event added successfully from Cash page");
-        
+
         // 🎯 FLICKER FIX: Use debounced calculation to prevent multiple rapid calculations
         _debouncedCalculateTotals();
-        
+
         // 🎯 FLICKER FIX: Resume suppression and single final UI update for recurring events
         if (isRecurring && mounted) {
-          print("✅ CashPage: Resuming Cash page updates after all calculations");
+          print(
+              "✅ CashPage: Resuming Cash page updates after all calculations");
           _suppressCashPageUpdates = false;
-          
-          print("🎯 CashPage: Final UI update after recurring event completion");
+
+          print(
+              "🎯 CashPage: Final UI update after recurring event completion");
           setState(() {}); // Single final update to show all changes
         }
-        
+
         // Show success feedback
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              result.event.isRecurring
+            content: Text(result.event.isRecurring
                 ? 'Recurring events created! Your balance has been updated.'
-                : 'Event created successfully! Your balance has been updated.'
-            ),
+                : 'Event created successfully! Your balance has been updated.'),
             backgroundColor: DesignTokens.color('success'),
             duration: const Duration(seconds: 3),
           ),
@@ -619,15 +689,18 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
 
   // Hero Balance Section with year-end goal tracking and motivation
   Widget _buildHeroBalanceSection() {
-    final currentBalance = _totals['year']!['positive']! - _totals['year']!['negative']!;
-    
+    final currentBalance =
+        _totals['year']!['positive']! - _totals['year']!['negative']!;
+
     // Use dynamic goal from state
     final yearEndGoal = _yearEndGoal ?? 0.0;
     final goalProgress = yearEndGoal > 0 ? currentBalance / yearEndGoal : 0.0;
     final goalDifference = currentBalance - yearEndGoal;
-    
+
     return CashCard(
-      financialContext: currentBalance >= 0 ? FinancialContext.income : FinancialContext.expense,
+      financialContext: currentBalance >= 0
+          ? FinancialContext.income
+          : FinancialContext.expense,
       elevation: 'lg',
       onTap: () => _showYearEndGoalDialog(),
       child: Container(
@@ -642,8 +715,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   'Cash on Hand by End of Year',
                   styleToken: 'titleMedium',
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   adaptive: true,
@@ -652,15 +725,20 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 FinancialAmount(
                   amount: currentBalance,
                   size: FinancialAmountSize.large,
-                  style: DesignTokens.responsiveTextStyle('displayLarge', context).copyWith(
-                    fontSize: DesignTokens.responsiveTextStyle('displayLarge', context).fontSize! * 1.2,
+                  style:
+                      DesignTokens.responsiveTextStyle('displayLarge', context)
+                          .copyWith(
+                    fontSize: DesignTokens.responsiveTextStyle(
+                                'displayLarge', context)
+                            .fontSize! *
+                        1.2,
                     fontWeight: FontWeight.bold,
                   ),
                   adaptive: true,
                 ),
               ],
             ),
-            
+
             if (yearEndGoal > 0) ...[
               VSpace('lg'),
               // Goal progress section
@@ -691,9 +769,12 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                             ResponsiveText(
                               'Year-End Goal',
                               styleToken: 'labelMedium',
-                              style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium!
+                                  .copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
                           ],
                         ),
@@ -706,7 +787,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       ],
                     ),
                     VSpace('md'),
-                    
+
                     // Progress bar
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,22 +796,32 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             ResponsiveText(
-                              goalProgress >= 1.0 ? 'Goal Achieved! 🎉' : 'Progress',
+                              goalProgress >= 1.0
+                                  ? 'Goal Achieved! 🎉'
+                                  : 'Progress',
                               styleToken: 'labelSmall',
-                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                             ResponsiveText(
                               '${(goalProgress * 100).toStringAsFixed(0)}%',
                               styleToken: 'labelSmall',
-                              style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                                color: currentBalance >= 0 
-                                    ? DesignTokens.color('income') 
-                                    : DesignTokens.color('expense'),
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(
+                                    color: currentBalance >= 0
+                                        ? DesignTokens.color('income')
+                                        : DesignTokens.color('expense'),
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                           ],
                         ),
@@ -739,24 +830,52 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           height: 8,
                           decoration: BoxDecoration(
                             borderRadius: DesignTokens.borderRadius['xs']!,
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                           ),
                           child: FractionallySizedBox(
                             alignment: Alignment.centerLeft,
-                            widthFactor: (goalProgress > 1.0 ? 1.0 : goalProgress.abs()).clamp(0.0, 1.0),
+                            widthFactor:
+                                (goalProgress > 1.0 ? 1.0 : goalProgress.abs())
+                                    .clamp(0.0, 1.0),
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: DesignTokens.borderRadius['xs']!,
                                 gradient: LinearGradient(
                                   colors: currentBalance < 0
-                                      ? [DesignTokens.color('expense'), DesignTokens.color('expense').withOpacity(0.8)]
+                                      ? [
+                                          DesignTokens.color('expense'),
+                                          DesignTokens.color('expense')
+                                              .withOpacity(0.8)
+                                        ]
                                       : goalProgress >= 1.0
-                                          ? [DesignTokens.color('income'), DesignTokens.color('income').withOpacity(0.8)]
+                                          ? [
+                                              DesignTokens.color('income'),
+                                              DesignTokens.color('income')
+                                                  .withOpacity(0.8)
+                                            ]
                                           : goalProgress >= 0.75
-                                              ? [DesignTokens.color('info'), DesignTokens.color('info').withOpacity(0.8)]
+                                              ? [
+                                                  DesignTokens.color('info'),
+                                                  DesignTokens.color('info')
+                                                      .withOpacity(0.8)
+                                                ]
                                               : goalProgress >= 0.50
-                                                  ? [DesignTokens.color('warning'), DesignTokens.color('warning').withOpacity(0.8)]
-                                                  : [DesignTokens.color('error'), DesignTokens.color('error').withOpacity(0.8)],
+                                                  ? [
+                                                      DesignTokens.color(
+                                                          'warning'),
+                                                      DesignTokens.color(
+                                                              'warning')
+                                                          .withOpacity(0.8)
+                                                    ]
+                                                  : [
+                                                      DesignTokens.color(
+                                                          'error'),
+                                                      DesignTokens.color(
+                                                              'error')
+                                                          .withOpacity(0.8)
+                                                    ],
                                 ),
                               ),
                             ),
@@ -768,17 +887,19 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 ),
               ),
             ],
-            
+
             VSpace('md'),
             // Tap hint
             Center(
               child: ResponsiveText(
-                yearEndGoal > 0 ? 'Tap to change your goal' : 'Tap to set year-end goal',
+                yearEndGoal > 0
+                    ? 'Tap to change your goal'
+                    : 'Tap to set year-end goal',
                 styleToken: 'labelSmall',
                 style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
               ),
             ),
           ],
@@ -786,7 +907,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       ),
     );
   }
-  
+
   // Quick Action Buttons"}]
   Widget _buildQuickActions() {
     return Row(
@@ -819,7 +940,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       ],
     );
   }
-  
+
   // Time Period Mini Cards (Horizontal Scroll)
   Widget _buildTimePeriodSection() {
     final periods = [
@@ -846,17 +967,18 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               final period = periods[index];
               final amounts = _totals[period['key']]!;
               final total = amounts['positive']! - amounts['negative']!;
-              
+
               return Container(
                 width: 140,
                 margin: EdgeInsets.only(
-                  right: index < periods.length - 1 ? DesignTokens.space('md') : 0,
+                  right:
+                      index < periods.length - 1 ? DesignTokens.space('md') : 0,
                 ),
                 child: CashCard(
-                  financialContext: total >= 0 
-                      ? FinancialContext.income 
-                      : total < 0 
-                          ? FinancialContext.expense 
+                  financialContext: total >= 0
+                      ? FinancialContext.income
+                      : total < 0
+                          ? FinancialContext.expense
                           : FinancialContext.neutral,
                   onTap: () => _toggleExpanded(period['key'] as String),
                   child: Padding(
@@ -877,7 +999,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                           minFontSize: 12,
                           maxFontSize: 16,
                         ),
-                        SizedBox(height: DesignTokens.space('xs') / 2), // Reduced spacing
+                        SizedBox(
+                            height: DesignTokens.space('xs') /
+                                2), // Reduced spacing
                         Flexible(
                           child: FinancialAmount(
                             amount: total,
@@ -886,13 +1010,18 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                             adaptive: true,
                           ),
                         ),
-                        SizedBox(height: DesignTokens.space('xs') / 2), // Reduced spacing
+                        SizedBox(
+                            height: DesignTokens.space('xs') /
+                                2), // Reduced spacing
                         ResponsiveText(
                           period['subtitle'] as String,
                           styleToken: 'bodySmall',
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                           textAlign: TextAlign.center,
                           maxWidth: 120,
                           maxLines: 1,
@@ -910,7 +1039,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       ],
     );
   }
-  
+
   // Recent Transactions Preview
   Widget _buildRecentTransactionsSection() {
     return Column(
@@ -932,8 +1061,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 'View All',
                 styleToken: 'labelMedium',
                 style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                 maxWidth: 60,
               ),
             ),
@@ -956,8 +1085,10 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         'No recent transactions',
                         styleToken: 'bodyMedium',
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       VSpace('xs'),
@@ -965,8 +1096,10 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                         'Add your first transaction using the buttons above',
                         styleToken: 'bodySmall',
                         style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -992,7 +1125,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       ],
     );
   }
-  
+
   Widget _buildTransactionItem({
     required Event transaction,
   }) {
@@ -1000,10 +1133,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
     String formatRelativeDate(DateTime transactionDate) {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final transactionDay = DateTime(transactionDate.year, transactionDate.month, transactionDate.day);
-      
+      final transactionDay = DateTime(
+          transactionDate.year, transactionDate.month, transactionDate.day);
+
       final difference = today.difference(transactionDay).inDays;
-      
+
       if (difference == 0) {
         return 'Today';
       } else if (difference == 1) {
@@ -1022,7 +1156,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         return Icons.trending_up;
       } else {
         // For expenses, try to guess icon from category name or use general expense icon
-        final categoryName = 'Unknown'; // We'll get this from the category lookup
+        final categoryName =
+            'Unknown'; // We'll get this from the category lookup
         return Icons.trending_down;
       }
     }
@@ -1037,16 +1172,16 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           Container(
             padding: EdgeInsets.all(DesignTokens.space('sm')),
             decoration: BoxDecoration(
-              color: (transaction.isPositiveCashflow 
-                  ? DesignTokens.color('incomeLight') 
-                  : DesignTokens.color('expenseLight')
-              ).withOpacity(0.2),
+              color: (transaction.isPositiveCashflow
+                      ? DesignTokens.color('incomeLight')
+                      : DesignTokens.color('expenseLight'))
+                  .withOpacity(0.2),
               borderRadius: DesignTokens.radius('sm'),
             ),
             child: Icon(
               getTransactionIcon(),
-              color: transaction.isPositiveCashflow 
-                  ? DesignTokens.color('income') 
+              color: transaction.isPositiveCashflow
+                  ? DesignTokens.color('income')
                   : DesignTokens.color('expense'),
               size: 20,
             ),
@@ -1060,8 +1195,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   transaction.title,
                   styleToken: 'bodyMedium',
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                        fontWeight: FontWeight.w500,
+                      ),
                   maxLines: 1,
                 ),
                 FutureBuilder<String>(
@@ -1072,8 +1207,9 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       '$categoryName • ${formatRelativeDate(transaction.dateTime)}',
                       styleToken: 'bodySmall',
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                       maxLines: 1,
                     );
                   },
@@ -1101,11 +1237,11 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       return 'Unknown';
     }
   }
-  
+
   // Achievement Highlights (Horizontal Chips)
   Widget _buildAchievementHighlights() {
     final achievementNotifier = getIt<AchievementNotifier>();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1125,8 +1261,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                 'View All',
                 styleToken: 'labelMedium',
                 style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                 maxWidth: 60,
               ),
             ),
@@ -1141,39 +1277,41 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
               if (achievementNotifier.isLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
+
               // Get the most recent achievements (mix of unlocked and in-progress)
               final recentAchievements = [
                 ...achievementNotifier.unlockedAchievements.take(2),
                 ...achievementNotifier.inProgressAchievements.take(2),
               ].take(4).toList();
-              
+
               if (recentAchievements.isEmpty) {
                 return Center(
                   child: Text(
                     'No achievements yet',
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 );
               }
-              
+
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: recentAchievements.length,
                 itemBuilder: (context, index) {
                   final achievement = recentAchievements[index];
-                  
+
                   return Container(
                     margin: EdgeInsets.only(
-                      right: index < recentAchievements.length - 1 ? DesignTokens.space('sm') : 0,
+                      right: index < recentAchievements.length - 1
+                          ? DesignTokens.space('sm')
+                          : 0,
                     ),
                     child: CategoryChip(
                       name: achievement.title,
                       icon: _getAchievementIcon(achievement.title),
-                      financialContext: achievement.isUnlocked 
-                          ? FinancialContext.income 
+                      financialContext: achievement.isUnlocked
+                          ? FinancialContext.income
                           : FinancialContext.neutral,
                       selected: achievement.isUnlocked,
                       size: ChipSize.medium,
@@ -1187,34 +1325,35 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
       ],
     );
   }
-  
+
   String _getAchievementIcon(String achievementTitle) {
     // Map achievement titles to appropriate emoji icons
     final title = achievementTitle.toLowerCase();
-    
+
     if (title.contains('saving') || title.contains('saver')) return '💰';
     if (title.contains('goal') || title.contains('target')) return '🎯';
     if (title.contains('streak') || title.contains('consistent')) return '🔥';
     if (title.contains('budget') || title.contains('pro')) return '📈';
     if (title.contains('first') || title.contains('starter')) return '🌟';
     if (title.contains('monthly') || title.contains('month')) return '📅';
-    if (title.contains('milestone') || title.contains('achievement')) return '🏆';
+    if (title.contains('milestone') || title.contains('achievement'))
+      return '🏆';
     if (title.contains('discipline') || title.contains('master')) return '💪';
     if (title.contains('income') || title.contains('earn')) return '💵';
     if (title.contains('expense') || title.contains('spend')) return '💳';
-    
+
     return '⭐'; // Default icon
   }
-  
+
   void _toggleExpanded(String periodKey) {
     setState(() {
       _expandedTileId = _expandedTileId == periodKey ? null : periodKey;
     });
-    
+
     // Show detailed breakdown in a bottom sheet or dialog
     _showPeriodDetails(periodKey);
   }
-  
+
   void _showPeriodDetails(String periodKey) {
     final amounts = _totals[periodKey]!;
     showModalBottomSheet(
@@ -1248,7 +1387,8 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                       textAlign: TextAlign.center,
                     ),
                     VSpace('xs'),
-                    FinancialAmount(amount: amounts['positive']!, showSign: false),
+                    FinancialAmount(
+                        amount: amounts['positive']!, showSign: false),
                   ],
                 ),
                 Column(
@@ -1283,14 +1423,14 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
             VSpace('xl'),
             SecondaryButton(
               onPressed: () => Navigator.pop(context),
-              child: ResponsiveText('Close', styleToken: 'labelLarge', textAlign: TextAlign.center),
+              child: ResponsiveText('Close',
+                  styleToken: 'labelLarge', textAlign: TextAlign.center),
             ),
           ],
         ),
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -1301,6 +1441,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'View achievements',
             onPressed: () => Navigator.pushNamed(
               context,
               AchievementsScreen.routeName,
@@ -1308,6 +1449,7 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
           ),
           IconButton(
             icon: const Icon(Icons.settings),
+            tooltip: 'Open settings',
             onPressed: () => Navigator.pushNamed(
               context,
               SettingsView.routeName,
@@ -1326,22 +1468,22 @@ class _CashOnHandScreenState extends State<CashOnHandScreen>
                   // Hero Balance Section with Year-End Goal
                   _buildHeroBalanceSection(),
                   VSpace('xl'),
-                  
+
                   // Quick Action Buttons
                   _buildQuickActions(),
                   VSpace('xl'),
-                  
+
                   // Time Period Mini Cards (Horizontal Scroll)
                   _buildTimePeriodSection(),
                   VSpace('xl'),
-                  
+
                   // Recent Transactions Preview
                   _buildRecentTransactionsSection(),
                   VSpace('xl'),
-                  
+
                   // Achievement Highlights (Horizontal Chips)
                   _buildAchievementHighlights(),
-                  
+
                   // Add bottom padding for safe area
                   VSpace('2xl'),
                 ],

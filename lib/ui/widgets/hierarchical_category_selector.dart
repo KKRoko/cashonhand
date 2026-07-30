@@ -23,16 +23,20 @@ class HierarchicalCategorySelector extends StatefulWidget {
   });
 
   @override
-  State<HierarchicalCategorySelector> createState() => _HierarchicalCategorySelectorState();
+  State<HierarchicalCategorySelector> createState() =>
+      _HierarchicalCategorySelectorState();
 }
 
-class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelector> {
+class _HierarchicalCategorySelectorState
+    extends State<HierarchicalCategorySelector> {
   List<CategoryTableData> _mainCategories = [];
   List<CategoryTableData> _subcategories = [];
   CategoryTableData? _selectedMainCategory;
   Map<int, BucketType> _categoryBuckets = {}; // Maps category ID to bucket type
-  Map<int, CategoryTableData> _categoryCache = {}; // Cache all categories for parent lookup
-  Map<int, double> _categoryAllocations = {}; // Maps category ID to allocated amount
+  Map<int, CategoryTableData> _categoryCache =
+      {}; // Cache all categories for parent lookup
+  Map<int, double> _categoryAllocations =
+      {}; // Maps category ID to allocated amount
   Map<int, int> _categoryUsageCount = {}; // Maps category ID to usage frequency
   bool _isLoading = true;
   bool _showSubcategories = false;
@@ -87,7 +91,8 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
           }
 
           // Load category budgets to get actual bucket assignments
-          final categoryBudgetsResult = await budgetService.getCategoryBudgetsByBucket(budget.id);
+          final categoryBudgetsResult =
+              await budgetService.getCategoryBudgetsByBucket(budget.id);
 
           categoryBudgetsResult.fold(
             (failure) => _useDefaultBucketTypes(),
@@ -108,7 +113,9 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                       ? _categoryCache[category.parentCategoryId]
                       : null;
                   if (parentCategory != null) {
-                    _categoryBuckets[category.id] = CategoryHelpers.getDefaultBucketType(parentCategory.name);
+                    _categoryBuckets[category.id] =
+                        CategoryHelpers.getDefaultBucketType(
+                            parentCategory.name);
                   }
                 }
               }
@@ -131,7 +138,8 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
           ? _categoryCache[category.parentCategoryId]
           : null;
       if (parentCategory != null) {
-        _categoryBuckets[category.id] = CategoryHelpers.getDefaultBucketType(parentCategory.name);
+        _categoryBuckets[category.id] =
+            CategoryHelpers.getDefaultBucketType(parentCategory.name);
       }
     }
     if (mounted) setState(() {});
@@ -139,7 +147,8 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
 
   /// Load category allocations from budget
   Future<void> _loadCategoryAllocations() async {
-    if (widget.categoryType == CategoryType.income) return; // No allocations for income
+    if (widget.categoryType == CategoryType.income)
+      return; // No allocations for income
 
     try {
       final budgetService = getIt<BudgetService>();
@@ -150,7 +159,8 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
         (budget) async {
           if (budget == null) return;
 
-          final categoryBudgetsResult = await budgetService.getCategoryBudgetsByBucket(budget.id);
+          final categoryBudgetsResult =
+              await budgetService.getCategoryBudgetsByBucket(budget.id);
           categoryBudgetsResult.fold(
             (failure) {},
             (grouped) {
@@ -197,13 +207,16 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
   Future<void> _loadMainCategories() async {
     try {
       final database = getIt<Database>();
-      final categories = await database.getMainCategories(type: widget.categoryType);
-      
-      print('🔍 DEBUG: Loaded ${categories.length} main categories for type ${widget.categoryType}');
+      final categories =
+          await database.getMainCategories(type: widget.categoryType);
+
+      print(
+          '🔍 DEBUG: Loaded ${categories.length} main categories for type ${widget.categoryType}');
       for (var cat in categories) {
-        print('  - ${cat.name} (ID: ${cat.id}, Icon: ${cat.icon}, ParentID: ${cat.parentCategoryId})');
+        print(
+            '  - ${cat.name} (ID: ${cat.id}, Icon: ${cat.icon}, ParentID: ${cat.parentCategoryId})');
       }
-      
+
       setState(() {
         _mainCategories = categories;
         _isLoading = false;
@@ -225,13 +238,15 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
     try {
       final database = getIt<Database>();
       final subcategories = await database.getSubcategories(category.id);
-      
-      print('🔍 DEBUG: Selected main category: ${category.name} (ID: ${category.id})');
+
+      print(
+          '🔍 DEBUG: Selected main category: ${category.name} (ID: ${category.id})');
       print('🔍 DEBUG: Loaded ${subcategories.length} subcategories');
       for (var subcat in subcategories) {
-        print('  - ${subcat.name} (ID: ${subcat.id}, ParentID: ${subcat.parentCategoryId})');
+        print(
+            '  - ${subcat.name} (ID: ${subcat.id}, ParentID: ${subcat.parentCategoryId})');
       }
-      
+
       setState(() {
         _subcategories = subcategories;
         _showSubcategories = true;
@@ -300,7 +315,10 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
     });
 
     // Return top 3-5 that have been used at least once
-    return sorted.where((cat) => (_categoryUsageCount[cat.id] ?? 0) > 0).take(4).toList();
+    return sorted
+        .where((cat) => (_categoryUsageCount[cat.id] ?? 0) > 0)
+        .take(4)
+        .toList();
   }
 
   @override
@@ -315,7 +333,8 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.vertical(top: (DesignTokens.borderRadius['md']!).topLeft),
+              borderRadius: BorderRadius.vertical(
+                  top: (DesignTokens.borderRadius['md']!).topLeft),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,6 +344,7 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                     if (_showSubcategories) ...[
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
+                        tooltip: 'Go back',
                         onPressed: _goBack,
                         iconSize: 20,
                       ),
@@ -333,8 +353,8 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                     Expanded(
                       child: Text(
                         _showSubcategories
-                          ? '${_selectedMainCategory?.icon ?? ''} ${_selectedMainCategory?.name}'
-                          : '${widget.categoryType == CategoryType.income ? '💰' : '💳'} Select Category',
+                            ? '${_selectedMainCategory?.icon ?? ''} ${_selectedMainCategory?.name}'
+                            : '${widget.categoryType == CategoryType.income ? '💰' : '💳'} Select Category',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -344,6 +364,7 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                     if (widget.onClose != null)
                       IconButton(
                         icon: const Icon(Icons.close),
+                        tooltip: 'Close',
                         onPressed: widget.onClose,
                         iconSize: 20,
                       ),
@@ -358,19 +379,21 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                       hintText: 'Search categories...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                        : null,
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 20),
+                              tooltip: 'Clear search',
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.surface,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: DesignTokens.borderRadius['sm']!,
                         borderSide: BorderSide.none,
@@ -397,7 +420,9 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
           else
             // Category grid
             Flexible(
-              child: _showSubcategories ? _buildSubcategoryList() : _buildMainCategoryGrid(),
+              child: _showSubcategories
+                  ? _buildSubcategoryList()
+                  : _buildMainCategoryGrid(),
             ),
         ],
       ),
@@ -438,7 +463,10 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
             ),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.05),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withOpacity(0.05),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
@@ -605,17 +633,23 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
-                ? Theme.of(context).primaryColor.withOpacity(0.1)
-                : hasAllocation
-                  ? Theme.of(context).colorScheme.surfaceContainerHighest
-                  : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  ? Theme.of(context).primaryColor.withOpacity(0.1)
+                  : hasAllocation
+                      ? Theme.of(context).colorScheme.surfaceContainerHighest
+                      : Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withOpacity(0.5),
               borderRadius: DesignTokens.borderRadius['sm']!,
               border: Border.all(
                 color: isSelected
-                  ? Theme.of(context).primaryColor
-                  : hasAllocation
-                    ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
-                    : Theme.of(context).colorScheme.outline.withOpacity(0.15),
+                    ? Theme.of(context).primaryColor
+                    : hasAllocation
+                        ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                        : Theme.of(context)
+                            .colorScheme
+                            .outline
+                            .withOpacity(0.15),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -639,12 +673,17 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                         subcategory.name,
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: hasAllocation ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: hasAllocation
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                           color: isSelected
-                            ? Theme.of(context).primaryColor
-                            : hasAllocation
-                              ? Theme.of(context).colorScheme.onSurface
-                              : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ? Theme.of(context).primaryColor
+                              : hasAllocation
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.6),
                         ),
                       ),
                       if (_buildBucketBadge(subcategory.id) != null) ...[
@@ -657,9 +696,13 @@ class _HierarchicalCategorySelectorState extends State<HierarchicalCategorySelec
                 // Allocation amount or selection indicator
                 if (hasAllocation && !isSelected)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.1),
                       borderRadius: DesignTokens.borderRadius['xs']!,
                     ),
                     child: Text(

@@ -24,7 +24,8 @@ class GoalListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = goal.currentAmount / goal.targetAmount;
     final remainingAmount = goal.targetAmount - goal.currentAmount;
-    final monthsLeft = goal.deadlineDate!.difference(DateTime.now()).inDays / 30;
+    final monthsLeft =
+        goal.deadlineDate!.difference(DateTime.now()).inDays / 30;
     final requiredMonthly = remainingAmount / monthsLeft;
 
     return AnimatedContainer(
@@ -32,15 +33,15 @@ class GoalListItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: DesignTokens.radius('md'),
-        boxShadow: isExpanded
-            ? DesignTokens.shadow('lg')
-            : DesignTokens.shadow('sm'),
+        boxShadow:
+            isExpanded ? DesignTokens.shadow('lg') : DesignTokens.shadow('sm'),
       ),
       child: Material(
         color: Colors.transparent,
         child: Semantics(
           label: 'Saving goal: ${goal.title}',
-          hint: 'Progress: ${(progress * 100).toInt()}% complete. Current amount: ${FormatUtils.formatCurrency(goal.currentAmount)} of ${FormatUtils.formatCurrency(goal.targetAmount)}',
+          hint:
+              'Progress: ${(progress * 100).toInt()}% complete. Current amount: ${FormatUtils.formatCurrency(goal.currentAmount)} of ${FormatUtils.formatCurrency(goal.targetAmount)}',
           button: true,
           child: InkWell(
             onTap: onTap,
@@ -61,15 +62,21 @@ class GoalListItem extends StatelessWidget {
                             ),
                             Text(
                               'Target: ${FormatUtils.formatCurrency(goal.targetAmount)}',
-                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall!
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.edit_outlined),
+                        tooltip: 'Edit goal',
                         onPressed: onEdit,
                       ),
                       AnimatedRotation(
@@ -80,48 +87,48 @@ class GoalListItem extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                  ],
+                    ],
                   ),
                   VSpace('sm'),
                   Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FinancialProgressBar(
-                      value: goal.currentAmount,
-                      total: goal.targetAmount,
-                      label: 'Progress',
-                      financialContext: _getFinancialContext(progress),
-                      height: 8,
-                    ),
-                  ],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FinancialProgressBar(
+                        value: goal.currentAmount,
+                        total: goal.targetAmount,
+                        label: 'Progress',
+                        financialContext: _getFinancialContext(progress),
+                        height: 8,
+                      ),
+                    ],
                   ),
                   if (isExpanded) ...[
-                  VSpace('lg'),
-                  _buildDetailRow(
-                    context,
-                    'Remaining',
-                    FormatUtils.formatCurrency(remainingAmount),
-                  ),
-                  VSpace('sm'),
-                  _buildDetailRow(
-                    context,
-                    'Required Monthly Savings',
-                    FormatUtils.formatCurrency(requiredMonthly),
-                  ),
-                  VSpace('sm'),
-                  _buildDetailRow(
-                    context,
-                    'Deadline Date',
-                    goal.deadlineDate != null 
-                        ? FormatUtils.formatDate(goal.deadlineDate!)
-                        : 'No deadline set',
-                  ),
-                  VSpace('sm'),
-                  _buildDetailRow(
-                    context,
-                    'Months Left',
-                    '${monthsLeft.round()} months',
-                  ),
+                    VSpace('lg'),
+                    _buildDetailRow(
+                      context,
+                      'Remaining',
+                      FormatUtils.formatCurrency(remainingAmount),
+                    ),
+                    VSpace('sm'),
+                    _buildDetailRow(
+                      context,
+                      'Required Monthly Savings',
+                      FormatUtils.formatCurrency(requiredMonthly),
+                    ),
+                    VSpace('sm'),
+                    _buildDetailRow(
+                      context,
+                      'Deadline Date',
+                      goal.deadlineDate != null
+                          ? FormatUtils.formatDate(goal.deadlineDate!)
+                          : 'No deadline set',
+                    ),
+                    VSpace('sm'),
+                    _buildDetailRow(
+                      context,
+                      'Months Left',
+                      '${monthsLeft.round()} months',
+                    ),
                     if (onViewDetails != null) ...[
                       VSpace('lg'),
                       SecondaryButton(
@@ -152,8 +159,8 @@ class GoalListItem extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+                fontWeight: FontWeight.w500,
+              ),
         ),
       ],
     );

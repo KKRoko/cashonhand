@@ -50,14 +50,14 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
     for (int i = 0; i < _allocations.length; i++) {
       if (!_controllers.containsKey(i)) {
         _controllers[i] = TextEditingController(
-          text: _allocations[i].allocationAmount.toStringAsFixed(2)
-        );
+            text: _allocations[i].allocationAmount.toStringAsFixed(2));
       }
     }
   }
 
   double get _totalAllocated {
-    return _allocations.fold(0.0, (sum, allocation) => sum + allocation.allocationAmount);
+    return _allocations.fold(
+        0.0, (sum, allocation) => sum + allocation.allocationAmount);
   }
 
   double get _remainingAmount {
@@ -74,25 +74,27 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
       allocationType: AllocationType.manual,
       goalTitle: goal.title,
     );
-    
+
     setState(() {
       _allocations.add(allocation);
       // Create controller for new allocation
       final newIndex = _allocations.length - 1;
-      _controllers[newIndex] = TextEditingController(
-        text: suggestedAmount.toStringAsFixed(2)
-      );
+      _controllers[newIndex] =
+          TextEditingController(text: suggestedAmount.toStringAsFixed(2));
     });
     widget.onAllocationsChanged(_allocations);
   }
 
   void _updateAllocation(int index, double amount) {
-    if (amount >= 0) { // Allow any positive amount, show negative remaining as warning
+    if (amount >= 0) {
+      // Allow any positive amount, show negative remaining as warning
       setState(() {
-        _allocations[index] = _allocations[index].copyWith(allocationAmount: amount);
+        _allocations[index] =
+            _allocations[index].copyWith(allocationAmount: amount);
       });
       widget.onAllocationsChanged(_allocations);
-      print("Debug: Updated allocation $index to \$${amount.toStringAsFixed(2)}, remaining: \$${_remainingAmount.toStringAsFixed(2)}");
+      print(
+          "Debug: Updated allocation $index to \$${amount.toStringAsFixed(2)}, remaining: \$${_remainingAmount.toStringAsFixed(2)}");
     }
   }
 
@@ -102,7 +104,7 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
       // Dispose and remove controller
       _controllers[index]?.dispose();
       _controllers.remove(index);
-      
+
       // Re-index remaining controllers
       final remainingControllers = <int, TextEditingController>{};
       for (int i = 0; i < _allocations.length; i++) {
@@ -130,7 +132,7 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
 
   Widget _buildQuickAllocateButton() {
     if (widget.availableGoals.isEmpty) return const SizedBox.shrink();
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: ElevatedButton.icon(
@@ -143,9 +145,7 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
         ),
         icon: const Icon(Icons.flash_on, size: 20),
         label: Text(
-          widget.isIncome 
-            ? 'Quick Save from Income' 
-            : 'Round-up to Save',
+          widget.isIncome ? 'Quick Save from Income' : 'Round-up to Save',
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -154,13 +154,15 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
 
   void _showQuickAllocateOptions() {
     final quickOptions = <String, double>{};
-    
+
     if (widget.isIncome) {
       quickOptions['10% to Emergency Fund'] = widget.transactionAmount * 0.1;
       quickOptions['5% to Each Goal'] = widget.transactionAmount * 0.05;
-      quickOptions['20% Split Evenly'] = widget.transactionAmount * 0.2 / widget.availableGoals.length;
+      quickOptions['20% Split Evenly'] =
+          widget.transactionAmount * 0.2 / widget.availableGoals.length;
     } else {
-      final roundUp = widget.transactionAmount.ceilToDouble() - widget.transactionAmount;
+      final roundUp =
+          widget.transactionAmount.ceilToDouble() - widget.transactionAmount;
       if (roundUp > 0) {
         quickOptions['Round-up (\$${roundUp.toStringAsFixed(2)})'] = roundUp;
       }
@@ -184,25 +186,25 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
           Text(
             'Quick Allocate',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ...options.entries.map((entry) => Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              title: Text(entry.key),
-              trailing: Text(
-                '\$${(entry.value * widget.availableGoals.length).toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                Navigator.of(context).pop();
-                _applyQuickAllocate(entry.value);
-              },
-            ),
-          )),
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  title: Text(entry.key),
+                  trailing: Text(
+                    '\$${(entry.value * widget.availableGoals.length).toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _applyQuickAllocate(entry.value);
+                  },
+                ),
+              )),
           const SizedBox(height: 8),
           OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -243,7 +245,9 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
           ListTile(
             leading: Icon(
               Icons.savings,
-              color: _allocations.isEmpty ? Theme.of(context).colorScheme.onSurfaceVariant : DesignTokens.color('success'),
+              color: _allocations.isEmpty
+                  ? Theme.of(context).colorScheme.onSurfaceVariant
+                  : DesignTokens.color('success'),
             ),
             title: const Text(
               'Allocate to Savings Goals',
@@ -252,20 +256,21 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
               ),
             ),
             subtitle: _allocations.isNotEmpty
-              ? Text(
-                  '${_allocations.length} allocations • \$${_totalAllocated.toStringAsFixed(2)} total',
-                )
-              : const Text(
-                  'Add allocations to your savings goals',
-                ),
+                ? Text(
+                    '${_allocations.length} allocations • \$${_totalAllocated.toStringAsFixed(2)} total',
+                  )
+                : const Text(
+                    'Add allocations to your savings goals',
+                  ),
             trailing: IconButton(
               icon: Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
               ),
+              tooltip: _isExpanded ? 'Collapse' : 'Expand',
               onPressed: () => setState(() => _isExpanded = !_isExpanded),
             ),
           ),
-          
+
           // Expandable content
           if (_isExpanded) ...[
             Padding(
@@ -275,7 +280,7 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
                   const SizedBox(height: 12),
                   // Quick allocate button
                   _buildQuickAllocateButton(),
-                  
+
                   // Current allocations list
                   if (_allocations.isNotEmpty) ...[
                     ...List.generate(_allocations.length, (index) {
@@ -284,31 +289,35 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
                     }),
                     const Divider(),
                   ],
-                  
+
                   // Available goals to add
                   if (_availableGoalsToAdd.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _availableGoalsToAdd.map((goal) => ActionChip(
-                        avatar: const Icon(
-                          Icons.add,
-                          size: 18,
-                        ),
-                        label: Text(goal.title),
-                        onPressed: () => _addAllocation(goal),
-                      )).toList(),
+                      children: _availableGoalsToAdd
+                          .map((goal) => ActionChip(
+                                avatar: const Icon(
+                                  Icons.add,
+                                  size: 18,
+                                ),
+                                label: Text(goal.title),
+                                onPressed: () => _addAllocation(goal),
+                              ))
+                          .toList(),
                     ),
                   ],
-                  
+
                   // Summary
                   if (_allocations.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         borderRadius: DesignTokens.borderRadius['sm']!,
                       ),
                       child: Row(
@@ -324,7 +333,9 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
                             '\$${_remainingAmount.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: _remainingAmount < 0 ? DesignTokens.color('error') : DesignTokens.color('success'),
+                              color: _remainingAmount < 0
+                                  ? DesignTokens.color('error')
+                                  : DesignTokens.color('success'),
                             ),
                           ),
                         ],
@@ -344,8 +355,7 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
     // Get or create controller for this index
     if (!_controllers.containsKey(index)) {
       _controllers[index] = TextEditingController(
-        text: allocation.allocationAmount.toStringAsFixed(2)
-      );
+          text: allocation.allocationAmount.toStringAsFixed(2));
     }
     final controller = _controllers[index]!;
 
@@ -367,12 +377,16 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
             width: 80,
             child: TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
+              ],
               decoration: const InputDecoration(
                 prefixText: '\$',
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 isDense: true,
               ),
               onChanged: (value) {
@@ -390,6 +404,7 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
               Icons.close,
               size: 18,
             ),
+            tooltip: 'Remove allocation',
             onPressed: () => _removeAllocation(index),
           ),
         ],
@@ -399,6 +414,8 @@ class _GoalAllocationWidgetState extends State<GoalAllocationWidget> {
 
   List<SavingGoalTableData> get _availableGoalsToAdd {
     final allocatedGoalIds = _allocations.map((a) => a.goalId).toSet();
-    return widget.availableGoals.where((goal) => !allocatedGoalIds.contains(goal.id)).toList();
+    return widget.availableGoals
+        .where((goal) => !allocatedGoalIds.contains(goal.id))
+        .toList();
   }
 }

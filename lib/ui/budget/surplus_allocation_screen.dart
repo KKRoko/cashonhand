@@ -36,7 +36,8 @@ class SurplusAllocationScreen extends StatefulWidget {
   });
 
   @override
-  State<SurplusAllocationScreen> createState() => _SurplusAllocationScreenState();
+  State<SurplusAllocationScreen> createState() =>
+      _SurplusAllocationScreenState();
 }
 
 class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
@@ -159,7 +160,8 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
     // Validate
     if (_itemsWithAllocations == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one goal to allocate to')),
+        const SnackBar(
+            content: Text('Please select at least one goal to allocate to')),
       );
       return;
     }
@@ -169,13 +171,13 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
 
     // Validate total allocation doesn't exceed available surplus
     final availableSurplus = widget.budgetNotifier.availableSurplus;
-    if (_totalAllocated > availableSurplus + 0.01) {  // 0.01 tolerance for floating point
+    if (_totalAllocated > availableSurplus + 0.01) {
+      // 0.01 tolerance for floating point
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Cannot allocate \$${_totalAllocated.toStringAsFixed(2)}. '
-            'Only \$${availableSurplus.toStringAsFixed(2)} is available.'
-          ),
+              'Cannot allocate \$${_totalAllocated.toStringAsFixed(2)}. '
+              'Only \$${availableSurplus.toStringAsFixed(2)} is available.'),
           backgroundColor: DesignTokens.color('error'),
         ),
       );
@@ -188,7 +190,8 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
     for (final item in _items) {
       if (item.selectedGoalId != null && item.allocationAmount > 0) {
         goalAllocations[item.selectedGoalId!] =
-            (goalAllocations[item.selectedGoalId!] ?? 0.0) + item.allocationAmount;
+            (goalAllocations[item.selectedGoalId!] ?? 0.0) +
+                item.allocationAmount;
       }
     }
 
@@ -199,7 +202,8 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
       month: widget.budgetNotifier.selectedMonth.month,
       year: widget.budgetNotifier.selectedMonth.year,
       goalAllocations: goalAllocations,
-      notes: 'Allocated via ${_viewMode == SurplusViewMode.category ? "category" : "bucket"} view',
+      notes:
+          'Allocated via ${_viewMode == SurplusViewMode.category ? "category" : "bucket"} view',
     );
 
     final result = await _surplusService.allocateSurplus(request);
@@ -340,7 +344,8 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Expanded(
-              child: _buildViewModeButton('By Category', SurplusViewMode.category),
+              child:
+                  _buildViewModeButton('By Category', SurplusViewMode.category),
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -355,26 +360,34 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
   Widget _buildViewModeButton(String label, SurplusViewMode mode) {
     final isSelected = _viewMode == mode;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _viewMode = mode;
-          _buildSurplusItems();
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _viewMode = mode;
+            _buildSurplusItems();
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
@@ -569,7 +582,8 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               items: [
                 const DropdownMenuItem<int>(
@@ -604,12 +618,16 @@ class _SurplusAllocationScreenState extends State<SurplusAllocationScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (value) {
                   final amount = double.tryParse(value);
-                  if (amount != null && amount >= 0 && amount <= item.surplusAmount) {
+                  if (amount != null &&
+                      amount >= 0 &&
+                      amount <= item.surplusAmount) {
                     setState(() {
                       item.allocationAmount = amount;
                     });

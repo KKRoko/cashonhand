@@ -9,7 +9,7 @@ import '../../state/saving_goal_notifier.dart';
 import '../../data/models/freezed/saving_goal.dart';
 import '../../theme/design_tokens.dart';
 
-class AddEditAllocationRuleDialog extends StatefulWidget{
+class AddEditAllocationRuleDialog extends StatefulWidget {
   final AutoAllocationRule? existingRule;
   final Function(AutoAllocationRule) onSave;
 
@@ -20,10 +20,12 @@ class AddEditAllocationRuleDialog extends StatefulWidget{
   });
 
   @override
-  State<AddEditAllocationRuleDialog> createState() => _AddEditAllocationRuleDialogState();
+  State<AddEditAllocationRuleDialog> createState() =>
+      _AddEditAllocationRuleDialogState();
 }
 
-class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialog> {
+class _AddEditAllocationRuleDialogState
+    extends State<AddEditAllocationRuleDialog> {
   final _formKey = GlobalKey<FormState>();
   final _ruleNameController = TextEditingController();
   final _allocationValueController = TextEditingController();
@@ -50,11 +52,14 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
     }
 
     _ruleNameController.text = _form.ruleName;
-    _allocationValueController.text = _form.allocationMethod == AllocationMethod.percentage 
-        ? (_form.allocationValue * 100).toStringAsFixed(1)
-        : _form.allocationValue.toStringAsFixed(2);
-    _minTriggerController.text = _form.minimumTriggerAmount?.toStringAsFixed(2) ?? '';
-    _maxAllocationController.text = _form.maximumAllocationAmount?.toStringAsFixed(2) ?? '';
+    _allocationValueController.text =
+        _form.allocationMethod == AllocationMethod.percentage
+            ? (_form.allocationValue * 100).toStringAsFixed(1)
+            : _form.allocationValue.toStringAsFixed(2);
+    _minTriggerController.text =
+        _form.minimumTriggerAmount?.toStringAsFixed(2) ?? '';
+    _maxAllocationController.text =
+        _form.maximumAllocationAmount?.toStringAsFixed(2) ?? '';
     _descriptionController.text = _form.description;
   }
 
@@ -103,7 +108,8 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
               ),
               child: Row(
                 children: [
@@ -115,7 +121,9 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      widget.existingRule == null ? 'Create Allocation Rule' : 'Edit Allocation Rule',
+                      widget.existingRule == null
+                          ? 'Create Allocation Rule'
+                          : 'Edit Allocation Rule',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -125,12 +133,13 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
+                    tooltip: 'Close',
                     icon: const Icon(Icons.close, color: Colors.white),
                   ),
                 ],
               ),
             ),
-            
+
             // Form
             Expanded(
               child: SingleChildScrollView(
@@ -161,7 +170,7 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
                           });
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
 
                       // Description
@@ -179,44 +188,44 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
                           });
                         },
                       ),
-                      
+
                       const SizedBox(height: 24),
 
                       // Goal Selection
                       _buildSectionHeader('Target Goal'),
                       _buildGoalSelector(),
-                      
+
                       const SizedBox(height: 24),
 
                       // Trigger Conditions
                       _buildSectionHeader('When to Trigger'),
                       _buildTriggerTypeSelector(),
-                      
+
                       if (_form.triggerType == TriggerType.category) ...[
                         const SizedBox(height: 16),
                         _buildCategorySelector(),
                       ],
-                      
+
                       const SizedBox(height: 16),
                       _buildMinimumAmountField(),
-                      
+
                       const SizedBox(height: 24),
 
                       // Allocation Settings
                       _buildSectionHeader('How Much to Allocate'),
                       _buildAllocationMethodSelector(),
-                      
+
                       const SizedBox(height: 16),
                       _buildAllocationValueField(),
-                      
+
                       const SizedBox(height: 16),
                       _buildMaximumAllocationField(),
-                      
+
                       const SizedBox(height: 24),
 
                       // Preview
                       _buildRulePreview(),
-                      
+
                       const SizedBox(height: 32),
 
                       // Action Buttons
@@ -232,7 +241,9 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
                           Expanded(
                             child: ElevatedButton(
                               onPressed: _canSave ? _saveRule : null,
-                              child: Text(widget.existingRule == null ? 'Create Rule' : 'Save Changes'),
+                              child: Text(widget.existingRule == null
+                                  ? 'Create Rule'
+                                  : 'Save Changes'),
                             ),
                           ),
                         ],
@@ -274,16 +285,19 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
           isExpanded: true,
           value: _form.goalId,
           hint: const Text('Select a savings goal'),
-          items: _goals.map((goal) => DropdownMenuItem<int>(
-            value: goal.id,
-            child: Row(
-              children: [
-                Icon(Icons.flag, size: 20, color: Theme.of(context).primaryColor),
-                const SizedBox(width: 8),
-                Expanded(child: Text(goal.title)),
-              ],
-            ),
-          )).toList(),
+          items: _goals
+              .map((goal) => DropdownMenuItem<int>(
+                    value: goal.id,
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag,
+                            size: 20, color: Theme.of(context).primaryColor),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(goal.title)),
+                      ],
+                    ),
+                  ))
+              .toList(),
           onChanged: (goalId) {
             setState(() {
               _form = _form.copyWith(goalId: goalId);
@@ -308,7 +322,9 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
               setState(() {
                 _form = _form.copyWith(
                   triggerType: type,
-                  triggerCategoryId: type == TriggerType.category ? _form.triggerCategoryId : null,
+                  triggerCategoryId: type == TriggerType.category
+                      ? _form.triggerCategoryId
+                      : null,
                 );
               });
             }
@@ -330,10 +346,12 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
           isExpanded: true,
           value: _form.triggerCategoryId,
           hint: const Text('Select category'),
-          items: _categories.map((category) => DropdownMenuItem<int>(
-            value: category.id,
-            child: Text(category.name),
-          )).toList(),
+          items: _categories
+              .map((category) => DropdownMenuItem<int>(
+                    value: category.id,
+                    child: Text(category.name),
+                  ))
+              .toList(),
           onChanged: (categoryId) {
             setState(() {
               _form = _form.copyWith(triggerCategoryId: categoryId);
@@ -348,7 +366,9 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: AllocationMethod.values.where((method) => method != AllocationMethod.roundUp).map((method) {
+      children: AllocationMethod.values
+          .where((method) => method != AllocationMethod.roundUp)
+          .map((method) {
         final isSelected = _form.allocationMethod == method;
         return ChoiceChip(
           label: Row(
@@ -487,12 +507,14 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(Icons.info_outline,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Complete the required fields to preview your rule',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
           ],
@@ -501,9 +523,14 @@ class _AddEditAllocationRuleDialogState extends State<AddEditAllocationRuleDialo
     }
 
     final rule = _form.toRule();
-    final goalTitle = _goals.where((g) => g.id == _form.goalId).firstOrNull?.title ?? 'Selected Goal';
-    final categoryName = _categories.where((c) => c.id == _form.triggerCategoryId).firstOrNull?.name;
-    
+    final goalTitle =
+        _goals.where((g) => g.id == _form.goalId).firstOrNull?.title ??
+            'Selected Goal';
+    final categoryName = _categories
+        .where((c) => c.id == _form.triggerCategoryId)
+        .firstOrNull
+        ?.name;
+
     final ruleWithInfo = rule.withDisplayInfo(
       goalTitle: goalTitle,
       categoryName: categoryName,

@@ -11,29 +11,31 @@ import 'widgets/suggestions_filter_bar.dart';
 
 class SuggestionsScreen extends StatefulWidget {
   static const routeName = '/suggestions';
-  
+
   const SuggestionsScreen({super.key});
 
   @override
   State<SuggestionsScreen> createState() => _SuggestionsScreenState();
 }
 
-class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProviderStateMixin {
-  final FinancialSuggestionsEngine _suggestionsEngine = getIt<FinancialSuggestionsEngine>();
+class _SuggestionsScreenState extends State<SuggestionsScreen>
+    with TickerProviderStateMixin {
+  final FinancialSuggestionsEngine _suggestionsEngine =
+      getIt<FinancialSuggestionsEngine>();
   final NotificationService _notificationService = getIt<NotificationService>();
-  
+
   List<FinancialSuggestion> _allSuggestions = [];
   List<FinancialSuggestion> _filteredSuggestions = [];
   List<AppNotification> _notifications = [];
-  
+
   bool _isLoading = true;
   String? _error;
-  
+
   // Filter state
   Set<SuggestionType> _selectedTypes = {};
   Set<SuggestionPriority> _selectedPriorities = {};
   bool _showOnlyActive = true;
-  
+
   late TabController _tabController;
 
   @override
@@ -68,8 +70,9 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
 
     try {
       // Generate fresh suggestions
-      final suggestionsResult = await _suggestionsEngine.generateAllSuggestions();
-      
+      final suggestionsResult =
+          await _suggestionsEngine.generateAllSuggestions();
+
       suggestionsResult.fold(
         (failure) {
           setState(() {
@@ -100,20 +103,22 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
     setState(() {
       _filteredSuggestions = _allSuggestions.where((suggestion) {
         // Type filter
-        if (_selectedTypes.isNotEmpty && !_selectedTypes.contains(suggestion.type)) {
+        if (_selectedTypes.isNotEmpty &&
+            !_selectedTypes.contains(suggestion.type)) {
           return false;
         }
-        
+
         // Priority filter
-        if (_selectedPriorities.isNotEmpty && !_selectedPriorities.contains(suggestion.priority)) {
+        if (_selectedPriorities.isNotEmpty &&
+            !_selectedPriorities.contains(suggestion.priority)) {
           return false;
         }
-        
+
         // Active filter
         if (_showOnlyActive && !suggestion.isActive) {
           return false;
         }
-        
+
         return true;
       }).toList();
     });
@@ -128,10 +133,12 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh suggestions',
             onPressed: _loadData,
           ),
           IconButton(
             icon: const Icon(Icons.help_outline),
+            tooltip: 'Show help',
             onPressed: _showHelpDialog,
           ),
         ],
@@ -144,7 +151,8 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             ),
             Tab(
               icon: const Icon(Icons.notifications_outlined),
-              text: 'Notifications (${_notifications.where((n) => n.isActive).length})',
+              text:
+                  'Notifications (${_notifications.where((n) => n.isActive).length})',
             ),
           ],
         ),
@@ -176,8 +184,8 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Text(
               'Analyzing your financial data...',
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),
@@ -192,8 +200,8 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline, 
-                size: 64, 
+                Icons.error_outline,
+                size: 64,
                 color: DesignTokens.color('error'),
               ),
               VSpace('lg'),
@@ -206,8 +214,8 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
                 _error!,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               VSpace('xl'),
               PrimaryButton(
@@ -244,7 +252,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               },
             ),
           ),
-          
+
           // Suggestions list as a sliver or empty state
           _filteredSuggestions.isEmpty
               ? SliverFillRemaining(
@@ -273,8 +281,9 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
   }
 
   Widget _buildNotificationsTab() {
-    final activeNotifications = _notifications.where((n) => n.isActive).toList();
-    
+    final activeNotifications =
+        _notifications.where((n) => n.isActive).toList();
+
     if (activeNotifications.isEmpty) {
       return Center(
         child: Padding(
@@ -291,16 +300,16 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               Text(
                 'No Active Notifications',
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
               VSpace('lg'),
               Text(
                 'We\'ll notify you about important financial insights and goal updates.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
             ],
           ),
@@ -334,9 +343,10 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
         title: Text(
           notification.title,
           style: Theme.of(context).textTheme.titleMedium!.copyWith(
-            fontWeight: notification.isRead ? FontWeight.normal : FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+                fontWeight:
+                    notification.isRead ? FontWeight.normal : FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,20 +355,21 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Text(
               notification.body,
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
             VSpace('sm'),
             Text(
               _formatNotificationTime(notification.createdAt),
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ],
         ),
         trailing: PopupMenuButton<String>(
-          onSelected: (action) => _handleNotificationAction(action, notification),
+          onSelected: (action) =>
+              _handleNotificationAction(action, notification),
           itemBuilder: (context) => [
             if (!notification.isRead)
               const PopupMenuItem(value: 'read', child: Text('Mark as Read')),
@@ -395,16 +406,16 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
             Text(
               'No Suggestions Available',
               style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
             VSpace('lg'),
             Text(
               'Keep using the app and we\'ll provide personalized financial insights based on your spending patterns.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
             VSpace('2xl'),
             PrimaryButton(
@@ -445,7 +456,8 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
       Navigator.pushNamed(context, suggestion.actionRoute!);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No specific action available for this suggestion')),
+        const SnackBar(
+            content: Text('No specific action available for this suggestion')),
       );
     }
   }
@@ -497,7 +509,7 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
   String _formatNotificationTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -534,7 +546,8 @@ class _SuggestionsScreenState extends State<SuggestionsScreen> with TickerProvid
               Text('• Round-up optimizations'),
               Text('• Goal milestones'),
               Text('• Unusual activity alerts'),
-              Text('\\nSuggestions are updated automatically based on your latest financial activity.'),
+              Text(
+                  '\\nSuggestions are updated automatically based on your latest financial activity.'),
             ],
           ),
         ),

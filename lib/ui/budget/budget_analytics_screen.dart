@@ -39,7 +39,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
     try {
       // Load year-end goal progress (current year)
       final now = DateTime.now();
-      final yearGoalResult = await _analyticsService.getYearEndGoalProgress(now.year);
+      final yearGoalResult =
+          await _analyticsService.getYearEndGoalProgress(now.year);
       await yearGoalResult.fold(
         (failure) async {
           // No goal set yet, that's okay
@@ -51,7 +52,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
       );
 
       // Load spending trends
-      final trendsResult = await _analyticsService.getSpendingTrends(_selectedRange);
+      final trendsResult =
+          await _analyticsService.getSpendingTrends(_selectedRange);
       await trendsResult.fold(
         (failure) async {
           throw Exception(failure.message);
@@ -62,7 +64,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
       );
 
       // Load category trends
-      final categoryResult = await _analyticsService.getCategoryTrends(_selectedRange);
+      final categoryResult =
+          await _analyticsService.getCategoryTrends(_selectedRange);
       await categoryResult.fold(
         (failure) async {
           throw Exception(failure.message);
@@ -73,7 +76,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
       );
 
       // Load overspending patterns
-      final patternsResult = await _analyticsService.getOverspendingPatterns(_selectedRange);
+      final patternsResult =
+          await _analyticsService.getOverspendingPatterns(_selectedRange);
       await patternsResult.fold(
         (failure) async {
           throw Exception(failure.message);
@@ -119,7 +123,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                       const SizedBox(height: 24),
                       _buildTopCategoriesSection(),
                       const SizedBox(height: 24),
-                      if (_overspendingPatterns != null && _overspendingPatterns!.isNotEmpty)
+                      if (_overspendingPatterns != null &&
+                          _overspendingPatterns!.isNotEmpty)
                         _buildOverspendingPatternsSection(),
                     ],
                   ),
@@ -194,26 +199,34 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
   Widget _buildTimeRangeButton(String label, AnalyticsTimeRange range) {
     final isSelected = _selectedRange == range;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedRange = range;
-        });
-        _loadAnalytics();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
-          borderRadius: DesignTokens.borderRadius['sm']!,
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedRange = range;
+          });
+          _loadAnalytics();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            borderRadius: DesignTokens.borderRadius['sm']!,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
@@ -228,7 +241,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
     // Calculate totals by bucket
     final bucketTotals = <BucketType, double>{};
     for (final trend in _spendingTrends!) {
-      bucketTotals[trend.bucket] = (bucketTotals[trend.bucket] ?? 0) + trend.actual;
+      bucketTotals[trend.bucket] =
+          (bucketTotals[trend.bucket] ?? 0) + trend.actual;
     }
 
     // If all buckets have 0 spending, show empty state
@@ -275,7 +289,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                           '\$${(value / 1000).toStringAsFixed(0)}k',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         );
                       },
@@ -313,7 +328,10 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) {
                     return FlLine(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withOpacity(0.1),
                       strokeWidth: 1,
                     );
                   },
@@ -427,9 +445,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
   }
 
   Widget _buildOverspendingPatternsSection() {
-    final consistentPatterns = _overspendingPatterns!
-        .where((p) => p.isConsistentPattern)
-        .toList();
+    final consistentPatterns =
+        _overspendingPatterns!.where((p) => p.isConsistentPattern).toList();
 
     if (consistentPatterns.isEmpty) {
       return const SizedBox.shrink();
@@ -656,7 +673,9 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
           for (final bucket in BucketType.values) ...[
             _buildGoalProgressBar(
               bucket: bucket,
-              goalPercentage: progress.goal!.getBucketPercentage(bucket.toString().split('.').last) * 100,
+              goalPercentage: progress.goal!
+                      .getBucketPercentage(bucket.toString().split('.').last) *
+                  100,
               goalAmount: dollarGoals[bucket] ?? 0.0,
               actualAmount: progress.actualSpending[bucket] ?? 0.0,
               progressPercentage: progressPercentages[bucket] ?? 0.0,
@@ -675,7 +694,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
     required double goalPercentage, // Goal percentage (0-100)
     required double goalAmount, // Dollar amount calculated from percentage
     required double actualAmount,
-    required double progressPercentage, // Progress percentage (how much of goal is spent)
+    required double
+        progressPercentage, // Progress percentage (how much of goal is spent)
     required double remaining,
     required bool isOver,
   }) {
@@ -700,7 +720,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     borderRadius: DesignTokens.borderRadius['xs']!,
@@ -721,7 +742,9 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isOver ? DesignTokens.color('error') : Theme.of(context).colorScheme.onSurfaceVariant,
+                color: isOver
+                    ? DesignTokens.color('error')
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -732,7 +755,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
           child: LinearProgressIndicator(
             value: (progressPercentage / 100).clamp(0.0, 1.0),
             minHeight: 8,
-            backgroundColor: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
+            backgroundColor:
+                Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.1),
             valueColor: AlwaysStoppedAnimation<Color>(progressColor),
           ),
         ),
@@ -743,7 +767,9 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
               : 'Remaining: \$${remaining.toStringAsFixed(0)} (${progressPercentage.toStringAsFixed(0)}%)',
           style: TextStyle(
             fontSize: 11,
-            color: isOver ? DesignTokens.color('error') : Theme.of(context).colorScheme.onSurfaceVariant,
+            color: isOver
+                ? DesignTokens.color('error')
+                : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -755,13 +781,19 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
     final existingGoal = progress?.goal;
 
     final needsController = TextEditingController(
-      text: existingGoal != null ? (existingGoal.needsPercentage * 100).toStringAsFixed(0) : '50',
+      text: existingGoal != null
+          ? (existingGoal.needsPercentage * 100).toStringAsFixed(0)
+          : '50',
     );
     final wantsController = TextEditingController(
-      text: existingGoal != null ? (existingGoal.wantsPercentage * 100).toStringAsFixed(0) : '30',
+      text: existingGoal != null
+          ? (existingGoal.wantsPercentage * 100).toStringAsFixed(0)
+          : '30',
     );
     final savingsController = TextEditingController(
-      text: existingGoal != null ? (existingGoal.savingsPercentage * 100).toStringAsFixed(0) : '20',
+      text: existingGoal != null
+          ? (existingGoal.savingsPercentage * 100).toStringAsFixed(0)
+          : '20',
     );
 
     final result = await showDialog<bool>(
@@ -811,7 +843,10 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                   ),
                   hintText: 'e.g., 50',
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant
+                        .withOpacity(0.5),
                     fontSize: 18,
                   ),
                   suffixText: '%',
@@ -821,7 +856,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: DesignTokens.borderRadius['sm']!,
                   ),
@@ -838,7 +874,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                       width: 2,
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
               ),
               const SizedBox(height: 16),
@@ -858,7 +895,10 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                   ),
                   hintText: 'e.g., 30',
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant
+                        .withOpacity(0.5),
                     fontSize: 18,
                   ),
                   suffixText: '%',
@@ -868,7 +908,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: DesignTokens.borderRadius['sm']!,
                   ),
@@ -885,7 +926,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                       width: 2,
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
               ),
               const SizedBox(height: 16),
@@ -905,7 +947,10 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                   ),
                   hintText: 'e.g., 20',
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant
+                        .withOpacity(0.5),
                     fontSize: 18,
                   ),
                   suffixText: '%',
@@ -915,7 +960,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: DesignTokens.borderRadius['sm']!,
                   ),
@@ -932,7 +978,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
                       width: 2,
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
               ),
             ],
@@ -961,9 +1008,12 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
     );
 
     // Read values and dispose controllers before async operations
-    final needsPercent = result == true ? (double.tryParse(needsController.text) ?? 0.0) : 0.0;
-    final wantsPercent = result == true ? (double.tryParse(wantsController.text) ?? 0.0) : 0.0;
-    final savingsPercent = result == true ? (double.tryParse(savingsController.text) ?? 0.0) : 0.0;
+    final needsPercent =
+        result == true ? (double.tryParse(needsController.text) ?? 0.0) : 0.0;
+    final wantsPercent =
+        result == true ? (double.tryParse(wantsController.text) ?? 0.0) : 0.0;
+    final savingsPercent =
+        result == true ? (double.tryParse(savingsController.text) ?? 0.0) : 0.0;
 
     // Dispose controllers immediately after reading values
     needsController.dispose();
@@ -978,7 +1028,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Percentages must sum to 100% (current total: ${total.toStringAsFixed(0)}%)'),
+              content: Text(
+                  'Percentages must sum to 100% (current total: ${total.toStringAsFixed(0)}%)'),
               backgroundColor: DesignTokens.color('error'),
             ),
           );
@@ -998,7 +1049,8 @@ class _BudgetAnalyticsScreenState extends State<BudgetAnalyticsScreen> {
         (failure) async {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to save goal: ${failure.message}')),
+              SnackBar(
+                  content: Text('Failed to save goal: ${failure.message}')),
             );
           }
         },

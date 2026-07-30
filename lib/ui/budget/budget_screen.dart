@@ -34,11 +34,14 @@ class BudgetScreen extends StatefulWidget {
   State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
-class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClientMixin {
+class _BudgetScreenState extends State<BudgetScreen>
+    with AutomaticKeepAliveClientMixin {
   late final BudgetNotifier _budgetNotifier;
   BudgetViewMode _viewMode = BudgetViewMode.plan;
-  BucketType? _expandedBucket; // Track which bucket is expanded to show transactions (Actual view)
-  BucketType? _expandedPlanBucket; // Track which bucket is expanded in Plan view
+  BucketType?
+      _expandedBucket; // Track which bucket is expanded to show transactions (Actual view)
+  BucketType?
+      _expandedPlanBucket; // Track which bucket is expanded in Plan view
 
   @override
   bool get wantKeepAlive => true;
@@ -62,7 +65,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
   void _onTabChanged() {
     // Reload budget data when navigating to budget tab from another tab
     // This ensures spending data is fresh if user added transactions in calendar
-    if (globalTabNotifier.currentTabIndex == 3) { // Budget tab is index 3
+    if (globalTabNotifier.currentTabIndex == 3) {
+      // Budget tab is index 3
       // Reset to current month when navigating back to budget tab
       final now = DateTime.now();
       final currentMonth = DateTime(now.year, now.month, 1);
@@ -72,7 +76,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
   void _changeMonth(int monthOffset) {
     final currentMonth = _budgetNotifier.selectedMonth;
-    final newMonth = DateTime(currentMonth.year, currentMonth.month + monthOffset, 1);
+    final newMonth =
+        DateTime(currentMonth.year, currentMonth.month + monthOffset, 1);
 
     // Validate navigation limits
     if (!_canNavigateToMonth(newMonth)) {
@@ -98,10 +103,11 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
     // Allow 2 years back, 1 year forward
     final twoYearsAgo = DateTime(currentMonth.year - 2, currentMonth.month, 1);
-    final oneYearForward = DateTime(currentMonth.year + 1, currentMonth.month, 1);
+    final oneYearForward =
+        DateTime(currentMonth.year + 1, currentMonth.month, 1);
 
     return month.isAfter(twoYearsAgo.subtract(const Duration(days: 1))) &&
-           month.isBefore(oneYearForward.add(const Duration(days: 1)));
+        month.isBefore(oneYearForward.add(const Duration(days: 1)));
   }
 
   void _navigateToSetup() async {
@@ -234,7 +240,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_budgetNotifier.error ?? 'Failed to apply template'),
+              content:
+                  Text(_budgetNotifier.error ?? 'Failed to apply template'),
               backgroundColor: DesignTokens.color('error'),
             ),
           );
@@ -277,11 +284,15 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                 ),
                 hintText: 'My Budget Template',
                 hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withOpacity(0.5),
                   fontSize: 18,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                fillColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: DesignTokens.borderRadius['sm']!,
                 ),
@@ -298,7 +309,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                     width: 2,
                   ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               onChanged: (value) => templateName = value,
               autofocus: true,
@@ -318,11 +330,15 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                 ),
                 hintText: 'Describe this budget template',
                 hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withOpacity(0.5),
                   fontSize: 16,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                fillColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: DesignTokens.borderRadius['sm']!,
                 ),
@@ -339,7 +355,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                     width: 2,
                   ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               onChanged: (value) => templateDescription = value,
               maxLines: 3,
@@ -375,7 +392,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
       final result = await templateService.createTemplateFromBudget(
         budget: budget,
         name: templateName,
-        description: templateDescription.isEmpty ? 'Custom budget template' : templateDescription,
+        description: templateDescription.isEmpty
+            ? 'Custom budget template'
+            : templateDescription,
       );
 
       if (mounted) {
@@ -401,7 +420,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
     }
   }
 
-  void _showApplyTemplateDialog(BudgetNotifier notifier, BudgetTemplate template) {
+  void _showApplyTemplateDialog(
+      BudgetNotifier notifier, BudgetTemplate template) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -429,7 +449,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
     );
   }
 
-  Future<void> _applyTemplate(BudgetNotifier notifier, BudgetTemplate template) async {
+  Future<void> _applyTemplate(
+      BudgetNotifier notifier, BudgetTemplate template) async {
     final budget = notifier.activeBudget;
     if (budget == null) return;
 
@@ -502,7 +523,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_budgetNotifier.error ?? 'Failed to apply template'),
+              content:
+                  Text(_budgetNotifier.error ?? 'Failed to apply template'),
               backgroundColor: DesignTokens.color('error'),
             ),
           );
@@ -698,7 +720,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
     final selectedMonth = _budgetNotifier.selectedMonth;
     final monthName = DateFormat('MMMM yyyy').format(selectedMonth);
     final now = DateTime.now();
-    final isCurrentMonth = selectedMonth.year == now.year && selectedMonth.month == now.month;
+    final isCurrentMonth =
+        selectedMonth.year == now.year && selectedMonth.month == now.month;
 
     // Check navigation limits
     final prevMonth = DateTime(selectedMonth.year, selectedMonth.month - 1, 1);
@@ -722,8 +745,11 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
               children: [
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
+                  tooltip: 'Previous month',
                   onPressed: canGoPrev ? () => _changeMonth(-1) : null,
-                  color: canGoPrev ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: canGoPrev
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 Column(
                   children: [
@@ -737,7 +763,12 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                     ),
                     if (!isCurrentMonth)
                       Text(
-                        isCurrentMonth ? '' : (selectedMonth.isBefore(DateTime(now.year, now.month, 1)) ? 'Past Month' : 'Future Month'),
+                        isCurrentMonth
+                            ? ''
+                            : (selectedMonth
+                                    .isBefore(DateTime(now.year, now.month, 1))
+                                ? 'Past Month'
+                                : 'Future Month'),
                         style: TextStyle(
                           fontSize: 11,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -747,8 +778,11 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                 ),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
+                  tooltip: 'Next month',
                   onPressed: canGoNext ? () => _changeMonth(1) : null,
-                  color: canGoNext ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: canGoNext
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
@@ -792,7 +826,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                     label: Text('Create Budget for $monthName'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
                       textStyle: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -831,15 +866,19 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
     // Adjust actual spending based on time period
     final actualData = {
-      BucketType.needs: (notifier.actualSpending[BucketType.needs] ?? 0.0) * multiplier,
-      BucketType.wants: (notifier.actualSpending[BucketType.wants] ?? 0.0) * multiplier,
-      BucketType.savings: (notifier.actualSpending[BucketType.savings] ?? 0.0) * multiplier,
+      BucketType.needs:
+          (notifier.actualSpending[BucketType.needs] ?? 0.0) * multiplier,
+      BucketType.wants:
+          (notifier.actualSpending[BucketType.wants] ?? 0.0) * multiplier,
+      BucketType.savings:
+          (notifier.actualSpending[BucketType.savings] ?? 0.0) * multiplier,
     };
 
     // Check navigation limits
     final selectedMonth = notifier.selectedMonth;
     final now = DateTime.now();
-    final isCurrentMonth = selectedMonth.year == now.year && selectedMonth.month == now.month;
+    final isCurrentMonth =
+        selectedMonth.year == now.year && selectedMonth.month == now.month;
     final prevMonth = DateTime(selectedMonth.year, selectedMonth.month - 1, 1);
     final nextMonth = DateTime(selectedMonth.year, selectedMonth.month + 1, 1);
     final canGoPrev = _canNavigateToMonth(prevMonth);
@@ -860,7 +899,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
             backgroundColor: Theme.of(context).colorScheme.surface,
             surfaceColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             onSurfaceColor: Theme.of(context).colorScheme.onSurface,
-            onSurfaceVariantColor: Theme.of(context).colorScheme.onSurfaceVariant,
+            onSurfaceVariantColor:
+                Theme.of(context).colorScheme.onSurfaceVariant,
             primaryColor: Theme.of(context).colorScheme.primary,
           ),
         ),
@@ -872,159 +912,160 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
             delegate: SliverChildListDelegate([
               const SizedBox(height: 24),
 
-          // Legend
-          _buildLegend(_viewMode == BudgetViewMode.plan ? planData : actualData),
-          const SizedBox(height: 32),
+              // Legend
+              _buildLegend(
+                  _viewMode == BudgetViewMode.plan ? planData : actualData),
+              const SizedBox(height: 32),
 
-          // Pie Chart
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Builder(
-              builder: (context) {
-                // Calculate totals based on view mode
-                final isActual = _viewMode == BudgetViewMode.actual;
-                final currentData = isActual ? actualData : planData;
-                final totalAmount = currentData.values.fold<double>(0.0, (sum, amount) => sum + amount);
+              // Pie Chart
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Builder(builder: (context) {
+                  // Calculate totals based on view mode
+                  final isActual = _viewMode == BudgetViewMode.actual;
+                  final currentData = isActual ? actualData : planData;
+                  final totalAmount = currentData.values
+                      .fold<double>(0.0, (sum, amount) => sum + amount);
 
-                return BudgetPieChart(
-                  bucketAmounts: currentData,
-                  centerText: '\$${totalAmount.toStringAsFixed(0)}',
-                  subtitle: isActual
-                      ? 'Current Spending'
-                      : '${_getTimePeriodLabel()} Plan',
-                  showLegend: false,
-                  isActualView: isActual,
-                );
-              }
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // View Mode Toggle
-          Center(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: DesignTokens.borderRadius['md']!,
+                  return BudgetPieChart(
+                    bucketAmounts: currentData,
+                    centerText: '\$${totalAmount.toStringAsFixed(0)}',
+                    subtitle: isActual
+                        ? 'Current Spending'
+                        : '${_getTimePeriodLabel()} Plan',
+                    showLegend: false,
+                    isActualView: isActual,
+                  );
+                }),
               ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildToggleButton('Budget Plan', BudgetViewMode.plan),
-                  const SizedBox(width: 4),
-                  _buildToggleButton('Actual', BudgetViewMode.actual),
-                ],
+              const SizedBox(height: 32),
+
+              // View Mode Toggle
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: DesignTokens.borderRadius['md']!,
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildToggleButton('Budget Plan', BudgetViewMode.plan),
+                      const SizedBox(width: 4),
+                      _buildToggleButton('Actual', BudgetViewMode.actual),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-          // Budget vs Actual Comparison (Actual view only - show first)
-          if (_viewMode == BudgetViewMode.actual) ...[
-            Text(
-              'Budget vs Actual',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+              // Budget vs Actual Comparison (Actual view only - show first)
+              if (_viewMode == BudgetViewMode.actual) ...[
+                Text(
+                  'Budget vs Actual',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildIncomeComparisonCard(budget, notifier),
+                const SizedBox(height: 12),
+                _buildComparisonCard(BucketType.needs, budget, notifier),
+                const SizedBox(height: 12),
+                _buildComparisonCard(BucketType.wants, budget, notifier),
+                const SizedBox(height: 12),
+                _buildComparisonCard(BucketType.savings, budget, notifier),
+                const SizedBox(height: 32),
+              ],
+
+              // Budget Details
+              Text(
+                'Budget Details',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            _buildIncomeComparisonCard(budget, notifier),
-            const SizedBox(height: 12),
-            _buildComparisonCard(BucketType.needs, budget, notifier),
-            const SizedBox(height: 12),
-            _buildComparisonCard(BucketType.wants, budget, notifier),
-            const SizedBox(height: 12),
-            _buildComparisonCard(BucketType.savings, budget, notifier),
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 16),
 
-          // Budget Details
-          Text(
-            'Budget Details',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
+              // Category Allocations (Plan view only)
+              if (_viewMode == BudgetViewMode.plan) ...[
+                _buildAllocationBucket(BucketType.needs, notifier),
+                const SizedBox(height: 12),
+                _buildAllocationBucket(BucketType.wants, notifier),
+                const SizedBox(height: 12),
+                _buildAllocationBucket(BucketType.savings, notifier),
+                const SizedBox(height: 16),
+              ],
 
-          // Category Allocations (Plan view only)
-          if (_viewMode == BudgetViewMode.plan) ...[
-            _buildAllocationBucket(BucketType.needs, notifier),
-            const SizedBox(height: 12),
-            _buildAllocationBucket(BucketType.wants, notifier),
-            const SizedBox(height: 12),
-            _buildAllocationBucket(BucketType.savings, notifier),
-            const SizedBox(height: 16),
-          ],
+              // Alert Banner
+              if (notifier.hasAlerts) _buildAlertBanner(notifier),
+              if (notifier.hasAlerts) const SizedBox(height: 16),
 
-          // Alert Banner
-          if (notifier.hasAlerts)
-            _buildAlertBanner(notifier),
-          if (notifier.hasAlerts)
-            const SizedBox(height: 16),
+              _buildBudgetDetailCard(
+                'Allocated',
+                notifier.isFullyAllocated
+                    ? 'Fully allocated'
+                    : 'Needs allocation',
+                notifier.isFullyAllocated
+                    ? Icons.check_circle_outline
+                    : Icons.warning_outlined,
+                color: notifier.isFullyAllocated
+                    ? DesignTokens.color('success')
+                    : DesignTokens.color('warning'),
+              ),
+              const SizedBox(height: 12),
 
-          _buildBudgetDetailCard(
-            'Allocated',
-            notifier.isFullyAllocated ? 'Fully allocated' : 'Needs allocation',
-            notifier.isFullyAllocated ? Icons.check_circle_outline : Icons.warning_outlined,
-            color: notifier.isFullyAllocated
-                ? DesignTokens.color('success')
-                : DesignTokens.color('warning'),
-          ),
-          const SizedBox(height: 12),
+              // Overspending Alert
+              if (notifier.hasAnyOverspending)
+                _buildBudgetDetailCard(
+                  'Alert',
+                  'Overspending detected in ${_getOverspendingBuckets(notifier)}',
+                  Icons.warning_rounded,
+                  color: DesignTokens.color('error'),
+                ),
+              if (notifier.hasAnyOverspending) const SizedBox(height: 12),
 
-          // Overspending Alert
-          if (notifier.hasAnyOverspending)
-            _buildBudgetDetailCard(
-              'Alert',
-              'Overspending detected in ${_getOverspendingBuckets(notifier)}',
-              Icons.warning_rounded,
-              color: DesignTokens.color('error'),
-            ),
-          if (notifier.hasAnyOverspending)
-            const SizedBox(height: 12),
+              // Surplus Allocation
+              if (notifier.hasSurplus) _buildSurplusCard(notifier),
+              const SizedBox(height: 32),
 
-          // Surplus Allocation
-          if (notifier.hasSurplus)
-            _buildSurplusCard(notifier),
-          const SizedBox(height: 32),
-
-          // Allocate Categories Button
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => CategoryAllocationScreen(
-                      budget: budget,
-                      budgetNotifier: _budgetNotifier,
+              // Allocate Categories Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => CategoryAllocationScreen(
+                          budget: budget,
+                          budgetNotifier: _budgetNotifier,
+                        ),
+                      ),
+                    );
+                    // Reload budget after returning
+                    _budgetNotifier.loadActiveBudget();
+                  },
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Allocate to Categories'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: DesignTokens.borderRadius['md']!,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                );
-                // Reload budget after returning
-                _budgetNotifier.loadActiveBudget();
-              },
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Allocate to Categories'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ),
             ]), // Close SliverChildListDelegate
           ), // Close SliverList
         ), // Close SliverPadding
@@ -1035,28 +1076,36 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
   Widget _buildToggleButton(String label, BudgetViewMode mode) {
     final isSelected = _viewMode == mode;
 
-    return GestureDetector(
-      onTap: () => setState(() => _viewMode = mode),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
-          borderRadius: DesignTokens.borderRadius['sm']!,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: () => setState(() => _viewMode = mode),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            borderRadius: DesignTokens.borderRadius['sm']!,
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
     );
   }
 
-
-  Widget _buildBudgetDetailCard(String title, String subtitle, IconData icon, {Color? color}) {
+  Widget _buildBudgetDetailCard(String title, String subtitle, IconData icon,
+      {Color? color}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1065,7 +1114,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
       ),
       child: Row(
         children: [
-          Icon(icon, color: color ?? Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(icon,
+              color: color ?? Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -1084,7 +1134,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: color ?? Theme.of(context).colorScheme.onSurfaceVariant,
+                    color:
+                        color ?? Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -1096,62 +1147,69 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
   }
 
   Widget _buildSurplusCard(BudgetNotifier notifier) {
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      label:
+          'Surplus available. Tap to allocate \$${notifier.totalSurplus.toStringAsFixed(2)} to savings goals.',
+      excludeSemantics: true,
       onTap: () => _navigateToSurplusAllocation(notifier),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: DesignTokens.borderRadius['md']!,
-          border: Border.all(
-            color: DesignTokens.color('success').withOpacity(0.3),
-            width: 1.5,
+      child: GestureDetector(
+        onTap: () => _navigateToSurplusAllocation(notifier),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: DesignTokens.borderRadius['md']!,
+            border: Border.all(
+              color: DesignTokens.color('success').withOpacity(0.3),
+              width: 1.5,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: DesignTokens.color('success').withOpacity(0.1),
-                shape: BoxShape.circle,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: DesignTokens.color('success').withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.savings_outlined,
+                  color: DesignTokens.color('success'),
+                  size: 24,
+                ),
               ),
-              child: Icon(
-                Icons.savings_outlined,
-                color: DesignTokens.color('success'),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Surplus Available',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Surplus Available',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Allocate \$${notifier.totalSurplus.toStringAsFixed(2)} to savings goals',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: DesignTokens.color('success'),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Allocate \$${notifier.totalSurplus.toStringAsFixed(2)} to savings goals',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: DesignTokens.color('success'),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ],
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1173,9 +1231,12 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
   String _getOverspendingBuckets(BudgetNotifier notifier) {
     final buckets = <String>[];
-    if (notifier.overspendingStatus[BucketType.needs] == true) buckets.add('Needs');
-    if (notifier.overspendingStatus[BucketType.wants] == true) buckets.add('Wants');
-    if (notifier.overspendingStatus[BucketType.savings] == true) buckets.add('Savings');
+    if (notifier.overspendingStatus[BucketType.needs] == true)
+      buckets.add('Needs');
+    if (notifier.overspendingStatus[BucketType.wants] == true)
+      buckets.add('Wants');
+    if (notifier.overspendingStatus[BucketType.savings] == true)
+      buckets.add('Savings');
     return buckets.join(', ');
   }
 
@@ -1202,7 +1263,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
   }
 
   Widget _buildLegend(Map<BucketType, double> bucketAmounts) {
-    final total = bucketAmounts.values.fold<double>(0.0, (sum, amount) => sum + amount);
+    final total =
+        bucketAmounts.values.fold<double>(0.0, (sum, amount) => sum + amount);
 
     return Wrap(
       spacing: 24,
@@ -1253,7 +1315,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
     // If the main alert is a bucket alert, find related category alerts
     List<BudgetAlert> relatedCategoryAlerts = [];
-    if (mostCritical.bucketType != null && mostCritical.categoryBudgetId == null) {
+    if (mostCritical.bucketType != null &&
+        mostCritical.categoryBudgetId == null) {
       // This is a bucket-level alert, find category alerts in the same bucket
       relatedCategoryAlerts = notifier.alerts
           .where((alert) =>
@@ -1302,7 +1365,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                     if (notifier.alerts.length > 1) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: iconColor.withOpacity(0.2),
                           borderRadius: DesignTokens.borderRadius['sm']!,
@@ -1334,7 +1398,10 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withOpacity(0.5),
                       borderRadius: DesignTokens.borderRadius['sm']!,
                     ),
                     child: Column(
@@ -1353,7 +1420,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                           // Find the category name from categoryBudgets
                           String categoryName = 'Unknown';
                           if (alert.bucketType != null) {
-                            final categories = notifier.categoryBudgets[alert.bucketType!] ?? [];
+                            final categories =
+                                notifier.categoryBudgets[alert.bucketType!] ??
+                                    [];
                             final category = categories.firstWhere(
                               (c) => c.id == alert.categoryBudgetId,
                               orElse: () => categories.first,
@@ -1366,7 +1435,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                             child: Row(
                               children: [
                                 Icon(
-                                  alert.isCritical ? Icons.error : Icons.warning,
+                                  alert.isCritical
+                                      ? Icons.error
+                                      : Icons.warning,
                                   size: 14,
                                   color: textColor.withOpacity(0.7),
                                 ),
@@ -1396,12 +1467,16 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
     );
   }
 
-  Widget _buildComparisonCard(BucketType bucket, Budget budget, BudgetNotifier notifier) {
+  Widget _buildComparisonCard(
+      BucketType bucket, Budget budget, BudgetNotifier notifier) {
     final multiplier = _getTimePeriodMultiplier();
-    final budgetAmount = budget.getBucketAmount(bucket.toString().split('.').last) * multiplier;
+    final budgetAmount =
+        budget.getBucketAmount(bucket.toString().split('.').last) * multiplier;
     final actualAmount = (notifier.actualSpending[bucket] ?? 0.0) * multiplier;
     final remaining = budgetAmount - actualAmount;
-    final percentage = budgetAmount > 0 ? (actualAmount / budgetAmount * 100).clamp(0, 100) : 0.0;
+    final percentage = budgetAmount > 0
+        ? (actualAmount / budgetAmount * 100).clamp(0, 100)
+        : 0.0;
     final isOverspending = remaining < 0;
 
     // Get alert level for this bucket
@@ -1426,176 +1501,184 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
     final isExpanded = _expandedBucket == bucket;
 
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _expandedBucket = isExpanded ? null : bucket;
-        });
-      },
-      borderRadius: DesignTokens.borderRadius['md']!,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: DesignTokens.borderRadius['md']!,
-          border: borderColor != null
-              ? Border.all(color: borderColor, width: 2)
-              : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: _getBucketColor(bucket),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.category, color: Theme.of(context).colorScheme.onPrimary, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      _getBucketLabel(bucket),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ],
-                ),
-                if (badgeText != null && badgeColor != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.1),
-                      borderRadius: DesignTokens.borderRadius['sm']!,
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: badgeColor,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Semantics(
+      button: true,
+      label: _getBucketLabel(bucket),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _expandedBucket = isExpanded ? null : bucket;
+          });
+        },
+        borderRadius: DesignTokens.borderRadius['md']!,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: DesignTokens.borderRadius['md']!,
+            border: borderColor != null
+                ? Border.all(color: borderColor, width: 2)
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Budget',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: _getBucketColor(bucket),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.category,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _getBucketLabel(bucket),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ],
                   ),
-                  Text(
-                    '\$${budgetAmount.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  if (badgeText != null && badgeColor != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: badgeColor.withOpacity(0.1),
+                        borderRadius: DesignTokens.borderRadius['sm']!,
+                      ),
+                      child: Text(
+                        badgeText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: badgeColor,
+                        ),
+                      ),
                     ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Budget',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '\$${budgetAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Spent',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '\$${actualAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isOverspending
+                              ? DesignTokens.color('error')
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Remaining',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        isOverspending
+                            ? '-\$${(-remaining).toStringAsFixed(0)}'
+                            : '\$${remaining.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isOverspending
+                              ? DesignTokens.color('error')
+                              : DesignTokens.color('success'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Spent',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    '\$${actualAmount.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isOverspending
-                          ? DesignTokens.color('error')
-                          : Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              LinearProgressIndicator(
+                value: (percentage / 100).clamp(0.0, 1.0),
+                backgroundColor:
+                    Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                valueColor: AlwaysStoppedAnimation(
+                  hasCritical
+                      ? DesignTokens.color('error')
+                      : hasWarning
+                          ? DesignTokens.color('warning')
+                          : _getBucketColor(bucket),
+                ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'Remaining',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    isOverspending
-                        ? '-\$${(-remaining).toStringAsFixed(0)}'
-                        : '\$${remaining.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isOverspending
-                          ? DesignTokens.color('error')
-                          : DesignTokens.color('success'),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 4),
+              Text(
+                '${percentage.toStringAsFixed(0)}% of budget used',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
+
+              // Show transactions when expanded
+              if (isExpanded) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                _buildBucketTransactions(bucket, notifier),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: (percentage / 100).clamp(0.0, 1.0),
-            backgroundColor: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            valueColor: AlwaysStoppedAnimation(
-              hasCritical
-                  ? DesignTokens.color('error')
-                  : hasWarning
-                      ? DesignTokens.color('warning')
-                      : _getBucketColor(bucket),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${percentage.toStringAsFixed(0)}% of budget used',
-            style: TextStyle(
-              fontSize: 12,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-
-          // Show transactions when expanded
-          if (isExpanded) ...[
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            _buildBucketTransactions(bucket, notifier),
-          ],
-        ],
+        ),
       ),
-    ),
     );
   }
 
@@ -1651,7 +1734,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
           ...categoriesWithSpending.map((category) {
             final spending = notifier.categorySpending[category.id] ?? 0.0;
             final allocated = category.allocatedAmount;
-            final percentage = allocated > 0 ? (spending / allocated * 100).clamp(0, 100) : 0.0;
+            final percentage = allocated > 0
+                ? (spending / allocated * 100).clamp(0, 100)
+                : 0.0;
             final isOver = spending > allocated;
 
             return Padding(
@@ -1671,7 +1756,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1692,7 +1778,10 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                         const SizedBox(height: 4),
                         LinearProgressIndicator(
                           value: (percentage / 100).clamp(0.0, 1.0),
-                          backgroundColor: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.2),
                           valueColor: AlwaysStoppedAnimation(
                             isOver
                                 ? DesignTokens.color('error')
@@ -1716,8 +1805,11 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
     final budgetedIncome = budget.monthlyIncome * multiplier;
     final actualIncome = notifier.actualIncome * multiplier;
     final variance = actualIncome - budgetedIncome;
-    final percentage = budgetedIncome > 0 ? (actualIncome / budgetedIncome * 100).clamp(0, 200) : 0.0;
-    final isSignificantlyUnder = variance < 0 && (variance.abs() / budgetedIncome) >= 0.15; // 15% or more under
+    final percentage = budgetedIncome > 0
+        ? (actualIncome / budgetedIncome * 100).clamp(0, 200)
+        : 0.0;
+    final isSignificantlyUnder = variance < 0 &&
+        (variance.abs() / budgetedIncome) >= 0.15; // 15% or more under
 
     // Determine colors and badges
     Color? borderColor;
@@ -1761,7 +1853,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                       color: DesignTokens.color('success'),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.attach_money, color: Theme.of(context).colorScheme.onPrimary, size: 18),
+                    child: Icon(Icons.attach_money,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: 18),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -1776,7 +1870,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
               ),
               if (badgeText != null && badgeColor != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: badgeColor.withOpacity(0.1),
                     borderRadius: DesignTokens.borderRadius['sm']!,
@@ -1857,7 +1952,9 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                       fontWeight: FontWeight.w600,
                       color: variance >= 0
                           ? DesignTokens.color('success')
-                          : (isSignificantlyUnder ? DesignTokens.color('warning') : Theme.of(context).colorScheme.onSurfaceVariant),
+                          : (isSignificantlyUnder
+                              ? DesignTokens.color('warning')
+                              : Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ],
@@ -1867,7 +1964,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
           const SizedBox(height: 12),
           LinearProgressIndicator(
             value: (percentage / 100).clamp(0.0, 1.0),
-            backgroundColor: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+            backgroundColor:
+                Theme.of(context).colorScheme.outline.withOpacity(0.3),
             valueColor: AlwaysStoppedAnimation(
               isSignificantlyUnder
                   ? DesignTokens.color('warning')
@@ -1918,7 +2016,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
 
   Widget _buildAllocationBucket(BucketType bucket, BudgetNotifier notifier) {
     final categories = notifier.categoryBudgets[bucket] ?? [];
-    final categoriesWithAllocation = categories.where((cat) => cat.allocatedAmount > 0).toList();
+    final categoriesWithAllocation =
+        categories.where((cat) => cat.allocatedAmount > 0).toList();
 
     // Don't show bucket if no categories have allocations
     if (categoriesWithAllocation.isEmpty) {
@@ -1944,59 +2043,63 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Bucket header (tappable)
-          InkWell(
-            onTap: () {
-              setState(() {
-                _expandedPlanBucket = isExpanded ? null : bucket;
-              });
-            },
-            borderRadius: DesignTokens.borderRadius['md']!,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: _getBucketColor(bucket),
-                      shape: BoxShape.circle,
+          Semantics(
+            button: true,
+            label: _getBucketLabel(bucket),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _expandedPlanBucket = isExpanded ? null : bucket;
+                });
+              },
+              borderRadius: DesignTokens.borderRadius['md']!,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: _getBucketColor(bucket),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.category,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: 14,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.category,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      size: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          _getBucketLabel(bucket),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            _getBucketLabel(bucket),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '\$${totalAllocated.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: _getBucketColor(bucket),
+                          const SizedBox(width: 8),
+                          Text(
+                            '\$${totalAllocated.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: _getBucketColor(bucket),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Icon(
-                    isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ],
+                    Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -2014,7 +2117,8 @@ class _BudgetScreenState extends State<BudgetScreen> with AutomaticKeepAliveClie
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -2082,7 +2186,8 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 88.0;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     final now = DateTime.now();
 
     return Container(
@@ -2099,6 +2204,7 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
           children: [
             IconButton(
               icon: const Icon(Icons.chevron_left),
+              tooltip: 'Previous month',
               onPressed: canGoPrev ? onPrevMonth : null,
               color: canGoPrev ? primaryColor : onSurfaceVariantColor,
             ),
@@ -2115,7 +2221,9 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
                 ),
                 if (!isCurrentMonth)
                   Text(
-                    selectedMonth.isBefore(DateTime(now.year, now.month, 1)) ? 'Past Month' : 'Future Month',
+                    selectedMonth.isBefore(DateTime(now.year, now.month, 1))
+                        ? 'Past Month'
+                        : 'Future Month',
                     style: TextStyle(
                       fontSize: 10,
                       color: onSurfaceVariantColor,
@@ -2126,6 +2234,7 @@ class _MonthNavigationHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
             IconButton(
               icon: const Icon(Icons.chevron_right),
+              tooltip: 'Next month',
               onPressed: canGoNext ? onNextMonth : null,
               color: canGoNext ? primaryColor : onSurfaceVariantColor,
             ),
@@ -2160,10 +2269,12 @@ class _LoadAllocationTemplateDialog extends StatefulWidget {
   });
 
   @override
-  State<_LoadAllocationTemplateDialog> createState() => _LoadAllocationTemplateDialogState();
+  State<_LoadAllocationTemplateDialog> createState() =>
+      _LoadAllocationTemplateDialogState();
 }
 
-class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDialog> {
+class _LoadAllocationTemplateDialogState
+    extends State<_LoadAllocationTemplateDialog> {
   late List<AllocationTemplate> _localTemplates;
 
   @override
@@ -2190,7 +2301,8 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete template: ${widget.budgetNotifier.error ?? "Unknown error"}'),
+          content: Text(
+              'Failed to delete template: ${widget.budgetNotifier.error ?? "Unknown error"}'),
           backgroundColor: DesignTokens.color('error'),
         ),
       );
@@ -2204,8 +2316,8 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
       title: Text(
         'Load Budget Template',
         style: Theme.of(context).textTheme.titleLarge!.copyWith(
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
       ),
       content: _localTemplates.isEmpty
           ? Padding(
@@ -2238,33 +2350,39 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                     ),
                     confirmDismiss: (direction) async {
                       return await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: Theme.of(context).colorScheme.surface,
-                          title: Text(
-                            'Delete Template',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.surface,
+                              title: Text(
+                                'Delete Template',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              content: Text(
+                                'Are you sure you want to delete "${template.name}"?',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
                             ),
-                          ),
-                          content: Text(
-                            'Are you sure you want to delete "${template.name}"?',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
-                        ),
-                      ) ?? false;
+                          ) ??
+                          false;
                     },
                     onDismissed: (direction) {
                       _deleteTemplate(template);
@@ -2281,7 +2399,9 @@ class _LoadAllocationTemplateDialogState extends State<_LoadAllocationTemplateDi
                           ? Text(
                               template.description!,
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                             )
                           : null,

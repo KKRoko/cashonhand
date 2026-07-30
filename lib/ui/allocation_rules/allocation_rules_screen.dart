@@ -13,7 +13,7 @@ import '../dialogs/add_edit_allocation_rule_dialog.dart';
 
 class AllocationRulesScreen extends StatefulWidget {
   static const routeName = '/allocation-rules';
-  
+
   const AllocationRulesScreen({super.key});
 
   @override
@@ -23,8 +23,9 @@ class AllocationRulesScreen extends StatefulWidget {
 class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
   final Database _database = getIt<Database>();
   final CategoryService _categoryService = getIt<CategoryService>();
-  final AutoAllocationRulesEngine _rulesEngine = getIt<AutoAllocationRulesEngine>();
-  
+  final AutoAllocationRulesEngine _rulesEngine =
+      getIt<AutoAllocationRulesEngine>();
+
   List<AutoAllocationRule> _rules = [];
   Map<int, String> _goalTitles = {};
   Map<int, String> _categoryNames = {};
@@ -38,19 +39,19 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // Load rules
       final rulesData = await _database.getAllAllocationRules();
       final rules = rulesData.map((data) => _convertToRule(data)).toList();
-      
+
       // Load goal titles
       final goalNotifier = context.read<SavingGoalNotifier>();
       final goalTitles = <int, String>{};
       for (final goal in goalNotifier.goals) {
         goalTitles[goal.id!] = goal.title;
-            }
-      
+      }
+
       // Load category names
       final categoriesResult = await _categoryService.getCategories();
       final categoryNames = <int, String>{};
@@ -62,7 +63,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
           }
         },
       );
-      
+
       setState(() {
         _rules = rules;
         _goalTitles = goalTitles;
@@ -102,6 +103,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
+            tooltip: 'Show help',
             onPressed: _showHelpDialog,
           ),
         ],
@@ -110,9 +112,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadData,
-              child: _rules.isEmpty
-                  ? _buildEmptyState()
-                  : _buildRulesList(),
+              child: _rules.isEmpty ? _buildEmptyState() : _buildRulesList(),
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateRuleDialog,
@@ -159,7 +159,8 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Create Your First Rule'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -181,10 +182,10 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
 
   Widget _buildRuleCard(AutoAllocationRule rule) {
     final goalTitle = _goalTitles[rule.goalId] ?? 'Unknown Goal';
-    final categoryName = rule.triggerCategoryId != null 
+    final categoryName = rule.triggerCategoryId != null
         ? _categoryNames[rule.triggerCategoryId!] ?? 'Unknown Category'
         : null;
-    
+
     final ruleWithInfo = rule.withDisplayInfo(
       goalTitle: goalTitle,
       categoryName: categoryName,
@@ -210,7 +211,7 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                
+
                 // Rule name and goal
                 Expanded(
                   child: Column(
@@ -226,7 +227,8 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.flag, size: 16, color: Theme.of(context).primaryColor),
+                          Icon(Icons.flag,
+                              size: 16, color: Theme.of(context).primaryColor),
                           const SizedBox(width: 4),
                           Text(
                             goalTitle,
@@ -241,10 +243,11 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Allocation display
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
@@ -257,24 +260,28 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
                     ),
                   ),
                 ),
-                
+
                 // Menu button
                 PopupMenuButton<String>(
                   onSelected: (action) => _handleRuleAction(action, rule),
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit Rule')),
+                    const PopupMenuItem(
+                        value: 'edit', child: Text('Edit Rule')),
                     PopupMenuItem(
                       value: rule.isActive ? 'disable' : 'enable',
-                      child: Text(rule.isActive ? 'Disable Rule' : 'Enable Rule'),
+                      child:
+                          Text(rule.isActive ? 'Disable Rule' : 'Enable Rule'),
                     ),
-                    const PopupMenuItem(value: 'test', child: Text('Test Rule')),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete Rule')),
+                    const PopupMenuItem(
+                        value: 'test', child: Text('Test Rule')),
+                    const PopupMenuItem(
+                        value: 'delete', child: Text('Delete Rule')),
                   ],
                 ),
               ],
             ),
           ),
-          
+
           // Rule description
           Container(
             width: double.infinity,
@@ -284,7 +291,8 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Theme.of(context).colorScheme.outline),
+                border:
+                    Border.all(color: Theme.of(context).colorScheme.outline),
               ),
               child: Text(
                 ruleWithInfo.humanReadableDescription,
@@ -338,10 +346,11 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
       );
 
       await _database.createAllocationRule(companion);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Rule "${rule.ruleName}" created successfully')),
+          SnackBar(
+              content: Text('Rule "${rule.ruleName}" created successfully')),
         );
         _loadData();
       }
@@ -373,10 +382,11 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
       );
 
       await _database.updateAllocationRule(updatedData);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Rule "${rule.ruleName}" updated successfully')),
+          SnackBar(
+              content: Text('Rule "${rule.ruleName}" updated successfully')),
         );
         _loadData();
       }
@@ -394,7 +404,8 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Rule'),
-        content: Text('Are you sure you want to delete the rule "${rule.ruleName}"?'),
+        content: Text(
+            'Are you sure you want to delete the rule "${rule.ruleName}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -412,10 +423,11 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
     if (confirm == true && rule.id != null) {
       try {
         await _database.deleteAllocationRule(rule.id!);
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Rule "${rule.ruleName}" deleted successfully')),
+            SnackBar(
+                content: Text('Rule "${rule.ruleName}" deleted successfully')),
           );
           _loadData();
         }
@@ -480,7 +492,8 @@ class _AllocationRulesScreenState extends State<AllocationRulesScreen> {
               Text('• Save 10% of all restaurant spending for vacation'),
               Text('• Put \$5 from every grocery trip into emergency fund'),
               Text('• Allocate 5% of income to retirement savings'),
-              Text('\nRules run automatically when you add transactions and can save you time by eliminating manual allocations.'),
+              Text(
+                  '\nRules run automatically when you add transactions and can save you time by eliminating manual allocations.'),
             ],
           ),
         ),

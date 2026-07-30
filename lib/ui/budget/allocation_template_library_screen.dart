@@ -11,10 +11,12 @@ class AllocationTemplateLibraryScreen extends StatefulWidget {
   const AllocationTemplateLibraryScreen({super.key});
 
   @override
-  State<AllocationTemplateLibraryScreen> createState() => _AllocationTemplateLibraryScreenState();
+  State<AllocationTemplateLibraryScreen> createState() =>
+      _AllocationTemplateLibraryScreenState();
 }
 
-class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibraryScreen> {
+class _AllocationTemplateLibraryScreenState
+    extends State<AllocationTemplateLibraryScreen> {
   final _budgetNotifier = getIt<BudgetNotifier>();
 
   bool _isLoading = true;
@@ -80,7 +82,10 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
                             Icon(
                               Icons.library_add_outlined,
                               size: 80,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withOpacity(0.5),
                             ),
                             const SizedBox(height: 24),
                             Text(
@@ -96,7 +101,9 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
                               'Save your category allocations as templates for quick reuse',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -105,7 +112,9 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
                               'To create a template:\n1. Go to Budget Screen\n2. Allocate to Categories\n3. Tap "Save Allocation Template"',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -127,7 +136,8 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
   Widget _buildTemplateCard(AllocationTemplate template) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: DesignTokens.borderRadius['md']!),
+      shape: RoundedRectangleBorder(
+          borderRadius: DesignTokens.borderRadius['md']!),
       elevation: 2,
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: InkWell(
@@ -170,7 +180,8 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
                   ),
                 ],
               ),
-              if (template.description != null && template.description!.isNotEmpty) ...[
+              if (template.description != null &&
+                  template.description!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(
                   template.description!,
@@ -187,7 +198,10 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
                 'Created ${_formatDate(template.createdAt)}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withOpacity(0.7),
                 ),
               ),
             ],
@@ -229,7 +243,8 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
         budgetNotifier: _budgetNotifier,
         onApply: () {
           Navigator.pop(context);
-          Navigator.pop(context, template.id); // Return template ID to budget screen
+          Navigator.pop(
+              context, template.id); // Return template ID to budget screen
         },
         onDelete: () async {
           final confirmed = await _showDeleteConfirmation(template);
@@ -271,7 +286,8 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: DesignTokens.color('error')),
+            style: TextButton.styleFrom(
+                foregroundColor: DesignTokens.color('error')),
             child: const Text('Delete'),
           ),
         ],
@@ -295,7 +311,8 @@ class _AllocationTemplateLibraryScreenState extends State<AllocationTemplateLibr
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete template: ${_budgetNotifier.error ?? "Unknown error"}'),
+          content: Text(
+              'Failed to delete template: ${_budgetNotifier.error ?? "Unknown error"}'),
           backgroundColor: DesignTokens.color('error'),
         ),
       );
@@ -405,6 +422,7 @@ class _TemplateDetailsSheetState extends State<_TemplateDetailsSheet> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
+                  tooltip: 'Close',
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -418,7 +436,8 @@ class _TemplateDetailsSheetState extends State<_TemplateDetailsSheet> {
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
-            if (widget.template.description != null && widget.template.description!.isNotEmpty) ...[
+            if (widget.template.description != null &&
+                widget.template.description!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
                 widget.template.description!,
@@ -499,9 +518,12 @@ class _TemplateDetailsSheetState extends State<_TemplateDetailsSheet> {
     if (_items == null) return [];
 
     // Group items by bucket type
-    final needs = _items!.where((item) => item.bucketType == BucketType.needs).toList();
-    final wants = _items!.where((item) => item.bucketType == BucketType.wants).toList();
-    final savings = _items!.where((item) => item.bucketType == BucketType.savings).toList();
+    final needs =
+        _items!.where((item) => item.bucketType == BucketType.needs).toList();
+    final wants =
+        _items!.where((item) => item.bucketType == BucketType.wants).toList();
+    final savings =
+        _items!.where((item) => item.bucketType == BucketType.savings).toList();
 
     final widgets = <Widget>[];
 
@@ -522,8 +544,10 @@ class _TemplateDetailsSheetState extends State<_TemplateDetailsSheet> {
     return widgets;
   }
 
-  Widget _buildBucketSection(BucketType bucket, List<AllocationTemplateItem> items) {
-    final total = items.fold<double>(0.0, (sum, item) => sum + item.allocatedAmount);
+  Widget _buildBucketSection(
+      BucketType bucket, List<AllocationTemplateItem> items) {
+    final total =
+        items.fold<double>(0.0, (sum, item) => sum + item.allocatedAmount);
 
     return Container(
       decoration: BoxDecoration(

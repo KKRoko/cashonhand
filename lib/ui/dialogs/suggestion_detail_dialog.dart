@@ -26,7 +26,8 @@ class SuggestionDetailDialog extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: _getPriorityColor(suggestion.priority),
-                borderRadius: BorderRadius.vertical(top: (DesignTokens.borderRadius['md']!).topLeft),
+                borderRadius: BorderRadius.vertical(
+                    top: (DesignTokens.borderRadius['md']!).topLeft),
               ),
               child: Row(
                 children: [
@@ -43,7 +44,10 @@ class SuggestionDetailDialog extends StatelessWidget {
                         Text(
                           suggestion.typeDisplayName,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary
+                                .withOpacity(0.7),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -62,12 +66,14 @@ class SuggestionDetailDialog extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onPrimary),
+                    tooltip: 'Close',
+                    icon: Icon(Icons.close,
+                        color: Theme.of(context).colorScheme.onPrimary),
                   ),
                 ],
               ),
             ),
-            
+
             // Content
             Expanded(
               child: SingleChildScrollView(
@@ -79,7 +85,8 @@ class SuggestionDetailDialog extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: _getPriorityColor(suggestion.priority),
                             borderRadius: DesignTokens.borderRadius['full']!,
@@ -96,11 +103,15 @@ class SuggestionDetailDialog extends StatelessWidget {
                         if (suggestion.potentialSavings != null) ...[
                           const SizedBox(width: 12),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: DesignTokens.color('success').withOpacity(0.1),
+                              color: DesignTokens.color('success')
+                                  .withOpacity(0.1),
                               borderRadius: DesignTokens.borderRadius['full']!,
-                              border: Border.all(color: DesignTokens.color('success').withOpacity(0.3)),
+                              border: Border.all(
+                                  color: DesignTokens.color('success')
+                                      .withOpacity(0.3)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -125,9 +136,9 @@ class SuggestionDetailDialog extends StatelessWidget {
                         ],
                       ],
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Description
                     Text(
                       'Details',
@@ -146,9 +157,9 @@ class SuggestionDetailDialog extends StatelessWidget {
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Additional info sections
                     if (suggestion.potentialSavings != null) ...[
                       _buildInfoSection(
@@ -186,19 +197,20 @@ class SuggestionDetailDialog extends StatelessWidget {
                       Icons.info_outline,
                       DesignTokens.color('info'),
                     ),
-                    
+
                     const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
-            
+
             // Action buttons
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                borderRadius:
+                    const BorderRadius.vertical(bottom: Radius.circular(12)),
               ),
               child: Row(
                 children: [
@@ -208,13 +220,15 @@ class SuggestionDetailDialog extends StatelessWidget {
                       child: const Text('Dismiss'),
                     ),
                   ),
-                  if (suggestion.actionText != null && suggestion.actionRoute != null) ...[
+                  if (suggestion.actionText != null &&
+                      suggestion.actionRoute != null) ...[
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () => _takeAction(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _getPriorityColor(suggestion.priority),
+                          backgroundColor:
+                              _getPriorityColor(suggestion.priority),
                         ),
                         child: Text(suggestion.actionText!),
                       ),
@@ -229,7 +243,8 @@ class SuggestionDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSection(BuildContext context, String title, List<String> items, IconData icon, Color color) {
+  Widget _buildInfoSection(BuildContext context, String title,
+      List<String> items, IconData icon, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -258,23 +273,26 @@ class SuggestionDetailDialog extends StatelessWidget {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: items.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                '• $item',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            )).toList(),
+            children: items
+                .map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '• $item',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildActionStepsSection(BuildContext context, List<String> actionSteps) {
+  Widget _buildActionStepsSection(
+      BuildContext context, List<String> actionSteps) {
     final actionColor = DesignTokens.color('info');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

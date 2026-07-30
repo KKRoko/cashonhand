@@ -17,48 +17,49 @@ class AchievementCelebrationOverlay extends StatefulWidget {
   });
 
   @override
-  State<AchievementCelebrationOverlay> createState() => _AchievementCelebrationOverlayState();
+  State<AchievementCelebrationOverlay> createState() =>
+      _AchievementCelebrationOverlayState();
 }
 
-class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOverlay>
-    with TickerProviderStateMixin {
+class _AchievementCelebrationOverlayState
+    extends State<AchievementCelebrationOverlay> with TickerProviderStateMixin {
   late AnimationController _scaleController;
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late AnimationController _sparkleController;
-  
+
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _sparkleAnimation;
-  
+
   late ConfettiController _confettiController;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controllers
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _sparkleController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     // Setup animations
     _scaleAnimation = Tween<double>(
       begin: 0.0,
@@ -67,7 +68,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       parent: _scaleController,
       curve: Curves.elasticOut,
     ));
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -75,7 +76,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       parent: _fadeController,
       curve: Curves.easeInOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -83,7 +84,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       parent: _slideController,
       curve: Curves.easeOutBack,
     ));
-    
+
     _sparkleAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -91,29 +92,30 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       parent: _sparkleController,
       curve: Curves.easeInOut,
     ));
-    
+
     // Initialize confetti
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
-    
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
+
     // Start animations
     _startCelebration();
   }
-  
+
   void _startCelebration() async {
     // Start all animations with slight delays for better effect
     _fadeController.forward();
-    
+
     await Future.delayed(const Duration(milliseconds: 100));
     _scaleController.forward();
-    
+
     await Future.delayed(const Duration(milliseconds: 200));
     _slideController.forward();
     _confettiController.play();
-    
+
     await Future.delayed(const Duration(milliseconds: 300));
     _sparkleController.repeat(reverse: true);
   }
-  
+
   @override
   void dispose() {
     _scaleController.dispose();
@@ -123,17 +125,22 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
     _confettiController.dispose();
     super.dispose();
   }
-  
+
   Color _getTierColor() {
     switch (widget.achievement.tier) {
-      case 1: return const Color(0xFFCD7F32); // Bronze
-      case 2: return const Color(0xFFC0C0C0); // Silver
-      case 3: return const Color(0xFFFFD700); // Gold
-      case 4: return const Color(0xFFE5E4E2); // Platinum
-      default: return const Color(0xFFCD7F32);
+      case 1:
+        return const Color(0xFFCD7F32); // Bronze
+      case 2:
+        return const Color(0xFFC0C0C0); // Silver
+      case 3:
+        return const Color(0xFFFFD700); // Gold
+      case 4:
+        return const Color(0xFFE5E4E2); // Platinum
+      default:
+        return const Color(0xFFCD7F32);
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -141,11 +148,15 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       child: Stack(
         children: [
           // Background tap to dismiss
-          GestureDetector(
-            onTap: widget.onDismiss,
-            child: Container(color: Colors.transparent),
+          Semantics(
+            button: true,
+            label: 'Dismiss',
+            child: GestureDetector(
+              onTap: widget.onDismiss,
+              child: Container(color: Colors.transparent),
+            ),
           ),
-          
+
           // Confetti
           Align(
             alignment: Alignment.topCenter,
@@ -167,7 +178,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
               ],
             ),
           ),
-          
+
           // Main celebration content
           Center(
             child: AnimatedBuilder(
@@ -186,18 +197,18 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
               },
             ),
           ),
-          
+
           // Floating sparkles
           ..._buildSparkles(),
         ],
       ),
     );
   }
-  
+
   Widget _buildCelebrationCard() {
     final theme = Theme.of(context);
     final tierColor = _getTierColor();
-    
+
     return Container(
       margin: const EdgeInsets.all(32),
       constraints: const BoxConstraints(maxWidth: 350),
@@ -225,15 +236,18 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.vertical(top: (DesignTokens.borderRadius['lg']!).topLeft),
+              borderRadius: BorderRadius.vertical(
+                  top: (DesignTokens.borderRadius['lg']!).topLeft),
             ),
             child: Column(
               children: [
                 // Tier badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                    color:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.9),
                     borderRadius: DesignTokens.borderRadius['lg']!,
                   ),
                   child: Text(
@@ -246,7 +260,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Achievement emoji with sparkle effect
                 AnimatedBuilder(
                   animation: _sparkleAnimation,
@@ -257,11 +271,17 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surface
+                              .withOpacity(0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(_sparkleAnimation.value * 0.5),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surface
+                                  .withOpacity(_sparkleAnimation.value * 0.5),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -277,9 +297,9 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // "Achievement Unlocked!" text
                 Text(
                   'Achievement Unlocked!',
@@ -291,7 +311,7 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
               ],
             ),
           ),
-          
+
           // Achievement details
           Padding(
             padding: const EdgeInsets.all(20),
@@ -306,21 +326,22 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 // Achievement description
                 Text(
                   widget.achievement.description,
                   style: theme.textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Points earned
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: tierColor.withOpacity(0.1),
                     borderRadius: DesignTokens.borderRadius['xl']!,
@@ -345,9 +366,9 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Celebration message
                 Text(
                   widget.achievement.celebrationMessage,
@@ -357,9 +378,9 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Action buttons
                 Row(
                   children: [
@@ -382,7 +403,8 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
                           onPressed: _shareAchievement,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: tierColor,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
                           ),
                           icon: const Icon(Icons.share),
                           label: const Text('Share'),
@@ -398,19 +420,24 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
       ),
     );
   }
-  
+
   List<Widget> _buildSparkles() {
     final sparkles = <Widget>[];
-    
+
     for (int i = 0; i < 6; i++) {
       sparkles.add(
         AnimatedBuilder(
           animation: _sparkleController,
           builder: (context, child) {
-            final offset = _sparkleAnimation.value * 2 * 3.14159; // Full rotation
-            final x = 0.5 + 0.3 * (i / 6) * MediaQuery.of(context).size.width / MediaQuery.of(context).size.width;
+            final offset =
+                _sparkleAnimation.value * 2 * 3.14159; // Full rotation
+            final x = 0.5 +
+                0.3 *
+                    (i / 6) *
+                    MediaQuery.of(context).size.width /
+                    MediaQuery.of(context).size.width;
             final y = 0.3 + 0.4 * (i % 3) / 3;
-            
+
             return Positioned(
               left: x * MediaQuery.of(context).size.width,
               top: y * MediaQuery.of(context).size.height,
@@ -430,10 +457,10 @@ class _AchievementCelebrationOverlayState extends State<AchievementCelebrationOv
         ),
       );
     }
-    
+
     return sparkles;
   }
-  
+
   void _shareAchievement() {
     Share.share(
       widget.achievement.defaultShareText,

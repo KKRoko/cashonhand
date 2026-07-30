@@ -23,14 +23,16 @@ class CategoryAllocationScreen extends StatefulWidget {
   });
 
   @override
-  State<CategoryAllocationScreen> createState() => _CategoryAllocationScreenState();
+  State<CategoryAllocationScreen> createState() =>
+      _CategoryAllocationScreenState();
 }
 
 class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
   final Map<int, TextEditingController> _controllers = {};
   final Map<int, Timer?> _debounceTimers = {}; // Debounce timers for each field
   final Map<int, CategoryBudget> _pendingUpdates = {}; // Track pending updates
-  final Map<int, CategoryTableData> _categoryCache = {}; // Cache category details including parent
+  final Map<int, CategoryTableData> _categoryCache =
+      {}; // Cache category details including parent
   bool _hasUnsavedChanges = false;
   BucketType? _expandedBucket; // Track which bucket is currently expanded
 
@@ -122,7 +124,9 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
 
   Widget _buildAlertBadge(AlertLevel level) {
     final isCritical = level == AlertLevel.critical;
-    final color = isCritical ? DesignTokens.color('error') : DesignTokens.color('warning');
+    final color = isCritical
+        ? DesignTokens.color('error')
+        : DesignTokens.color('warning');
     final icon = isCritical ? Icons.error : Icons.warning;
 
     return Container(
@@ -139,8 +143,10 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
   }
 
-  void _updateCategoryBudget(CategoryBudget categoryBudget, double newAmount) async {
-    print('💰 BUDGET UPDATE: Updating ${categoryBudget.categoryName} to \$$newAmount');
+  void _updateCategoryBudget(
+      CategoryBudget categoryBudget, double newAmount) async {
+    print(
+        '💰 BUDGET UPDATE: Updating ${categoryBudget.categoryName} to \$$newAmount');
     final updated = categoryBudget.copyWith(allocatedAmount: newAmount);
     final success = await widget.budgetNotifier.updateCategoryBudget(updated);
     print('💰 BUDGET UPDATE: Success=$success');
@@ -149,11 +155,13 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     });
   }
 
-  void _moveCategoryToBucket(CategoryBudget categoryBudget, BucketType newBucket) async {
+  void _moveCategoryToBucket(
+      CategoryBudget categoryBudget, BucketType newBucket) async {
     await widget.budgetNotifier.moveCategoryToBucket(categoryBudget, newBucket);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Moved ${categoryBudget.categoryName} to ${_getBucketLabel(newBucket)}'),
+        content: Text(
+            'Moved ${categoryBudget.categoryName} to ${_getBucketLabel(newBucket)}'),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -188,7 +196,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
 
     if (selectedTemplate != null && mounted) {
-      final success = await widget.budgetNotifier.applyTemplate(selectedTemplate);
+      final success =
+          await widget.budgetNotifier.applyTemplate(selectedTemplate);
 
       if (mounted) {
         if (success) {
@@ -201,7 +210,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.budgetNotifier.error ?? 'Failed to apply template'),
+              content: Text(
+                  widget.budgetNotifier.error ?? 'Failed to apply template'),
               backgroundColor: Colors.red,
             ),
           );
@@ -221,7 +231,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     if (result != null && mounted) {
       final success = await widget.budgetNotifier.saveAsTemplate(
         result['name']!,
-        description: result['description']!.isEmpty ? null : result['description'],
+        description:
+            result['description']!.isEmpty ? null : result['description'],
       );
 
       if (mounted) {
@@ -235,7 +246,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.budgetNotifier.error ?? 'Failed to save template'),
+              content: Text(
+                  widget.budgetNotifier.error ?? 'Failed to save template'),
               backgroundColor: Colors.red,
             ),
           );
@@ -413,7 +425,9 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
   }
 
-  Widget _buildStickyBucketHeader(BucketType bucket, List<CategoryBudget> categories, {required bool isSticky}) {
+  Widget _buildStickyBucketHeader(
+      BucketType bucket, List<CategoryBudget> categories,
+      {required bool isSticky}) {
     return SliverPersistentHeader(
       pinned: isSticky,
       delegate: _BucketHeaderDelegate(
@@ -435,7 +449,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
   }
 
-  Widget _buildCategoryList(List<CategoryBudget> categories, BucketType bucket) {
+  Widget _buildCategoryList(
+      List<CategoryBudget> categories, BucketType bucket) {
     if (categories.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
@@ -466,8 +481,10 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
   }
 
-  Widget _buildBucketHeader(BucketType bucket, List<CategoryBudget> categories) {
-    final budgetAmount = widget.budget.getBucketAmount(bucket.toString().split('.').last);
+  Widget _buildBucketHeader(
+      BucketType bucket, List<CategoryBudget> categories) {
+    final budgetAmount =
+        widget.budget.getBucketAmount(bucket.toString().split('.').last);
     final allocated = widget.budgetNotifier.getTotalAllocatedForBucket(bucket);
     final unallocated = budgetAmount - allocated;
     final isOverAllocated = unallocated < -0.01;
@@ -503,7 +520,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
                     color: _getBucketColor(bucket),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.category, color: Theme.of(context).colorScheme.onPrimary, size: 18),
+                  child: Icon(Icons.category,
+                      color: Theme.of(context).colorScheme.onPrimary, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -562,8 +580,11 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
               children: [
                 Expanded(
                   child: LinearProgressIndicator(
-                    value: budgetAmount > 0 ? (allocated / budgetAmount).clamp(0.0, 1.0) : 0.0,
-                    backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+                    value: budgetAmount > 0
+                        ? (allocated / budgetAmount).clamp(0.0, 1.0)
+                        : 0.0,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.outlineVariant,
                     valueColor: AlwaysStoppedAnimation(
                       isOverAllocated
                           ? DesignTokens.color('error')
@@ -598,8 +619,10 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
   }
 
-  Widget _buildBucketSection(BucketType bucket, List<CategoryBudget> categories) {
-    final budgetAmount = widget.budget.getBucketAmount(bucket.toString().split('.').last);
+  Widget _buildBucketSection(
+      BucketType bucket, List<CategoryBudget> categories) {
+    final budgetAmount =
+        widget.budget.getBucketAmount(bucket.toString().split('.').last);
     final allocated = widget.budgetNotifier.getTotalAllocatedForBucket(bucket);
     final unallocated = budgetAmount - allocated;
     final isOverAllocated = unallocated < -0.01;
@@ -630,117 +653,126 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
               topRight: Radius.circular(10),
             ),
             child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _getBucketColor(bucket).withOpacity(0.1),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _getBucketColor(bucket).withOpacity(0.1),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: _getBucketColor(bucket),
-                        shape: BoxShape.circle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: _getBucketColor(bucket),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.category,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 18),
                       ),
-                      child: Icon(Icons.category, color: Theme.of(context).colorScheme.onPrimary, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getBucketLabel(bucket),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getBucketLabel(bucket),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
-                          ),
-                          Text(
-                            _getBucketDescription(bucket),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            Text(
+                              _getBucketDescription(bucket),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 28,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Budget: \$${budgetAmount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        'Allocated: \$${allocated.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: budgetAmount > 0
+                              ? (allocated / budgetAmount).clamp(0.0, 1.0)
+                              : 0.0,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.outlineVariant,
+                          valueColor: AlwaysStoppedAnimation(
+                            isOverAllocated
+                                ? DesignTokens.color('error')
+                                : isFullyAllocated
+                                    ? DesignTokens.color('success')
+                                    : _getBucketColor(bucket),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      size: 28,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Budget: \$${budgetAmount.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      'Allocated: \$${allocated.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: budgetAmount > 0 ? (allocated / budgetAmount).clamp(0.0, 1.0) : 0.0,
-                        backgroundColor: Theme.of(context).colorScheme.outlineVariant,
-                        valueColor: AlwaysStoppedAnimation(
-                          isOverAllocated
+                      const SizedBox(width: 12),
+                      Text(
+                        isOverAllocated
+                            ? 'Over by \$${(-unallocated).toStringAsFixed(0)}'
+                            : isFullyAllocated
+                                ? 'Fully allocated'
+                                : '\$${unallocated.toStringAsFixed(0)} left',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isOverAllocated
                               ? DesignTokens.color('error')
                               : isFullyAllocated
                                   ? DesignTokens.color('success')
-                                  : _getBucketColor(bucket),
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      isOverAllocated
-                          ? 'Over by \$${(-unallocated).toStringAsFixed(0)}'
-                          : isFullyAllocated
-                              ? 'Fully allocated'
-                              : '\$${unallocated.toStringAsFixed(0)} left',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isOverAllocated
-                            ? DesignTokens.color('error')
-                            : isFullyAllocated
-                                ? DesignTokens.color('success')
-                                : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -760,7 +792,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
                 ),
               )
             else
-              ...categories.map((categoryBudget) => _buildCategoryItem(categoryBudget, bucket)),
+              ...categories.map((categoryBudget) =>
+                  _buildCategoryItem(categoryBudget, bucket)),
           ],
         ],
       ),
@@ -779,7 +812,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
       return null;
     }
 
-    final parentColor = CategoryHelpers.getParentCategoryColor(parentCategory.name);
+    final parentColor =
+        CategoryHelpers.getParentCategoryColor(parentCategory.name);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -799,7 +833,8 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
     );
   }
 
-  Widget _buildCategoryItem(CategoryBudget categoryBudget, BucketType currentBucket) {
+  Widget _buildCategoryItem(
+      CategoryBudget categoryBudget, BucketType currentBucket) {
     if (!_controllers.containsKey(categoryBudget.id)) {
       _controllers[categoryBudget.id] = TextEditingController(
         text: categoryBudget.allocatedAmount > 0
@@ -833,93 +868,111 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
                   ),
                 ),
                 // Alert badge
-                if (widget.budgetNotifier.categoryAlertLevels[categoryBudget.id] != null &&
-                    widget.budgetNotifier.categoryAlertLevels[categoryBudget.id] != AlertLevel.none) ...[
-                  _buildAlertBadge(widget.budgetNotifier.categoryAlertLevels[categoryBudget.id]!),
+                if (widget.budgetNotifier
+                            .categoryAlertLevels[categoryBudget.id] !=
+                        null &&
+                    widget.budgetNotifier
+                            .categoryAlertLevels[categoryBudget.id] !=
+                        AlertLevel.none) ...[
+                  _buildAlertBadge(widget
+                      .budgetNotifier.categoryAlertLevels[categoryBudget.id]!),
                   const SizedBox(width: 8),
                 ],
-                SizedBox(
-                  width: 100,
-                  child: TextField(
-                    controller: _controllers[categoryBudget.id],
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                    ],
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      prefixText: '\$ ',
-                      prefixStyle: TextStyle(
+                Semantics(
+                  label:
+                      'Budget amount for ${categoryBudget.categoryName ?? "Unknown Category"}',
+                  child: SizedBox(
+                    width: 100,
+                    child: TextField(
+                      controller: _controllers[categoryBudget.id],
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d*\.?\d{0,2}')),
+                      ],
+                      style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
-                      hintText: '0',
-                      hintStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      border: OutlineInputBorder(
-                        borderRadius: DesignTokens.borderRadius['sm']!,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: DesignTokens.borderRadius['sm']!,
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.outline,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
+                        prefixText: '\$ ',
+                        prefixStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        hintText: '0',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: DesignTokens.borderRadius['sm']!,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: DesignTokens.borderRadius['sm']!,
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: DesignTokens.borderRadius['sm']!,
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: DesignTokens.borderRadius['sm']!,
-                        borderSide: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    onChanged: (value) {
-                      print('⌨️ INPUT: User typed "$value" for ${categoryBudget.categoryName}');
+                      onChanged: (value) {
+                        print(
+                            '⌨️ INPUT: User typed "$value" for ${categoryBudget.categoryName}');
 
-                      // Track this as a pending update
-                      _pendingUpdates[categoryBudget.id] = categoryBudget;
+                        // Track this as a pending update
+                        _pendingUpdates[categoryBudget.id] = categoryBudget;
 
-                      // Cancel previous timer for this field
-                      _debounceTimers[categoryBudget.id]?.cancel();
+                        // Cancel previous timer for this field
+                        _debounceTimers[categoryBudget.id]?.cancel();
 
-                      // Set new timer to update after 500ms of no typing
-                      _debounceTimers[categoryBudget.id] = Timer(const Duration(milliseconds: 500), () {
-                        final amount = double.tryParse(value) ?? 0.0;
-                        print('⏰ DEBOUNCE: Timer fired, updating to \$$amount');
-                        _updateCategoryBudget(categoryBudget, amount);
-                        // Remove from pending since it's now processed
+                        // Set new timer to update after 500ms of no typing
+                        _debounceTimers[categoryBudget.id] =
+                            Timer(const Duration(milliseconds: 500), () {
+                          final amount = double.tryParse(value) ?? 0.0;
+                          print(
+                              '⏰ DEBOUNCE: Timer fired, updating to \$$amount');
+                          _updateCategoryBudget(categoryBudget, amount);
+                          // Remove from pending since it's now processed
+                          _pendingUpdates.remove(categoryBudget.id);
+                        });
+
+                        setState(() {
+                          _hasUnsavedChanges = true;
+                        });
+                      },
+                      onSubmitted: (value) {
+                        print('⏎ SUBMIT: User pressed enter with "$value"');
+                        // Cancel debounce timer since we're submitting immediately
+                        _debounceTimers[categoryBudget.id]?.cancel();
+                        // Remove from pending since we're submitting now
                         _pendingUpdates.remove(categoryBudget.id);
-                      });
 
-                      setState(() {
-                        _hasUnsavedChanges = true;
-                      });
-                    },
-                    onSubmitted: (value) {
-                      print('⏎ SUBMIT: User pressed enter with "$value"');
-                      // Cancel debounce timer since we're submitting immediately
-                      _debounceTimers[categoryBudget.id]?.cancel();
-                      // Remove from pending since we're submitting now
-                      _pendingUpdates.remove(categoryBudget.id);
-
-                      final amount = double.tryParse(value) ?? 0.0;
-                      _updateCategoryBudget(categoryBudget, amount);
-                    },
+                        final amount = double.tryParse(value) ?? 0.0;
+                        _updateCategoryBudget(categoryBudget, amount);
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 PopupMenuButton<BucketType>(
-                  icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  icon: Icon(Icons.more_vert,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   onSelected: (bucket) {
                     if (bucket != currentBucket) {
                       _moveCategoryToBucket(categoryBudget, bucket);
@@ -931,7 +984,9 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
                       enabled: currentBucket != BucketType.needs,
                       child: Row(
                         children: [
-                          Icon(Icons.home, color: _getBucketColor(BucketType.needs), size: 20),
+                          Icon(Icons.home,
+                              color: _getBucketColor(BucketType.needs),
+                              size: 20),
                           const SizedBox(width: 12),
                           Text('Move to Needs'),
                         ],
@@ -942,7 +997,9 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
                       enabled: currentBucket != BucketType.wants,
                       child: Row(
                         children: [
-                          Icon(Icons.favorite, color: _getBucketColor(BucketType.wants), size: 20),
+                          Icon(Icons.favorite,
+                              color: _getBucketColor(BucketType.wants),
+                              size: 20),
                           const SizedBox(width: 12),
                           Text('Move to Wants'),
                         ],
@@ -953,7 +1010,9 @@ class _CategoryAllocationScreenState extends State<CategoryAllocationScreen> {
                       enabled: currentBucket != BucketType.savings,
                       child: Row(
                         children: [
-                          Icon(Icons.savings, color: _getBucketColor(BucketType.savings), size: 20),
+                          Icon(Icons.savings,
+                              color: _getBucketColor(BucketType.savings),
+                              size: 20),
                           const SizedBox(width: 12),
                           Text('Move to Savings'),
                         ],
@@ -1001,7 +1060,8 @@ class _MonthlyBudgetHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 180.0;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1125,11 +1185,14 @@ class _BucketHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => 160.0; // Minimum height when collapsed
 
   @override
-  double get maxExtent => 160.0; // Maximum height (same as min for fixed height)
+  double get maxExtent =>
+      160.0; // Maximum height (same as min for fixed height)
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final budgetAmount = budget.getBucketAmount(bucket.toString().split('.').last);
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final budgetAmount =
+        budget.getBucketAmount(bucket.toString().split('.').last);
     final allocated = allocatedAmount; // Use stored value
     final unallocated = budgetAmount - allocated;
     final isOverAllocated = unallocated < -0.01;
@@ -1163,7 +1226,9 @@ class _BucketHeaderDelegate extends SliverPersistentHeaderDelegate {
                       color: getBucketColor(bucket),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.category, color: Theme.of(context).colorScheme.onPrimary, size: 18),
+                    child: Icon(Icons.category,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1182,7 +1247,8 @@ class _BucketHeaderDelegate extends SliverPersistentHeaderDelegate {
                           getBucketDescription(bucket),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -1222,8 +1288,11 @@ class _BucketHeaderDelegate extends SliverPersistentHeaderDelegate {
                 children: [
                   Expanded(
                     child: LinearProgressIndicator(
-                      value: budgetAmount > 0 ? (allocated / budgetAmount).clamp(0.0, 1.0) : 0.0,
-                      backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+                      value: budgetAmount > 0
+                          ? (allocated / budgetAmount).clamp(0.0, 1.0)
+                          : 0.0,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.outlineVariant,
                       valueColor: AlwaysStoppedAnimation(
                         isOverAllocated
                             ? DesignTokens.color('error')
@@ -1273,10 +1342,12 @@ class _SaveTemplateDialogContent extends StatefulWidget {
   const _SaveTemplateDialogContent();
 
   @override
-  State<_SaveTemplateDialogContent> createState() => _SaveTemplateDialogContentState();
+  State<_SaveTemplateDialogContent> createState() =>
+      _SaveTemplateDialogContentState();
 }
 
-class _SaveTemplateDialogContentState extends State<_SaveTemplateDialogContent> {
+class _SaveTemplateDialogContentState
+    extends State<_SaveTemplateDialogContent> {
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
   String? _errorMessage;
@@ -1367,10 +1438,12 @@ class _LoadTemplateDialogContent extends StatefulWidget {
   });
 
   @override
-  State<_LoadTemplateDialogContent> createState() => _LoadTemplateDialogContentState();
+  State<_LoadTemplateDialogContent> createState() =>
+      _LoadTemplateDialogContentState();
 }
 
-class _LoadTemplateDialogContentState extends State<_LoadTemplateDialogContent> {
+class _LoadTemplateDialogContentState
+    extends State<_LoadTemplateDialogContent> {
   late List<AllocationTemplate> _localTemplates;
 
   @override
@@ -1397,7 +1470,8 @@ class _LoadTemplateDialogContentState extends State<_LoadTemplateDialogContent> 
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete template: ${widget.budgetNotifier.error ?? "Unknown error"}'),
+          content: Text(
+              'Failed to delete template: ${widget.budgetNotifier.error ?? "Unknown error"}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1443,14 +1517,17 @@ class _LoadTemplateDialogContentState extends State<_LoadTemplateDialogContent> 
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (template.description != null && template.description!.isNotEmpty)
+                          if (template.description != null &&
+                              template.description!.isNotEmpty)
                             Text(template.description!),
                           const SizedBox(height: 4),
                           Text(
                             'Total: \$${template.totalAmount.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ],

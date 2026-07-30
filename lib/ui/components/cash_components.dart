@@ -41,13 +41,13 @@ class FinancialAmount extends StatelessWidget {
 
     final isPositive = amount >= 0;
     final isZero = amount == 0;
-    
+
     // Determine color based on amount
     Color color;
     if (isZero) {
       // Use green for zero amounts in dark theme, black in light theme
-      color = Theme.of(context).brightness == Brightness.dark 
-          ? financial.incomeColor 
+      color = Theme.of(context).brightness == Brightness.dark
+          ? financial.incomeColor
           : Colors.black;
     } else if (isPositive) {
       color = financial.incomeColor;
@@ -59,7 +59,7 @@ class FinancialAmount extends StatelessWidget {
     String styleToken;
     double minFontSize;
     double maxFontSize;
-    
+
     switch (size) {
       case FinancialAmountSize.small:
         styleToken = 'amountSmall';
@@ -92,13 +92,13 @@ class FinancialAmount extends StatelessWidget {
     // Format the amount with smart formatting for large numbers
     String formattedAmount = _formatAmount(amount.abs());
     String displayText = '';
-    
+
     if (showCurrency) {
       displayText += currency;
     }
-    
+
     // Signs removed - relying on color coding instead
-    
+
     displayText += formattedAmount;
 
     // Create accessible label for screen readers
@@ -113,32 +113,31 @@ class FinancialAmount extends StatelessWidget {
 
     // Use FittedBox to prevent overflow and ensure text fits
     return Semantics(
-      label: accessibleLabel,
-      value: displayText,
-      child: maxWidth != null
-          ? SizedBox(
-              width: maxWidth,
-              child: FittedBox(
+        label: accessibleLabel,
+        value: displayText,
+        child: maxWidth != null
+            ? SizedBox(
+                width: maxWidth,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: Text(
+                    displayText,
+                    style: (style ?? textStyle).copyWith(color: color),
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                  ),
+                ),
+              )
+            : FittedBox(
                 fit: BoxFit.scaleDown,
-                alignment: Alignment.center,
                 child: Text(
                   displayText,
                   style: (style ?? textStyle).copyWith(color: color),
                   maxLines: 1,
                   overflow: TextOverflow.visible,
                 ),
-              ),
-            )
-          : FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                displayText,
-                style: (style ?? textStyle).copyWith(color: color),
-                maxLines: 1,
-                overflow: TextOverflow.visible,
-              ),
-            )
-    );
+              ));
   }
 
   /// Format amount with comma separators and 2 decimal places
@@ -275,7 +274,8 @@ class CashCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Determine background color based on financial context and theme
-    Color bgColor = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
+    Color bgColor = backgroundColor ??
+        Theme.of(context).colorScheme.surfaceContainerHighest;
     Color border = borderColor ?? Theme.of(context).colorScheme.outline;
 
     if (financialContext != null) {
@@ -355,7 +355,7 @@ class PrimaryButton extends StatelessWidget {
   final Widget child;
   final ButtonSize size;
   final bool fullWidth;
-  final bool loading;  
+  final bool loading;
   final IconData? icon;
 
   @override
@@ -374,7 +374,9 @@ class PrimaryButton extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
               )
-            : (icon != null ? Icon(icon, size: _getIconSize(size)) : const SizedBox.shrink()),
+            : (icon != null
+                ? Icon(icon, size: _getIconSize(size))
+                : const SizedBox.shrink()),
         label: child,
         style: FilledButton.styleFrom(
           padding: EdgeInsets.symmetric(
@@ -451,33 +453,32 @@ class SecondaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: fullWidth ? double.infinity : null,
-      height: _getHeight(size),
-      child: icon != null
-          ? OutlinedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: _getIconSize(size)),
-              label: child,
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                  horizontal: _getHorizontalPadding(size),
-                  vertical: DesignTokens.space('sm'),
+        width: fullWidth ? double.infinity : null,
+        height: _getHeight(size),
+        child: icon != null
+            ? OutlinedButton.icon(
+                onPressed: onPressed,
+                icon: Icon(icon, size: _getIconSize(size)),
+                label: child,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: _getHorizontalPadding(size),
+                    vertical: DesignTokens.space('sm'),
+                  ),
+                  textStyle: _getTextStyle(context, size),
                 ),
-                textStyle: _getTextStyle(context, size),
-              ),
-            )
-          : OutlinedButton(
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                  horizontal: _getHorizontalPadding(size),
-                  vertical: DesignTokens.space('sm'),
+              )
+            : OutlinedButton(
+                onPressed: onPressed,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: _getHorizontalPadding(size),
+                    vertical: DesignTokens.space('sm'),
+                  ),
+                  textStyle: _getTextStyle(context, size),
                 ),
-                textStyle: _getTextStyle(context, size),
-              ),
-              child: child,
-            )
-    );
+                child: child,
+              ));
   }
 
   double _getHeight(ButtonSize size) {
@@ -546,10 +547,10 @@ class FinancialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financial = context.financial;
-    
+
     Color backgroundColor;
     Color foregroundColor;
-    
+
     switch (financialType) {
       case FinancialButtonType.income:
         backgroundColor = financial.incomeColor;
@@ -579,32 +580,32 @@ class FinancialButton extends StatelessWidget {
         height: _getHeight(size),
         child: icon != null
             ? FilledButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: _getIconSize(size)),
-              label: child,
-              style: FilledButton.styleFrom(
-                backgroundColor: backgroundColor,
-                foregroundColor: foregroundColor,
-                padding: EdgeInsets.symmetric(
-                  horizontal: _getHorizontalPadding(size),
-                  vertical: DesignTokens.space('sm'),
+                onPressed: onPressed,
+                icon: Icon(icon, size: _getIconSize(size)),
+                label: child,
+                style: FilledButton.styleFrom(
+                  backgroundColor: backgroundColor,
+                  foregroundColor: foregroundColor,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: _getHorizontalPadding(size),
+                    vertical: DesignTokens.space('sm'),
+                  ),
+                  textStyle: _getTextStyle(context, size),
                 ),
-                textStyle: _getTextStyle(context, size),
-              ),
-            )
-          : FilledButton(
-              onPressed: onPressed,
-              style: FilledButton.styleFrom(
-                backgroundColor: backgroundColor,
-                foregroundColor: foregroundColor,
-                padding: EdgeInsets.symmetric(
-                  horizontal: _getHorizontalPadding(size),
-                  vertical: DesignTokens.space('sm'),
+              )
+            : FilledButton(
+                onPressed: onPressed,
+                style: FilledButton.styleFrom(
+                  backgroundColor: backgroundColor,
+                  foregroundColor: foregroundColor,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: _getHorizontalPadding(size),
+                    vertical: DesignTokens.space('sm'),
+                  ),
+                  textStyle: _getTextStyle(context, size),
                 ),
-                textStyle: _getTextStyle(context, size),
+                child: child,
               ),
-              child: child,
-            ),
       ),
     );
   }
@@ -655,6 +656,7 @@ class FinancialButton extends StatelessWidget {
 }
 
 enum ButtonSize { small, medium, large }
+
 enum FinancialButtonType { income, expense }
 
 /// 📊 PROGRESS INDICATORS
@@ -682,7 +684,7 @@ class FinancialProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final financial = context.financial;
     final progress = total > 0 ? (value / total).clamp(0.0, 1.0) : 0.0;
-    
+
     Color progressColor;
     switch (financialContext) {
       case FinancialContext.income:
@@ -711,9 +713,9 @@ class FinancialProgressBar extends StatelessWidget {
               Text(
                 '${(progress * 100).toStringAsFixed(0)}%',
                 style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                  color: progressColor,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: progressColor,
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
             ],
           ),
@@ -786,11 +788,11 @@ class CategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final financial = context.financial;
-    
+
     Color backgroundColor = DesignTokens.color('surfaceContainer');
     Color textColor = Theme.of(context).colorScheme.onSurface;
     Color borderColor = Theme.of(context).colorScheme.outline;
-    
+
     if (selected) {
       backgroundColor = DesignTokens.color('primaryContainer');
       textColor = DesignTokens.color('onPrimaryContainer');
@@ -815,7 +817,7 @@ class CategoryChip extends StatelessWidget {
     EdgeInsets padding;
     TextStyle textStyle;
     double iconSize;
-    
+
     switch (size) {
       case ChipSize.small:
         padding = EdgeInsets.symmetric(
@@ -869,9 +871,12 @@ class CategoryChip extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: chip,
+      return Semantics(
+        button: true,
+        child: GestureDetector(
+          onTap: onTap,
+          child: chip,
+        ),
       );
     }
 
@@ -987,7 +992,7 @@ class ExpandTransition extends StatelessWidget {
 
 class VSpace extends StatelessWidget {
   const VSpace(this.space, {super.key});
-  
+
   final String space;
 
   @override
@@ -998,7 +1003,7 @@ class VSpace extends StatelessWidget {
 
 class HSpace extends StatelessWidget {
   const HSpace(this.space, {super.key});
-  
+
   final String space;
 
   @override
@@ -1055,7 +1060,7 @@ class ResponsiveValue<T> extends StatelessWidget {
       tablet: tablet,
       desktop: desktop,
     );
-    
+
     return builder(value);
   }
 }
