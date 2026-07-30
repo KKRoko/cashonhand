@@ -38,8 +38,8 @@
       "column": "done",
       "priority": "low",
       "createdAt": "2026-05-27",
-      "updatedAt": "2026-05-27",
-      "notes": "Updated 2026-05-27 to reflect all current routes defined in app.dart."
+      "updatedAt": "2026-07-30",
+      "notes": "Written 2026-05-27 but never committed until 2026-07-30 (commit 9d833f2) — see card-011. Rewrote as the canonical registry of route name strings; removed the dead static routes map and its unused screen imports since routing goes entirely through app.dart's onGenerateRoute switch."
     },
     {
       "id": "card-005",
@@ -68,8 +68,8 @@
       "column": "done",
       "priority": "high",
       "createdAt": "2026-06-02",
-      "updatedAt": "2026-06-02",
-      "notes": "Done 2026-06-02. Added tooltips to 23 IconButtons across 13 files (3 already had tooltips). Verified zero missing with Python regex scan."
+      "updatedAt": "2026-07-30",
+      "notes": "Written 2026-06-02 but never committed until 2026-07-30 (commit 27ab24c, combined with card-009's Semantics work) — see card-011. Added tooltips to 23 IconButtons across 13 files (3 already had tooltips). Verified zero missing with Python regex scan."
     },
     {
       "id": "card-008",
@@ -88,8 +88,8 @@
       "column": "done",
       "priority": "medium",
       "createdAt": "2026-06-02",
-      "updatedAt": "2026-06-02",
-      "notes": "Done 2026-06-02. Wrapped 8 GestureDetectors with Semantics: 3 toggle buttons (budget_screen, surplus_allocation_screen, budget_analytics_screen) got Semantics(button:true, selected:isSelected); surplus card got Semantics(button:true, label:'...', excludeSemantics:true, onTap:...); 2 dismiss overlays (streak_celebration_widget, achievement_celebration_overlay) got Semantics(button:true, label:'Dismiss'); long-press progress bar in calendar_widget got Semantics(onLongPressHint:'Configure progress threshold'); tappable chip in cash_components got Semantics(button:true). Fixed Image.asset in goal_integration_onboarding with semanticLabel:'Cash on Hand app logo'. Skipped 3 infrastructure GestureDetectors (keyboard dismiss, pan tracking, RawGestureDetector). Skipped MergeSemantics — InkWell already merges, goal_list_item already has comprehensive Semantics, non-interactive cards don't need it. Decorative Icon() without semanticLabel is already excluded from semantic tree by Flutter. Phase 4: section headings (Semantics(header:true))."
+      "updatedAt": "2026-07-30",
+      "notes": "Written 2026-06-02 but never committed until 2026-07-30 (commit 27ab24c, combined with card-007's tooltip work) — see card-011. Wrapped 8 GestureDetectors with Semantics: 3 toggle buttons (budget_screen, surplus_allocation_screen, budget_analytics_screen) got Semantics(button:true, selected:isSelected); surplus card got Semantics(button:true, label:'...', excludeSemantics:true, onTap:...); 2 dismiss overlays (streak_celebration_widget, achievement_celebration_overlay) got Semantics(button:true, label:'Dismiss'); long-press progress bar in calendar_widget got Semantics(onLongPressHint:'Configure progress threshold'); tappable chip in cash_components got Semantics(button:true). Fixed Image.asset in goal_integration_onboarding with semanticLabel:'Cash on Hand app logo'. Skipped 3 infrastructure GestureDetectors (keyboard dismiss, pan tracking, RawGestureDetector). Skipped MergeSemantics — InkWell already merges, goal_list_item already has comprehensive Semantics, non-interactive cards don't need it. Decorative Icon() without semanticLabel is already excluded from semantic tree by Flutter. Phase 4: section headings (Semantics(header:true))."
     },
     {
       "id": "card-010",
@@ -105,11 +105,11 @@
       "id": "card-011",
       "title": "Board falsely marked routes fix and accessibility work as done — never committed",
       "description": "While investigating an unrelated pending diff (26 modified files, uncommitted), discovered that card-004's routes-xxx.dart fix and card-007/card-009's accessibility work (IconButton tooltips, Semantics wrappers) were never actually committed to git, despite the board marking them 'done' back in May/June 2026. Confirmed via `git log -S` that the tooltip strings and the routes rewrite have zero matching commits anywhere in history. The real work has been sitting uncommitted in the working tree, mixed together with an unrelated dart-format pass, for ~2 months.",
-      "column": "backlog",
+      "column": "done",
       "priority": "high",
       "createdAt": "2026-07-30",
       "updatedAt": "2026-07-30",
-      "notes": "User wants to address this after shipping the paywall. When tackled: the diff needs to be split (not committed as one bundle) — routes-xxx.dart rewrite, accessibility tooltips/Semantics, and the leftover dart-format-only changes are three separate concerns and should be three separate commits (git add -p per file, since some files mix formatting with real accessibility additions on the same lines). Once committed, correct card-004/card-007/card-009's notes to reflect the actual commit dates instead of the original (inaccurate) May/June 'done' dates."
+      "notes": "Resolved 2026-07-30. Split into three commits and pushed to origin/production-prep (5b181f6): 9d833f2 (routes-xxx.dart fix), 27ab24c (accessibility tooltips/Semantics — card-007 + card-009), 5b181f6 (remaining pure dart-format-only files: budget_settings_screen, budget_setup_screen, add_edit_event_dialog, manage_categories_screen, transactions_screen). Note: full hunk-level separation of formatting from accessibility wasn't achievable in every file (some tooltip/Semantics additions shared a hunk with the formatter's line-wrapping) — disclosed in the 27ab24c commit message rather than hidden. card-004/card-007/card-009 notes corrected to reflect actual commit dates."
     }
   ]
 }
