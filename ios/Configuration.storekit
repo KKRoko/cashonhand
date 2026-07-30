@@ -110,7 +110,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.cashonhand.premium.annually",
+          "productID" : "com.cashonhand.premium.annual",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Premium Annual",
           "subscriptionGroupID" : "22270636",

@@ -32,7 +32,7 @@ class SubscriptionPlan {
   final String? savingsLabel;
 
   static const monthlyProductId = 'com.cashonhand.premium.monthly';
-  static const annualProductId = 'com.cashonhand.premium.annually';
+  static const annualProductId = 'com.cashonhand.premium.annual';
 
   static const monthly = SubscriptionPlan(
     type: SubscriptionPlanType.monthly,
