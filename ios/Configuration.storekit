@@ -79,6 +79,45 @@
           "winbackOffers" : [
 
           ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "billingPlans" : [
+            {
+              "billingPlanType" : "BILLED_UPFRONT",
+              "commitmentDisplayPrice" : "39.99",
+              "displayPrice" : "39.99",
+              "internalID" : "6795588749_BILLED_UPFRONT",
+              "isEnabled" : true
+            }
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6795588749",
+          "introductoryOffers" : [
+
+          ],
+          "localizations" : [
+            {
+              "description" : "Full access, billed yearly & save",
+              "displayName" : "Premium Annual",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.cashonhand.premium.annually",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Annual",
+          "subscriptionGroupID" : "22270636",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
         }
       ]
     }

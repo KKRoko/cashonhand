@@ -121,6 +121,8 @@ Real auto-renewable subscription flow via the `in_app_purchase` plugin (StoreKit
 
 Product IDs (must match App Store Connect / Play Console exactly): `com.cashonhand.premium.monthly`, `com.cashonhand.premium.annually`.
 
+**Local testing (iOS Simulator):** requires `ios/Configuration.storekit`, which must define both products (a fresh checkout with only one product defined will make the other appear unpurchasable). The Runner scheme's Launch Action must reference the file (`StoreKitConfigurationFileReference`) and must build in **Debug**, not Profile/Release — Flutter's AOT step refuses to build profile/release for the simulator. Critically, the StoreKit config is only attached when **Xcode itself** launches the app (Product → Run); `flutter run` launches via `simctl launch`, which bypasses Xcode's launcher and never attaches the local config, so purchases silently fail against the real store instead.
+
 ---
 
 ## Data Flow
