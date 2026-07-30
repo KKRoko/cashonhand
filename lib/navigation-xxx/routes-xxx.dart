@@ -1,24 +1,65 @@
-// lib/navigation/routes.dart (create if it doesn't exist)
+// lib/navigation-xxx/routes-xxx.dart
+//
+// Route name constants for the app.
+//
+// NOTE: The actual route handler switch lives in app.dart (onGenerateRoute).
+// This file is the canonical reference for route name strings — import it
+// anywhere you need to push a named route.
+//
+// Bottom nav tabs are managed by MainNavigationScreen's IndexedStack and do
+// not use named route navigation.
 
-import '../ui/achievements/achievement_screen.dart';
-import '../ui/calendar/calendar_screen.dart';
-import '../ui/cash_on_hand/cash_on_hand_screen.dart';
-import '../ui/saving_goals/saving_goals_screen.dart';
+// ignore_for_file: constant_identifier_names
 
+/// Central registry of all named route strings used in the app.
 class AppRoutes {
-  // Existing routes
+  AppRoutes._();
+
+  // ---------------------------------------------------------------------------
+  // Bottom navigation tabs (IndexedStack — not navigated via named routes)
+  // ---------------------------------------------------------------------------
+
+  /// Tab 0 — Cash on Hand dashboard
   static const cashOnHand = '/cashOnHand';
-  static const achievements = '/achievements';
-  static const calendar = '/calendar';
-  
-  // New route
+
+  /// Tab 1 — Saving Goals list
   static const savingGoals = '/savingGoals';
 
-  static final routes = {
-    cashOnHand: (context) => const CashOnHandScreen(),
-    achievements: (context) => const AchievementsScreen(),
-    calendar: (context) => const CalendarScreen(),
-    savingGoals: (context) => const SavingGoalsScreen(),
-  };
-}
+  /// Tab 2 — Calendar
+  static const calendar = '/calendar';
 
+  /// Tab 3 — Budget
+  static const budget = '/budget';
+
+  /// Tab 4 — Insights / Suggestions
+  static const suggestions = '/suggestions';
+
+  // ---------------------------------------------------------------------------
+  // Named routes (pushed via Navigator.pushNamed)
+  // ---------------------------------------------------------------------------
+
+  /// Full transaction history
+  static const transactions = '/transactions';
+
+  /// Achievements list and progress
+  static const achievements = '/achievements';
+
+  /// Auto-allocation rules management
+  static const allocationRules = '/allocationRules';
+
+  /// Round-up behaviour configuration
+  static const roundUpSettings = '/roundUpSettings';
+
+  /// Round-up allocation history
+  static const roundUpHistory = '/roundUpHistory';
+
+  /// App settings (theme, preferences)
+  static const settings = '/settings';
+
+  // ---------------------------------------------------------------------------
+  // Dev-only routes
+  // ---------------------------------------------------------------------------
+
+  /// In-app architecture viewer — dev only, not linked from nav
+  static const architecture = '/architecture';
+}
