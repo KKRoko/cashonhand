@@ -11,7 +11,7 @@ import '../../data/database/database.dart';
 
 class TransactionsScreen extends StatefulWidget {
   static const routeName = '/transactions';
-  
+
   const TransactionsScreen({super.key});
 
   @override
@@ -33,17 +33,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   Future<void> _loadAllTransactions() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final eventNotifier = Provider.of<EventNotifier>(context, listen: false);
       final currentYear = DateTime.now().year;
-      
+
       // Get all events from the current year
       final allEvents = eventNotifier.getEventsForDateRange(
         DateTime(currentYear, 1, 1),
         DateTime(currentYear, 12, 31),
       );
-      
+
       // Sort by date (most recent first), then by creation time
       final sortedEvents = allEvents.toList()
         ..sort((a, b) {
@@ -53,7 +53,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           }
           return b.createdAt.compareTo(a.createdAt);
         });
-      
+
       setState(() {
         _allTransactions = sortedEvents;
         _filteredTransactions = sortedEvents;
@@ -79,13 +79,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         } else if (_filterType == 'expense') {
           matchesType = !transaction.isPositiveCashflow;
         }
-        
+
         // Filter by search query
         bool matchesSearch = true;
         if (_searchQuery.isNotEmpty) {
-          matchesSearch = transaction.title.toLowerCase().contains(_searchQuery.toLowerCase());
+          matchesSearch = transaction.title
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
         }
-        
+
         return matchesType && matchesSearch;
       }).toList();
     });
@@ -105,9 +107,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final transactionDay = DateTime(date.year, date.month, date.day);
-    
+
     final difference = today.difference(transactionDay).inDays;
-    
+
     if (difference == 0) {
       return 'Today';
     } else if (difference == 1) {
@@ -132,9 +134,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             fontWeight: FontWeight.w600,
           ),
           decoration: InputDecoration(
-            hintText: 'Search transactions...',
+            labelText: 'Search transactions',
+            hintText: 'e.g. Coffee, Groceries',
             hintStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withOpacity(0.5),
             ),
             prefixIcon: Icon(
               Icons.search,
@@ -144,11 +150,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             border: OutlineInputBorder(
               borderRadius: DesignTokens.radius('md'),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.outline),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: DesignTokens.radius('md'),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+              borderSide:
+                  BorderSide(color: Theme.of(context).colorScheme.outline),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: DesignTokens.radius('md'),
@@ -219,8 +227,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   Widget _buildTransactionItem(Event transaction) {
     return CashCard(
-      financialContext: transaction.isPositiveCashflow 
-          ? FinancialContext.income 
+      financialContext: transaction.isPositiveCashflow
+          ? FinancialContext.income
           : FinancialContext.expense,
       child: Padding(
         padding: EdgeInsets.all(DesignTokens.space('md')),
@@ -235,11 +243,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     transaction.title,
                     styleToken: 'titleSmall',
                     style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Theme.of(context).colorScheme.onSurface,
-                    ),
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurface,
+                        ),
                     maxLines: 2,
                   ),
                 ),
@@ -256,10 +264,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             Row(
               children: [
                 Icon(
-                  transaction.isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
+                  transaction.isPositiveCashflow
+                      ? Icons.trending_up
+                      : Icons.trending_down,
                   size: 16,
-                  color: transaction.isPositiveCashflow 
-                      ? DesignTokens.color('income') 
+                  color: transaction.isPositiveCashflow
+                      ? DesignTokens.color('income')
                       : DesignTokens.color('expense'),
                 ),
                 HSpace('xs'),
@@ -271,8 +281,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                         snapshot.data ?? 'Loading...',
                         styleToken: 'bodyMedium',
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
                       );
                     },
                   ),
@@ -281,8 +293,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   _formatDate(transaction.dateTime),
                   styleToken: 'bodySmall',
                   style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ],
             ),
@@ -301,9 +313,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     'Recurring',
                     styleToken: 'bodySmall',
                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
                   ),
                 ],
               ),
@@ -342,10 +354,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                           ResponsiveText(
                             'Total: ',
                             styleToken: 'bodyMedium',
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                       ],
                     ),
@@ -360,26 +376,39 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                   Icon(
                                     Icons.receipt_long_outlined,
                                     size: 64,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                                   VSpace('md'),
                                   ResponsiveText(
                                     'No transactions found',
                                     styleToken: 'titleMedium',
-                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
                                     textAlign: TextAlign.center,
                                   ),
                                   VSpace('sm'),
                                   ResponsiveText(
-                                    _searchQuery.isNotEmpty || _filterType != 'all'
+                                    _searchQuery.isNotEmpty ||
+                                            _filterType != 'all'
                                         ? 'Try adjusting your search or filters'
                                         : 'Start adding transactions to see them here',
                                     styleToken: 'bodyMedium',
-                                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium!
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -392,7 +421,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                   padding: EdgeInsets.only(
                                     bottom: DesignTokens.space('md'),
                                   ),
-                                  child: _buildTransactionItem(_filteredTransactions[index]),
+                                  child: _buildTransactionItem(
+                                      _filteredTransactions[index]),
                                 );
                               },
                             ),

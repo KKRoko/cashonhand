@@ -49,7 +49,7 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   late RepeatOption _repeatOption;
   late DateTime selectedDate;
   CustomRecurrence? _customRecurrence;
-  
+
   // UI state
   bool _showAmountError = false;
   bool _showTitleError = false;
@@ -57,10 +57,10 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   bool _isBasicExpanded = false;
   bool _showCategorySelector = false;
   bool _isRecurrenceExpanded = false;
-  
+
   // Goal allocation state
   List<GoalAllocation> _goalAllocations = [];
-  
+
   // Smart categorization state
   SmartCategorizationResult? _smartSuggestion;
   bool _isSmartSuggestionActive = false;
@@ -73,12 +73,12 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     _smartCategorizationService = getIt<SmartCategorizationService>();
     _initializeControllers();
     _initializeState();
-    
+
     // Load existing allocations if editing an event
     if (widget.event != null) {
       _loadExistingAllocations();
     }
-    
+
     // Calculate initial first occurrence text
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateFirstOccurrenceText();
@@ -88,12 +88,13 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
 
   void _initializeControllers() {
     _titleController = TextEditingController(text: widget.event?.title ?? '');
-    _amountController = TextEditingController(text: widget.event?.amount.toString() ?? '');
-    _frequencyController = TextEditingController(text: widget.event?.customRecurrence?.frequency.toString() ?? '1');
+    _amountController =
+        TextEditingController(text: widget.event?.amount.toString() ?? '');
+    _frequencyController = TextEditingController(
+        text: widget.event?.customRecurrence?.frequency.toString() ?? '1');
     _dayOfMonthController = TextEditingController(
-      text: widget.event?.customRecurrence?.dayOfMonth?.toString() ?? 
-            widget.selectedDay.day.toString()
-    );
+        text: widget.event?.customRecurrence?.dayOfMonth?.toString() ??
+            widget.selectedDay.day.toString());
   }
 
   void _initializeState() {
@@ -111,8 +112,9 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       _selectedCategory = null;
       _userHasSelectedCategory = false;
     }
-    
-    _isPositiveCashflow = widget.event?.isPositiveCashflow ?? widget.isPositiveCashflow;
+
+    _isPositiveCashflow =
+        widget.event?.isPositiveCashflow ?? widget.isPositiveCashflow;
     _repeatOption = widget.event?.repeatOption ?? RepeatOption.today;
     _customRecurrence = widget.event?.customRecurrence;
     selectedDate = widget.event?.dateTime ?? widget.selectedDay;
@@ -130,32 +132,36 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   // Load existing goal allocations when editing an event
   Future<void> _loadExistingAllocations() async {
     if (widget.event?.id == null) return;
-    
+
     try {
-      print('🔍 DEBUG: Loading existing allocations for event ID: ${widget.event!.id}');
+      print(
+          '🔍 DEBUG: Loading existing allocations for event ID: ${widget.event!.id}');
       final database = getIt<Database>();
-      final allocations = await database.getAllocationsForEvent(widget.event!.id!);
-      
+      final allocations =
+          await database.getAllocationsForEvent(widget.event!.id!);
+
       print('🔍 DEBUG: Found ${allocations.length} existing allocations');
-      
+
       // Convert database allocations to domain model
-      final goalAllocations = allocations.map((allocation) => 
-        GoalAllocation(
-          id: allocation.id,
-          eventId: allocation.eventId,
-          goalId: allocation.goalId,
-          allocationAmount: allocation.allocationAmount,
-          allocationType: allocation.allocationType,
-        )
-      ).toList();
-      
+      final goalAllocations = allocations
+          .map((allocation) => GoalAllocation(
+                id: allocation.id,
+                eventId: allocation.eventId,
+                goalId: allocation.goalId,
+                allocationAmount: allocation.allocationAmount,
+                allocationType: allocation.allocationType,
+              ))
+          .toList();
+
       // Update the state with existing allocations
       if (mounted) {
         setState(() {
           _goalAllocations = goalAllocations;
-          print('🔍 DEBUG: Set ${_goalAllocations.length} allocations in state');
+          print(
+              '🔍 DEBUG: Set ${_goalAllocations.length} allocations in state');
           for (final allocation in _goalAllocations) {
-            print('  - Goal ${allocation.goalId}: \$${allocation.allocationAmount}');
+            print(
+                '  - Goal ${allocation.goalId}: \$${allocation.allocationAmount}');
           }
         });
       }
@@ -182,11 +188,11 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
 
   void _handleRepeatOptionSelected(RepeatOption option) {
     if (option == _repeatOption) return;
-    
+
     setState(() {
       _repeatOption = option;
       final frequency = int.tryParse(_frequencyController.text) ?? 1;
-      
+
       if (option == RepeatOption.today) {
         _customRecurrence = null;
       } else if (option == RepeatOption.monthly) {
@@ -227,41 +233,42 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     }
 
     DateTime adjustedDate = selectedDate;
-    
+
     if (_repeatOption == RepeatOption.weekly && _customRecurrence != null) {
       final selectedDayIndices = _customRecurrence!.selectedDayIndices;
       if (selectedDayIndices.isNotEmpty) {
         int currentWeekdayIndex = selectedDate.weekday % 7;
-        bool todayIsSelectedDay = selectedDayIndices.contains(currentWeekdayIndex);
-        
+        bool todayIsSelectedDay =
+            selectedDayIndices.contains(currentWeekdayIndex);
+
         if (!todayIsSelectedDay) {
           int nextDayIndex = selectedDayIndices.firstWhere(
-            (dayIndex) => dayIndex > currentWeekdayIndex,
-            orElse: () => selectedDayIndices.first
-          );
-          
+              (dayIndex) => dayIndex > currentWeekdayIndex,
+              orElse: () => selectedDayIndices.first);
+
           int daysUntilNext;
           if (nextDayIndex > currentWeekdayIndex) {
             daysUntilNext = nextDayIndex - currentWeekdayIndex;
           } else {
             daysUntilNext = 7 - currentWeekdayIndex + nextDayIndex;
           }
-          
+
           adjustedDate = selectedDate.add(Duration(days: daysUntilNext));
         }
       }
-    } else if (_repeatOption == RepeatOption.monthly && _customRecurrence != null) {
+    } else if (_repeatOption == RepeatOption.monthly &&
+        _customRecurrence != null) {
       if (_customRecurrence!.repeatAtEndOfMonth) {
         adjustedDate = EventDateUtils.getEndOfMonth(selectedDate);
       } else {
         adjustedDate = selectedDate;
       }
     }
-    
+
     setState(() {
       final now = DateTime.now();
-      if (adjustedDate.year == now.year && 
-          adjustedDate.month == now.month && 
+      if (adjustedDate.year == now.year &&
+          adjustedDate.month == now.month &&
           adjustedDate.day == now.day) {
         _firstOccurrenceText = "Starts today";
       } else {
@@ -320,7 +327,8 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
           _isSmartSuggestionActive = true;
         });
 
-        print('✨ Smart suggestion: ${suggestion.suggestedCategory.name} (${suggestion.confidencePercentage} confidence)');
+        print(
+            '✨ Smart suggestion: ${suggestion.suggestedCategory.name} (${suggestion.confidencePercentage} confidence)');
         print('   Reason: ${suggestion.reason}');
       }
     } catch (e) {
@@ -382,13 +390,13 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     print('🐛 selectedDate: $selectedDate');
     print('🐛 _repeatOption: $_repeatOption');
     print('🐛 _customRecurrence: ${_customRecurrence?.toJson()}');
-    
+
     // Validate required fields
     if (_amountController.text.isEmpty || _titleController.text.isEmpty) {
-          setState(() {
-      _showAmountError = _amountController.text.isEmpty;
-      _showTitleError = _titleController.text.isEmpty;
-    });
+      setState(() {
+        _showAmountError = _amountController.text.isEmpty;
+        _showTitleError = _titleController.text.isEmpty;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please fill in all required fields'),
@@ -410,7 +418,7 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     }
 
     // Validate and parse amount
-final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
+    final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     if (parsedAmount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -426,12 +434,13 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
 
     if (_repeatOption != RepeatOption.today) {
       final frequency = int.tryParse(_frequencyController.text) ?? 1;
-      
+
       if (_repeatOption == RepeatOption.weekly) {
         _customRecurrence = CustomRecurrence(
           interval: _repeatOption,
           frequency: frequency,
-          selectedDays: _customRecurrence?.selectedDays ?? List.filled(7, false),
+          selectedDays:
+              _customRecurrence?.selectedDays ?? List.filled(7, false),
           originalDate: selectedDate,
         );
       } else if (_repeatOption == RepeatOption.monthly) {
@@ -443,9 +452,9 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
           useLastDayOfMonth: _customRecurrence?.useLastDayOfMonth ?? false,
         );
 
-           if (_customRecurrence?.repeatAtEndOfMonth == true) {
-        selectedDate = EventDateUtils.getEndOfMonth(selectedDate);
-      }
+        if (_customRecurrence?.repeatAtEndOfMonth == true) {
+          selectedDate = EventDateUtils.getEndOfMonth(selectedDate);
+        }
       } else {
         _customRecurrence = CustomRecurrence(
           interval: _repeatOption,
@@ -455,7 +464,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       }
     }
 
-    print('DEBUG - Final CustomRecurrence before save: ${_customRecurrence?.toJson()}');
+    print(
+        'DEBUG - Final CustomRecurrence before save: ${_customRecurrence?.toJson()}');
 
     if (_repeatOption == RepeatOption.weekly) {
       _customRecurrence = _customRecurrence?.copyWith(
@@ -463,43 +473,42 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       );
     }
 
+    print('🐛 DEBUG - Creating event with dateTime: $selectedDate');
+    print('🐛 DEBUG - Final _customRecurrence: ${_customRecurrence?.toJson()}');
 
-  print('🐛 DEBUG - Creating event with dateTime: $selectedDate');
-  print('🐛 DEBUG - Final _customRecurrence: ${_customRecurrence?.toJson()}');
-  
-  final event = widget.event?.id != null
-      ? Event(
-          id: widget.event!.id,
-          title: _titleController.text,
-          categoryId: _selectedCategoryId,
-          amount: amount,
-          dateTime: selectedDate,
-          repeatOption: _repeatOption,
-          isRecurring: _repeatOption != RepeatOption.today,
-          customRecurrence: _customRecurrence,
-          createdAt: widget.event!.createdAt,
-          updatedAt: DateTime.now(),
-          isYearEndSummary: widget.event!.isYearEndSummary,
-          notes: null,
-        )
-      : Event.create(
-          title: _titleController.text,
-          categoryId: _selectedCategoryId,
-          amount: amount,
-          dateTime: selectedDate,
-          repeatOption: _repeatOption,
-          isRecurring: _repeatOption != RepeatOption.today,
-          customRecurrence: _customRecurrence,
-          notes: null,
-        );
+    final event = widget.event?.id != null
+        ? Event(
+            id: widget.event!.id,
+            title: _titleController.text,
+            categoryId: _selectedCategoryId,
+            amount: amount,
+            dateTime: selectedDate,
+            repeatOption: _repeatOption,
+            isRecurring: _repeatOption != RepeatOption.today,
+            customRecurrence: _customRecurrence,
+            createdAt: widget.event!.createdAt,
+            updatedAt: DateTime.now(),
+            isYearEndSummary: widget.event!.isYearEndSummary,
+            notes: null,
+          )
+        : Event.create(
+            title: _titleController.text,
+            categoryId: _selectedCategoryId,
+            amount: amount,
+            dateTime: selectedDate,
+            repeatOption: _repeatOption,
+            isRecurring: _repeatOption != RepeatOption.today,
+            customRecurrence: _customRecurrence,
+            notes: null,
+          );
 
-  final result = EventCreationResult(
-    event: event,
-    allocations: _goalAllocations,
-  );
-  
-  Navigator.of(context).pop(result);
-}
+    final result = EventCreationResult(
+      event: event,
+      allocations: _goalAllocations,
+    );
+
+    Navigator.of(context).pop(result);
+  }
 
   Widget _buildAmountCard() {
     return Column(
@@ -507,100 +516,102 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       children: [
         // Amount input field
         TextField(
-              controller: _amountController,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          controller: _amountController,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: _isPositiveCashflow
                     ? DesignTokens.color('income')
                     : DesignTokens.color('expense'),
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                CurrencyInputFormatter(),
-              ],
-              decoration: InputDecoration(
-                hintText: '0.00',
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                border: OutlineInputBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                errorText:
-                    _showAmountError ? 'Amount is required' : null,
-              ),
-              onChanged: (value) {
-                setState(() {
-                  // Clear error when user types
-                  if (_showAmountError) {
-                    _showAmountError = false;
-                  }
-                  // Trigger rebuild to show/hide goal allocation section
-                });
-              },
-            ),
-            const SizedBox(height: 16), // Padding between amount and title
-            // Title/description input field
-            TextField(
-              controller: _titleController,
-              textCapitalization: TextCapitalization.sentences,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-              decoration: InputDecoration(
-                hintText: "What's this for?",
-                hintStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
-                ),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                border: OutlineInputBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: DesignTokens.borderRadius['md']!,
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                errorText: _showTitleError ? 'Description is required' : null,
-              ),
-              onChanged: (value) {
-                // Clear error when user types
-                if (_showTitleError) {
-                  setState(() => _showTitleError = false);
-                }
-                // Trigger smart categorization if no category selected
-                _suggestCategoryFromTitle();
-              },
-            ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            CurrencyInputFormatter(),
           ],
+          decoration: InputDecoration(
+            labelText: 'Amount',
+            hintText: '0.00',
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            border: OutlineInputBorder(
+              borderRadius: DesignTokens.borderRadius['md']!,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: DesignTokens.borderRadius['md']!,
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: DesignTokens.borderRadius['md']!,
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+            errorText: _showAmountError ? 'Amount is required' : null,
+          ),
+          onChanged: (value) {
+            setState(() {
+              // Clear error when user types
+              if (_showAmountError) {
+                _showAmountError = false;
+              }
+              // Trigger rebuild to show/hide goal allocation section
+            });
+          },
+        ),
+        const SizedBox(height: 16), // Padding between amount and title
+        // Title/description input field
+        TextField(
+          controller: _titleController,
+          textCapitalization: TextCapitalization.sentences,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(
+            labelText: 'Description',
+            hintText: "e.g. Coffee, Rent",
+            hintStyle: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurfaceVariant
+                  .withOpacity(0.5),
+            ),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            border: OutlineInputBorder(
+              borderRadius: DesignTokens.borderRadius['md']!,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: DesignTokens.borderRadius['md']!,
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: DesignTokens.borderRadius['md']!,
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+            errorText: _showTitleError ? 'Description is required' : null,
+          ),
+          onChanged: (value) {
+            // Clear error when user types
+            if (_showTitleError) {
+              setState(() => _showTitleError = false);
+            }
+            // Trigger smart categorization if no category selected
+            _suggestCategoryFromTitle();
+          },
+        ),
+      ],
     );
   }
 
-
-    Widget _buildBasicDetailsSection() {
+  Widget _buildBasicDetailsSection() {
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -621,7 +632,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 20, color: Theme.of(context).colorScheme.onSurface),
+                  Icon(Icons.calendar_today,
+                      size: 20, color: Theme.of(context).colorScheme.onSurface),
                   const SizedBox(width: 8),
                   const Text('When?',
                       style: TextStyle(
@@ -634,7 +646,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   const SizedBox(width: 8),
                   RotatedBox(
                     quarterTurns: _isBasicExpanded ? 2 : 0,
-                    child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onSurface),
+                    child: Icon(Icons.keyboard_arrow_down,
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -652,8 +665,10 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                     child: Theme(
                       data: Theme.of(context).copyWith(
                         colorScheme: Theme.of(context).colorScheme.copyWith(
-                          primary: _isPositiveCashflow ? DesignTokens.color('income') : DesignTokens.color('expense'),
-                        ),
+                              primary: _isPositiveCashflow
+                                  ? DesignTokens.color('income')
+                                  : DesignTokens.color('expense'),
+                            ),
                       ),
                       child: CalendarDatePicker(
                         initialDate: selectedDate,
@@ -665,8 +680,10 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                             selectedDate = newDate;
                             // Update day of month controller if it exists
                             if (_repeatOption == RepeatOption.monthly &&
-                                !(_customRecurrence?.repeatAtEndOfMonth ?? false)) {
-                              _dayOfMonthController.text = newDate.day.toString();
+                                !(_customRecurrence?.repeatAtEndOfMonth ??
+                                    false)) {
+                              _dayOfMonthController.text =
+                                  newDate.day.toString();
                               _updateMonthlyRecurrence(newDate.day);
                             }
                           });
@@ -685,7 +702,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     );
   }
 
-    Widget _buildRepeatOptionChip(RepeatOption option, String label) {
+  Widget _buildRepeatOptionChip(RepeatOption option, String label) {
     final isSelected = _repeatOption == option;
     return ChoiceChip(
       label: Text(label),
@@ -721,8 +738,9 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                     : List.filled(7, false),
               );
             }
-                        // Add debug prints here
-            print('DEBUG - Custom Recurrence set to: ${_customRecurrence?.toJson()}');
+            // Add debug prints here
+            print(
+                'DEBUG - Custom Recurrence set to: ${_customRecurrence?.toJson()}');
             print('DEBUG - Frequency: ${_customRecurrence?.frequency}');
           });
         }
@@ -730,52 +748,58 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     );
   }
 
-
   Widget _buildFrequencySelector() {
-  return Row(
-    children: [
-      Text('Repeat every', style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurface,
-        fontSize: 16,
-      )),
-      const SizedBox(width: 8),
-      SizedBox(
-        width: 60,
-        child: TextField(
-          controller: _frequencyController,  // Use the existing controller
-          keyboardType: TextInputType.number,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+    return Row(
+      children: [
+        Text('Repeat every',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 16,
+            )),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 60,
+          child: TextField(
+            controller: _frequencyController, // Use the existing controller
+            keyboardType: TextInputType.number,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            ),
+            onChanged: (value) {
+              final frequency = int.tryParse(value) ?? 1;
+              setState(() {
+                _customRecurrence = (_customRecurrence ??
+                        CustomRecurrence(
+                          interval: _repeatOption,
+                          frequency: frequency,
+                          selectedDays: _repeatOption == RepeatOption.weekly
+                              ? List.generate(7,
+                                  (index) => index == selectedDate.weekday % 7)
+                              : List.filled(7, false),
+                        ))
+                    .copyWith(frequency: frequency); // Add copyWith here
+
+                print('DEBUG - Updated frequency to: $frequency');
+                print(
+                    'DEBUG - Custom Recurrence: ${_customRecurrence?.toJson()}');
+              });
+              _updateFirstOccurrenceText();
+            },
           ),
-          onChanged: (value) {
-            final frequency = int.tryParse(value) ?? 1;
-            setState(() {
-              _customRecurrence = (_customRecurrence ?? CustomRecurrence(
-                interval: _repeatOption,
-                frequency: frequency,
-                selectedDays: _repeatOption == RepeatOption.weekly
-                    ? List.generate(7, (index) => index == selectedDate.weekday % 7)
-                    : List.filled(7, false),
-              )).copyWith(frequency: frequency);  // Add copyWith here
-                
-              print('DEBUG - Updated frequency to: $frequency');
-              print('DEBUG - Custom Recurrence: ${_customRecurrence?.toJson()}');
-            });
-            _updateFirstOccurrenceText();
-          },
         ),
-      ),
-      const SizedBox(width: 8),
-      Text(_getIntervalLabel(), style: TextStyle(
-        color: Theme.of(context).colorScheme.onSurface,
-        fontSize: 16,
-      )),
-    ],
-  );
-}  
+        const SizedBox(width: 8),
+        Text(_getIntervalLabel(),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 16,
+            )),
+      ],
+    );
+  }
 
   Widget _buildWeeklySelector() {
     print(
@@ -786,20 +810,23 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        Text('Repeat on:', style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface)),
+        Text('Repeat on:',
+            style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(7, (index) {
             final isSelected = _customRecurrence?.selectedDays[index] ?? false;
             return InkWell(
-            onTap: () {
+              onTap: () {
                 FocusScope.of(context).unfocus();
                 // Create new list of all false values
                 final newSelectedDays = List.filled(7, false);
                 // Set only the tapped day to true
                 newSelectedDays[index] = true;
-                
+
                 setState(() {
                   _customRecurrence = _customRecurrence?.copyWith(
                         selectedDays: newSelectedDays,
@@ -810,7 +837,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                         selectedDays: newSelectedDays,
                       );
                 });
-                  _updateFirstOccurrenceText(); 
+                _updateFirstOccurrenceText();
               },
               child: Container(
                 width: 36,
@@ -830,7 +857,9 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   child: Text(
                     weekDays[index],
                     style: TextStyle(
-                      color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -843,7 +872,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     );
   }
 
-    Widget _buildSimplifiedMonthlySelector() {
+  Widget _buildSimplifiedMonthlySelector() {
     final isEndOfMonth = _customRecurrence?.repeatAtEndOfMonth ?? false;
 
     return Column(
@@ -860,40 +889,40 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
             title: const Text('Repeat at end of month'),
             value: isEndOfMonth,
             onChanged: (value) {
-            FocusScope.of(context).unfocus();
-            setState(() {
-              if (value ?? false) {
-                // When enabling end of month, immediately adjust the date
-                final endOfMonth = EventDateUtils.getEndOfMonth(selectedDate);
-                selectedDate = endOfMonth; // Update the selected date
-                
-                _customRecurrence = (_customRecurrence ??
-                        const CustomRecurrence(
-                          interval: RepeatOption.monthly,
-                          frequency: 1,
-                        ))
-                    .copyWith(
-                  repeatAtEndOfMonth: true,
-                  useLastDayOfMonth: true,
-                  dayOfMonth: null,
-                );
-              } else {
-                // Disable end of month and set day of month to current date
-                final currentDay = selectedDate.day;
-                _dayOfMonthController.text = currentDay.toString();
-                _customRecurrence = (_customRecurrence ??
-                        const CustomRecurrence(
-                          interval: RepeatOption.monthly,
-                          frequency: 1,
-                        ))
-                    .copyWith(
-                  repeatAtEndOfMonth: false,
-                  useLastDayOfMonth: false,
-                  dayOfMonth: currentDay,
-                );
-              }
-            });
-          },
+              FocusScope.of(context).unfocus();
+              setState(() {
+                if (value ?? false) {
+                  // When enabling end of month, immediately adjust the date
+                  final endOfMonth = EventDateUtils.getEndOfMonth(selectedDate);
+                  selectedDate = endOfMonth; // Update the selected date
+
+                  _customRecurrence = (_customRecurrence ??
+                          const CustomRecurrence(
+                            interval: RepeatOption.monthly,
+                            frequency: 1,
+                          ))
+                      .copyWith(
+                    repeatAtEndOfMonth: true,
+                    useLastDayOfMonth: true,
+                    dayOfMonth: null,
+                  );
+                } else {
+                  // Disable end of month and set day of month to current date
+                  final currentDay = selectedDate.day;
+                  _dayOfMonthController.text = currentDay.toString();
+                  _customRecurrence = (_customRecurrence ??
+                          const CustomRecurrence(
+                            interval: RepeatOption.monthly,
+                            frequency: 1,
+                          ))
+                      .copyWith(
+                    repeatAtEndOfMonth: false,
+                    useLastDayOfMonth: false,
+                    dayOfMonth: currentDay,
+                  );
+                }
+              });
+            },
           ),
         ),
         if (!isEndOfMonth) ...[
@@ -919,9 +948,12 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        fillColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                       ),
                       onChanged: (value) {
                         final day = int.tryParse(value);
@@ -948,7 +980,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     );
   }
 
-   Widget _buildRecurrenceSection() {
+  Widget _buildRecurrenceSection() {
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -970,7 +1002,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(Icons.repeat, size: 20, color: Theme.of(context).colorScheme.onSurface),
+                  Icon(Icons.repeat,
+                      size: 20, color: Theme.of(context).colorScheme.onSurface),
                   const SizedBox(width: 8),
                   const Text('Repeat',
                       style: TextStyle(
@@ -981,11 +1014,13 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        _repeatOption == RepeatOption.today 
-                          ? 'One-time'
-                          : (_customRecurrence?.getDescription() ??
-                              _repeatOption.toString().split('.').last),
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        _repeatOption == RepeatOption.today
+                            ? 'One-time'
+                            : (_customRecurrence?.getDescription() ??
+                                _repeatOption.toString().split('.').last),
+                        style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       if (_repeatOption != RepeatOption.today) ...[
                         if (_firstOccurrenceText.isNotEmpty)
@@ -1005,7 +1040,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   const SizedBox(width: 8),
                   RotatedBox(
                     quarterTurns: _isRecurrenceExpanded ? 2 : 0,
-                    child: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onSurface),
+                    child: Icon(Icons.keyboard_arrow_down,
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -1043,7 +1079,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         ],
       ),
     );
-  } 
+  }
 
   Widget _buildActions() {
     // Determine button text based on whether we're adding or editing
@@ -1055,15 +1091,18 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            foregroundColor: !_isPositiveCashflow ? DesignTokens.color('expense') : null,
+            foregroundColor:
+                !_isPositiveCashflow ? DesignTokens.color('expense') : null,
           ),
           child: const Text('Cancel'),
         ),
         const SizedBox(width: 8),
         FilledButton(
-          onPressed: _saveEvent, // Always enabled, validation happens inside _saveEvent
+          onPressed:
+              _saveEvent, // Always enabled, validation happens inside _saveEvent
           style: FilledButton.styleFrom(
-            backgroundColor: !_isPositiveCashflow ? DesignTokens.color('expense') : null,
+            backgroundColor:
+                !_isPositiveCashflow ? DesignTokens.color('expense') : null,
           ),
           child: Text(buttonText),
         ),
@@ -1074,9 +1113,11 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
   Widget _buildGoalAllocationSection() {
     // Only show goal allocation for meaningful amounts and if goals are available
     final amount = CurrencyInputFormatter.parse(_amountController.text) ?? 0.0;
-    print("Debug Goal Allocation: availableGoals.length = ${widget.availableGoals.length}, amount = $amount, amountText = '${_amountController.text}'");
+    print(
+        "Debug Goal Allocation: availableGoals.length = ${widget.availableGoals.length}, amount = $amount, amountText = '${_amountController.text}'");
     if (widget.availableGoals.isEmpty || amount <= 0) {
-      print("Debug: Hiding goal allocation section - goals empty: ${widget.availableGoals.isEmpty}, amount <= 0: ${amount <= 0}");
+      print(
+          "Debug: Hiding goal allocation section - goals empty: ${widget.availableGoals.isEmpty}, amount <= 0: ${amount <= 0}");
       return const SizedBox.shrink();
     }
 
@@ -1094,7 +1135,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
   }
 
   Widget _buildCategorySection() {
-    final categoryType = _isPositiveCashflow ? CategoryType.income : CategoryType.expense;
+    final categoryType =
+        _isPositiveCashflow ? CategoryType.income : CategoryType.expense;
 
     return Card(
       elevation: 0,
@@ -1103,8 +1145,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
         borderRadius: DesignTokens.borderRadius['md']!,
         side: BorderSide(
           color: _isSmartSuggestionActive
-            ? DesignTokens.color('info')
-            : Theme.of(context).colorScheme.outline,
+              ? DesignTokens.color('info')
+              : Theme.of(context).colorScheme.outline,
           width: _isSmartSuggestionActive ? 2 : 1,
         ),
       ),
@@ -1121,9 +1163,13 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               child: Row(
                 children: [
                   Icon(
-                    _isPositiveCashflow ? Icons.trending_up : Icons.trending_down,
+                    _isPositiveCashflow
+                        ? Icons.trending_up
+                        : Icons.trending_down,
                     size: 20,
-                    color: _isPositiveCashflow ? DesignTokens.color('income') : DesignTokens.color('expense'),
+                    color: _isPositiveCashflow
+                        ? DesignTokens.color('income')
+                        : DesignTokens.color('expense'),
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -1133,11 +1179,12 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                     ),
                   ),
                   const Spacer(),
-                  
+
                   // Smart suggestion indicator
                   if (_isSmartSuggestionActive) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: DesignTokens.color('info').withOpacity(0.1),
                         borderRadius: DesignTokens.borderRadius['sm']!,
@@ -1145,7 +1192,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.auto_awesome, size: 12, color: DesignTokens.color('info')),
+                          Icon(Icons.auto_awesome,
+                              size: 12, color: DesignTokens.color('info')),
                           const SizedBox(width: 2),
                           Text(
                             'Smart',
@@ -1160,7 +1208,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                     ),
                     const SizedBox(width: 8),
                   ],
-                  
+
                   // Category display
                   if (_selectedCategory != null) ...[
                     if (_selectedCategory!.icon?.isNotEmpty == true)
@@ -1174,8 +1222,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                         _selectedCategory!.name,
                         style: TextStyle(
                           color: _isSmartSuggestionActive
-                            ? DesignTokens.color('info')
-                            : Theme.of(context).colorScheme.onSurface,
+                              ? DesignTokens.color('info')
+                              : Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -1192,7 +1240,7 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               ),
             ),
           ),
-          
+
           // Smart suggestion details and controls
           if (_isSmartSuggestionActive && _smartSuggestion != null) ...[
             const Divider(height: 1),
@@ -1200,7 +1248,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               padding: const EdgeInsets.all(12.0),
               child: Row(
                 children: [
-                  Icon(Icons.lightbulb_outline, size: 16, color: DesignTokens.color('info')),
+                  Icon(Icons.lightbulb_outline,
+                      size: 16, color: DesignTokens.color('info')),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1216,15 +1265,18 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
               ),
             ),
           ],
-          
+
           // Smart suggest button for manual requests
-          if (!_isSmartSuggestionActive && _userHasSelectedCategory && _titleController.text.isNotEmpty) ...[
+          if (!_isSmartSuggestionActive &&
+              _userHasSelectedCategory &&
+              _titleController.text.isNotEmpty) ...[
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextButton.icon(
                 onPressed: _requestSmartSuggestion,
-                icon: Icon(Icons.auto_awesome, size: 16, color: DesignTokens.color('info')),
+                icon: Icon(Icons.auto_awesome,
+                    size: 16, color: DesignTokens.color('info')),
                 label: Text(
                   'Get Smart Suggestion',
                   style: TextStyle(
@@ -1233,7 +1285,8 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
                   ),
                 ),
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -1245,83 +1298,85 @@ final parsedAmount = CurrencyInputFormatter.parse(_amountController.text);
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  return Stack(
-    children: [
-      Dialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: DesignTokens.borderRadius['lg']!,
-        ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Dialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: DesignTokens.borderRadius['lg']!,
           ),
-          child: GestureDetector(
-            onTap: () {
-              // Dismiss keyboard when tapping outside text fields
-              FocusScope.of(context).unfocus();
-            },
-            behavior: HitTestBehavior.translucent,
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildAmountCard(),
-                    const SizedBox(height: 16),
-                    _buildBasicDetailsSection(),
-                    const SizedBox(height: 8),
-                    _buildCategorySection(),
-                    const SizedBox(height: 8),
-                    _buildRecurrenceSection(),
-                    const SizedBox(height: 8),
-                    _buildGoalAllocationSection(),
-                    const SizedBox(height: 16),
-                    _buildActions(),
-                  ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+            ),
+            child: GestureDetector(
+              onTap: () {
+                // Dismiss keyboard when tapping outside text fields
+                FocusScope.of(context).unfocus();
+              },
+              behavior: HitTestBehavior.translucent,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildAmountCard(),
+                      const SizedBox(height: 16),
+                      _buildBasicDetailsSection(),
+                      const SizedBox(height: 8),
+                      _buildCategorySection(),
+                      const SizedBox(height: 8),
+                      _buildRecurrenceSection(),
+                      const SizedBox(height: 8),
+                      _buildGoalAllocationSection(),
+                      const SizedBox(height: 16),
+                      _buildActions(),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-      
-      // Category Selector Modal
-      if (_showCategorySelector)
-        Positioned.fill(
-          child: Material(
-            color: Theme.of(context).colorScheme.scrim.withOpacity(0.5),
-            child: Center(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.9,
-                  maxHeight: MediaQuery.of(context).size.height * 0.7,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: DesignTokens.borderRadius['lg']!,
-                ),
-                child: HierarchicalCategorySelector(
-                  categoryType: _isPositiveCashflow ? CategoryType.income : CategoryType.expense,
-                  selectedCategory: _selectedCategory,
-                  onCategorySelected: _onCategoryManuallySelected,
-                  onClose: () {
-                    setState(() {
-                      _showCategorySelector = false;
-                    });
-                  },
+
+        // Category Selector Modal
+        if (_showCategorySelector)
+          Positioned.fill(
+            child: Material(
+              color: Theme.of(context).colorScheme.scrim.withOpacity(0.5),
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.9,
+                    maxHeight: MediaQuery.of(context).size.height * 0.7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: DesignTokens.borderRadius['lg']!,
+                  ),
+                  child: HierarchicalCategorySelector(
+                    categoryType: _isPositiveCashflow
+                        ? CategoryType.income
+                        : CategoryType.expense,
+                    selectedCategory: _selectedCategory,
+                    onCategorySelected: _onCategoryManuallySelected,
+                    onClose: () {
+                      setState(() {
+                        _showCategorySelector = false;
+                      });
+                    },
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-    ],
-  );
-}
+      ],
+    );
+  }
 }

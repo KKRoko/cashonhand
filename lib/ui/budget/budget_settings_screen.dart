@@ -129,7 +129,8 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final totalPercentage = _needsPercentage + _wantsPercentage + _savingsPercentage;
+    final totalPercentage =
+        _needsPercentage + _wantsPercentage + _savingsPercentage;
 
     return Scaffold(
       appBar: AppBar(
@@ -187,7 +188,8 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _incomeController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 ],
@@ -200,7 +202,8 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   prefixText: '\$ ',
                   prefixStyle: TextStyle(
                     color: Theme.of(context).brightness == Brightness.dark
@@ -209,7 +212,8 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
-                  hintText: 'Enter your monthly income',
+                  labelText: 'Monthly income',
+                  hintText: 'e.g. 5,000.00',
                   hintStyle: TextStyle(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white.withOpacity(0.5)
@@ -232,7 +236,8 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                       width: 2,
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -311,12 +316,15 @@ class _BudgetSettingsScreenState extends State<BudgetSettingsScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: (_hasChanges && _isPercentageValid) ? _handleSave : null,
+                  onPressed:
+                      (_hasChanges && _isPercentageValid) ? _handleSave : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                    disabledBackgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    disabledForegroundColor:
+                        Theme.of(context).colorScheme.onSurfaceVariant,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

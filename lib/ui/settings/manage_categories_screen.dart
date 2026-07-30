@@ -156,7 +156,8 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -209,13 +210,15 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               ),
             ),
             trailing: PopupMenuButton(
-              icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              icon: Icon(Icons.more_vert,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, color: DesignTokens.color('error'), size: 20),
+                      Icon(Icons.delete,
+                          color: DesignTokens.color('error'), size: 20),
                       const SizedBox(width: 12),
                       const Text('Delete'),
                     ],
@@ -244,7 +247,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     final systemCategoriesResult = await _categoryService.getSystemCategories();
     final systemCategories = systemCategoriesResult.fold(
       (failure) => <Category>[],
-      (categories) => categories.where((c) => c.id != 0).toList(), // Filter out any invalid categories
+      (categories) => categories
+          .where((c) => c.id != 0)
+          .toList(), // Filter out any invalid categories
     );
 
     if (!mounted) return;
@@ -254,9 +259,8 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           // Filter parent categories based on selected type
-          final availableParents = systemCategories
-              .where((c) => c.type == selectedType)
-              .toList();
+          final availableParents =
+              systemCategories.where((c) => c.type == selectedType).toList();
 
           // Find parent categories (ones without parentCategoryId)
           // For now, we'll just show all system categories of the selected type
@@ -286,7 +290,8 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                           onChanged: (value) {
                             setDialogState(() {
                               selectedType = value!;
-                              selectedParentId = null; // Reset parent when type changes
+                              selectedParentId =
+                                  null; // Reset parent when type changes
                             });
                           },
                         ),
@@ -299,7 +304,8 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                           onChanged: (value) {
                             setDialogState(() {
                               selectedType = value!;
-                              selectedParentId = null; // Reset parent when type changes
+                              selectedParentId =
+                                  null; // Reset parent when type changes
                             });
                           },
                         ),
@@ -309,14 +315,10 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   const SizedBox(height: 16),
 
                   // Parent Category Selection
-                  const Text(
-                    'Parent Category',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
                   DropdownButtonFormField<int>(
                     value: selectedParentId,
                     decoration: const InputDecoration(
+                      labelText: 'Parent category',
                       border: OutlineInputBorder(),
                       hintText: 'Select a parent category',
                     ),
@@ -341,15 +343,11 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                   const SizedBox(height: 16),
 
                   // Category Name Input
-                  const Text(
-                    'Category Name',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
                   TextFormField(
                     decoration: const InputDecoration(
+                      labelText: 'Category name',
                       border: OutlineInputBorder(),
-                      hintText: 'Enter category name',
+                      hintText: 'e.g. Groceries',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -386,14 +384,16 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                       (failure) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: ${failure.message}')),
+                            SnackBar(
+                                content: Text('Error: ${failure.message}')),
                           );
                         }
                       },
                       (_) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Category created successfully')),
+                            const SnackBar(
+                                content: Text('Category created successfully')),
                           );
                           _loadUserCategories();
                         }
